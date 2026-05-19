@@ -1,0 +1,124 @@
+{
+  "variant": "light",
+  "styles": [
+    {
+      "id": "infrastructure",
+      "geometry": {
+        "fillColor": "#1f1f1f",
+        "strokeColor": "#1f1f1f"
+      },
+      "label": {
+        "textFillColor": "#f2f2f2",
+        "textStrokeColor": "#191919"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork",
+      "geometry": {
+        "fillColor": "#303030",
+        "strokeColor": "#191919",
+        "strokeWidth": 1
+      },
+      "label": {
+        "textFillColor": "#a8a8a8"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.arterial",
+      "geometry": {
+        "fillColor": "#3a3a3a",
+        "strokeColor": "#3a3a3a"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.highway",
+      "geometry": {
+        "fillColor": "#505050",
+        "strokeColor": "#2a2a2a"
+      },
+      "label": {
+        "textFillColor": "#f2f2f2"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.local",
+      "geometry": {
+        "fillColor": "#242424",
+        "strokeColor": "#242424"
+      }
+    },
+    {
+      "id": "infrastructure.transitStation",
+      "label": {
+        "textFillColor": "#bdbdbd"
+      }
+    },
+    {
+      "id": "natural",
+      "geometry": {
+        "fillColor": "#191919"
+      },
+      "label": {
+        "textFillColor": "#f2f2f2",
+        "textStrokeColor": "#191919"
+      }
+    },
+    {
+      "id": "natural.land",
+      "geometry": {
+        "fillColor": "#171717"
+      }
+    },
+    {
+      "id": "natural.water",
+      "geometry": {
+        "fillColor": "#111111"
+      },
+      "label": {
+        "textFillColor": "#777777"
+      }
+    },
+    {
+      "id": "pointOfInterest",
+      "geometry": {
+        "visible": false,
+        "fillColor": "#191919"
+      },
+      "label": {
+        "textFillColor": "#f2f2f2",
+        "textStrokeColor": "#191919"
+      }
+    },
+    {
+      "id": "pointOfInterest.recreation.park",
+      "geometry": {
+        "fillColor": "#161616"
+      },
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "pointOfInterest.service",
+      "geometry": {
+        "visible": false
+      }
+    },
+    {
+      "id": "political",
+      "geometry": {
+        "fillColor": "#191919"
+      },
+      "label": {
+        "textFillColor": "#f2f2f2",
+        "textStrokeColor": "#191919"
+      }
+    },
+    {
+      "id": "political.city",
+      "label": {
+        "textFillColor": "#d8d8d8"
+      }
+    }
+  ]
+}

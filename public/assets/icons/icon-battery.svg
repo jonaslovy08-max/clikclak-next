@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 262.02 262.02">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke: #ccff26;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .cls-2 {
+        stroke: #fff;
+      }
+
+      .cls-3 {
+        stroke: url(#Dégradé_sans_nom_34);
+      }
+    </style>
+    <linearGradient id="Dégradé_sans_nom_34" data-name="Dégradé sans nom 34" x1="103.67" y1="101.67" x2="103.67" y2="146.53" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ccff26"/>
+      <stop offset=".32" stop-color="#ccff28"/>
+      <stop offset=".47" stop-color="#ceff2f"/>
+      <stop offset=".57" stop-color="#d1ff3b"/>
+      <stop offset=".66" stop-color="#d5ff4d"/>
+      <stop offset=".74" stop-color="#daff65"/>
+      <stop offset=".81" stop-color="#e1ff82"/>
+      <stop offset=".88" stop-color="#e9ffa4"/>
+      <stop offset=".94" stop-color="#f3ffcc"/>
+      <stop offset=".99" stop-color="#fdfff7"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+  </defs>
+  <polyline class="cls-1" points="126.81 137.18 134.25 129.74 141.69 137.18"/>
+  <polyline class="cls-1" points="126.81 146.94 134.25 139.49 141.69 146.94"/>
+  <g>
+    <path class="cls-2" d="M100.44,93.24v-18.87c0-2.76,2.24-5,5-5h57.25c2.76,0,5,2.24,5,5v108.59c0,2.76-2.24,5-5,5h-57.25c-2.76,0-5-2.24-5-5v-37.03"/>
+    <line class="cls-2" x1="125.08" y1="177.96" x2="143.05" y2="177.96"/>
+    <line class="cls-2" x1="125.08" y1="79.37" x2="133.03" y2="79.37"/>
+    <line class="cls-2" x1="143.05" y1="79.37" x2="143.05" y2="79.37"/>
+  </g>
+  <rect class="cls-2" x="120.07" y="107.52" width="27.99" height="48.13" rx="2.5" ry="2.5"/>
+  <path class="cls-2" d="M133.38,103.96h1.74c1.38,0,2.5,1.12,2.5,2.5v1.06h-6.74v-1.06c0-1.38,1.12-2.5,2.5-2.5Z"/>
+  <polyline class="cls-3" points="100.48 145.53 113 116.78 103.67 124.1 94.33 131.42 106.85 102.67"/>
+</svg>

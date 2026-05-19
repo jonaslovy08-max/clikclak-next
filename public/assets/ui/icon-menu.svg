@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="smartphones" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 179.43 179.43">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #cf3;
+        stroke-miterlimit: 10;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <line class="cls-1" x1="127.06" y1="82.66" x2="52.37" y2="82.66"/>
+  <line class="cls-1" x1="127.06" y1="96.77" x2="52.37" y2="96.77"/>
+</svg>

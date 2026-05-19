@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 262.02 262.02">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3 {
+        fill: none;
+      }
+
+      .cls-2 {
+        stroke: #fff;
+      }
+
+      .cls-2, .cls-3 {
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .cls-4 {
+        clip-path: url(#clippath-1);
+      }
+
+      .cls-3 {
+        stroke: #cf3;
+      }
+
+      .cls-5 {
+        clip-path: url(#clippath);
+      }
+    </style>
+    <clipPath id="clippath">
+      <path class="cls-1" d="M133.12,101.82l-.12-.28h0c-.22-.51,0-1.1.51-1.33s1.1,0,1.32.51l.14.31-1.84.78Z"/>
+    </clipPath>
+    <clipPath id="clippath-1">
+      <path class="cls-1" d="M126.35,91.52l.3.17c.48.27.66.88.39,1.36-.27.48-.88.66-1.36.39h-.02s-.27-.16-.27-.16l.96-1.75Z"/>
+    </clipPath>
+  </defs>
+  <path class="cls-2" d="M127.75,140.19c-8.93,3.07-19.11,2.34-27.87-2.87-15.8-9.4-20.98-29.83-11.58-45.62,9.4-15.8,29.83-20.98,45.62-11.58,15.8,9.4,20.98,29.83,11.58,45.62"/>
+  <polyline class="cls-3" points="128.07 106.35 134.09 100.33 140.12 106.35"/>
+  <g>
+    <g class="cls-5">
+      <image width="5" height="6" transform="translate(131.01 97.01)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAGCAYAAAAL+1RLAAAACXBIWXMAAAsSAAALEgHS3X78AAAAKElEQVQImWM881/tPwMUmDDeYmRgYGBgYsACUARhurCrhJmDUztMAQDhuAkcE8iv6AAAAABJRU5ErkJggg=="/>
+    </g>
+    <image width="40" height="40" transform="translate(97.01 89.01)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAACXBIWXMAAAsSAAALEgHS3X78AAACn0lEQVRYhc2Wv27TUBSHv3PjpBG8ABNSAaWUAipNX6ILEysLAxIDE3tHxMKGhNiQWNl4C5S0CEFLK0BCDLDwAFUa/xiu3diu4zgpxfdElq6t43u//M4/GwvYL72So4tjCaOTXK3kauPoYrRwXMTRwYjo2rItclY0j/NPPZVjCRDiGNECwOjk/DxoB8NOnoz0R2AYXSK7UBu2FuAPbcuIsARIjDAcYoxN3UIIYYDRTTDbGI5YsZy5WpCVgN/1RI4OYgxAjNEiAmIu2cPaKhzpd6JeG/9H60d7quc3PVaaU37TCKPNZdteKJcAxjqSo4OZ1d6j1PGrHgkcjnbi1GXZni0MdhZrFR8c6oHAB0T41RV73ggcFHLwQPflk9vnnAFX7UVjcAAufztGjAAB4pq9bBQOMiHe1z35NuID27PXjcNBTkERc4QQK/YmCDhIAPd0V+IYIAlxczZQTwP1lN7nFBRjVu1tY+plwdJ19Flb8qoZJV2ncXNpSwFYs3eN5t6mHZ46P0q/TE51nEDMiThZxpWOTdhAPbm0OBQIYDHM0US5YFpfznJtJkSLfGjDhANwIcMBROmIC6XNZKcJ5KjCqOKsbdqhRdlJEqLlqviD+sElpFu39+bD23yIi/kHJwrq5LerO0GomE6UCDzepN00w1emHmTm267WEwev5IZ9/G+zrwiXnceFUTfx29GtIEKdU2lHt1UM9YZ9Olclq9SDwviYhHXyzlBr56bkLDiY8o21o5uCtHj8qm97/0zJsoIog5sKCFnl8iHv2/6ZQOeBqwQEGOpGZrPsvqJvX+YCHWhFZS2sCm4mIMBQqyU5mH9UBuuBqt+bBVcLMLU86PS60cxGr1pgqc2dT0NdrySoAty0g7nPO3NlFoGzgIsAFe0v4dgKvpzx3jAAAAAASUVORK5CYII="/>
+    <g class="cls-4">
+      <image width="7" height="5" transform="translate(124.01 91.01)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAYAAACJmvbYAAAACXBIWXMAAAsSAAALEgHS3X78AAAALUlEQVQImXXLMQoAIBDEwFn//2Ab0epADk2ZEGvPXWjkKZPA6AFqSBf3+b3gACNXG+i7zxuOAAAAAElFTkSuQmCC"/>
+    </g>
+  </g>
+  <path class="cls-2" d="M63.84,161.75v12.79c0,3.28,2.66,5.94,5.94,5.94h132.52c3.28,0,5.94-2.66,5.94-5.94v-76.02c0-3.28-2.66-5.94-5.94-5.94h-55.89"/>
+  <line class="cls-2" x1="55.8" y1="187.97" x2="215.43" y2="187.97"/>
+  <path class="cls-2" d="M46.59,100.05v-22.36c0-1.64,1.33-2.97,2.97-2.97h38.15c1.64,0,2.97,1.33,2.97,2.97v10.53"/>
+  <path class="cls-2" d="M90.68,128.84v19.77c0,1.64-1.33,2.97-2.97,2.97h-38.15c-1.64,0-2.97-1.33-2.97-2.97v-56.45"/>
+  <line class="cls-2" x1="62.46" y1="142.81" x2="74.8" y2="142.81"/>
+</svg>

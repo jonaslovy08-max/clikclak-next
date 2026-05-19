@@ -1,0 +1,21 @@
+%input.focus#focusDrops{:type => "radio", :name=>"focus"}
+%label{:for => "focusDrops"} Focus on the raindrops
+
+%input.focus#focusBG{:type => "radio", :name=>"focus"}
+%label{:for => "focusBG"} Focus on the background 
+
+%input.focus#focusBoth{:type => "radio", :name=>"focus", :checked => "checked"} 
+%label{:for => "focusBoth"} Focus on both
+.disclaimer 
+  This demo works best on Webkit and IE 11 (due to  CSS filter support) <br /> <br /> 
+  %a{:href => "https://codepen.io/lbebber/"} By Lucas Bebber
+
+.container
+  .window <!-- As in a physical window, not a computer window-->
+  .raindrops
+    .borders  
+      - (1..250).each do
+        .border
+    .drops
+      - (1..250).each do
+        .raindrop

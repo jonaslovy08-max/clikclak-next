@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 512 512">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: none;
+        stroke: url(#Dégradé_sans_nom_49);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 30px;
+      }
+
+      .st1 {
+        fill: #191919;
+      }
+    </style>
+    <linearGradient id="Dégradé_sans_nom_49" data-name="Dégradé sans nom 49" x1="26.72" y1="250.11" x2="433.6" y2="250.11" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ccff26"/>
+      <stop offset=".32" stop-color="#ccff28"/>
+      <stop offset=".47" stop-color="#ceff2f"/>
+      <stop offset=".57" stop-color="#d1ff3b"/>
+      <stop offset=".66" stop-color="#d5ff4d"/>
+      <stop offset=".74" stop-color="#daff65"/>
+      <stop offset=".81" stop-color="#e1ff82"/>
+      <stop offset=".88" stop-color="#e9ffa4"/>
+      <stop offset=".94" stop-color="#f3ffcc"/>
+      <stop offset=".99" stop-color="#fdfff7"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+  </defs>
+  <rect class="st1" width="512" height="512"/>
+  <path class="st0" d="M41.72,402.23l96.59-96.59h0c-24.69-54.12-14.77-120.18,29.76-164.7,39.46-39.46,95.89-51.75,145.89-36.8,8.98,2.68,11.94,13.91,5.32,20.54l-92.59,92.59c-6.65,6.65-5.07,17.81,3.17,22.35l63.63,35.08c7.98,4.4,17.9,2.99,24.34-3.45l77.52-77.52c4.81-4.81,13.12-2.98,15.32,3.46,17.5,51.28,6.18,110.77-35.15,151.19-48.21,47.16-117.66,59.52-174.32,27.57"/>
+</svg>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="orinateurs" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 42.28 47.02">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
+  <defs>
+    <style>
+      .st0 {
+        stroke: #ccff26;
+      }
+
+      .st0, .st1 {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .st1 {
+        stroke: #fff;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M36.78,22.69c0,9.84-7.97,17.81-17.81,17.81S1.15,32.53,1.15,22.69,9.12,4.87,18.96,4.87c5.16,0,9.81,2.2,13.06,5.7"/>
+  <polyline class="st1" points="12.1 16.14 19.22 23.26 40.93 1.55"/>
+</svg>

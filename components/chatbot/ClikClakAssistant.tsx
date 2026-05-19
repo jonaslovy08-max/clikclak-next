@@ -1,0 +1,572 @@
+'use client'
+
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
+import gsap from 'gsap'
+import { useChatbot } from './ChatbotContext'
+import {
+  searchIphoneModels,
+  getIphoneRepairs,
+  BRAND_LABELS,
+  BRAND_PAGE_HREFS,
+  type BrandKey,
+  type ModelResult,
+} from '@/lib/chatbot/searchRepairPrices'
+import { SHOP_PRODUCTS } from '@/data/shopProducts'
+
+/* ── Types ── */
+type GuidedScreen =
+  | 'home' | 'find-price' | 'iphone-model' | 'iphone-repair'
+  | 'other-brand' | 'identify-model' | 'data-recovery'
+  | 'sell-device' | 'depannage' | 'shop' | 'contact'
+
+interface AiMessage {
+  role:         'user' | 'assistant'
+  content:      string
+  suggestions?: { label: string; href?: string }[]
+  isError?:     boolean
+}
+
+/* ── Constants ── */
+const MAX_SESSION_MESSAGES = 20
+
+const WELCOME_MSG: AiMessage = {
+  role:    'assistant',
+  content: 'Bonjour, je suis ClikClak Bot. Je peux vous aider à trouver un prix de réparation, identifier une panne, chercher un produit ou vous orienter vers le bon service.',
+}
+
+const BRANDS: { key: BrandKey; label: string }[] = [
+  { key: 'iphone',  label: 'iPhone'  },
+  { key: 'samsung', label: 'Samsung' },
+  { key: 'ipad',    label: 'iPad'    },
+  { key: 'macbook', label: 'MacBook' },
+  { key: 'huawei',  label: 'Huawei'  },
+  { key: 'oppo',    label: 'OPPO'    },
+  { key: 'other',   label: 'Autre'   },
+]
+
+const QUICK_ACTIONS: { label: string; screen: GuidedScreen }[] = [
+  { label: 'Trouver un prix',         screen: 'find-price'     },
+  { label: 'Identifier mon modèle',   screen: 'identify-model' },
+  { label: 'Récupération de données', screen: 'data-recovery'  },
+  { label: 'Vendre un appareil',      screen: 'sell-device'    },
+  { label: 'Dépannage 7/7',           screen: 'depannage'      },
+  { label: 'Voir le shop',            screen: 'shop'           },
+  { label: 'Contacter ClikClak',      screen: 'contact'        },
+]
+
+/* ── Sub-components ── */
+
+function Chip({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="inline-flex items-center px-3.5 py-2 text-[13px] font-light rounded-lg border border-white/[0.12] bg-white/[0.04] text-foreground/80 transition-colors hover:border-accent/30 hover:text-accent hover:bg-accent/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent text-left">
+      {label}
+    </button>
+  )
+}
+
+function BackBtn({ to, onClick }: { to: GuidedScreen; onClick: (s: GuidedScreen) => void }) {
+  return (
+    <button type="button" onClick={() => onClick(to)}
+      className="self-start text-[12px] font-light text-foreground/40 hover:text-foreground/70 transition-colors focus-visible:outline-none">
+      ← Retour
+    </button>
+  )
+}
+
+function NavLink({ href, children, onClose }: { href: string; children: React.ReactNode; onClose?: () => void }) {
+  const isExternal = href.startsWith('http')
+  const cls = "inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-light rounded-lg border border-accent/25 text-accent transition-colors hover:border-accent/50 hover:bg-accent/[0.07] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+  if (isExternal) return <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>{children} <span aria-hidden>→</span></a>
+  return <Link href={href} className={cls} onClick={onClose}>{children} <span aria-hidden>→</span></Link>
+}
+
+function LoadingDots() {
+  return (
+    <div className="flex items-center gap-1.5 px-3.5 py-3 self-start max-w-[80%] rounded-xl rounded-tl-sm"
+      style={{ background: 'rgba(242,242,242,0.06)', border: '1px solid rgba(242,242,242,0.08)' }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-bounce"
+          style={{ animationDelay: `${i * 0.15}s` }} />
+      ))}
+    </div>
+  )
+}
+
+/* ── Main component ── */
+export default function ClikClakAssistant() {
+  const { isOpen, close } = useChatbot()
+
+  /* Guided screens */
+  const [screen,     setScreen]   = useState<GuidedScreen>('home')
+  const [brand,      setBrand]    = useState<BrandKey | null>(null)
+  const [selModel,   setSelModel] = useState<ModelResult | null>(null)
+  const [modelQuery, setModelQ]   = useState('')
+  const [shopQuery,  setShopQ]    = useState('')
+
+  /* Chat */
+  const [chatMessages, setChatMessages] = useState<AiMessage[]>([])
+  const [inputValue,   setInputValue]   = useState('')
+  const [isLoading,    setIsLoading]    = useState(false)
+  const [msgCount,     setMsgCount]     = useState(0)
+  const [qaOpen,       setQaOpen]       = useState(false)
+
+  /* Refs */
+  const panelRef  = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef  = useRef<HTMLInputElement>(null)
+  const tweensRef = useRef<gsap.core.Tween[]>([])
+
+  /* ── GSAP initial state ── */
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+    const ctx = gsap.context(() => {
+      gsap.set(panel, { autoAlpha: 0, y: 18, scale: 0.96, transformOrigin: 'bottom center' })
+    })
+    return () => ctx.revert()
+  }, [])
+
+  /* ── GSAP open / close animations ── */
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+
+    tweensRef.current.forEach(t => t.kill())
+    tweensRef.current = []
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (isOpen) {
+      if (reduced) {
+        gsap.set(panel, { autoAlpha: 1, y: 0, scale: 1 })
+      } else {
+        tweensRef.current.push(
+          gsap.fromTo(panel,
+            { autoAlpha: 0, y: 18, scale: 0.96 },
+            { autoAlpha: 1, y: 0,  scale: 1, duration: 0.5, ease: 'expo.out' },
+          ),
+        )
+      }
+    } else {
+      if (reduced) {
+        gsap.set(panel, { autoAlpha: 0 })
+      } else {
+        tweensRef.current.push(
+          gsap.to(panel, { autoAlpha: 0, y: 12, scale: 0.96, duration: 0.3, ease: 'power2.inOut' }),
+        )
+      }
+    }
+  }, [isOpen])
+
+  /* Auto-scroll */
+  useEffect(() => {
+    if (scrollRef.current && isOpen) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [chatMessages, isLoading, isOpen])
+
+  /* Welcome message on first open */
+  useEffect(() => {
+    if (isOpen && chatMessages.length === 0) {
+      setChatMessages([WELCOME_MSG])
+    }
+  }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Reset conversation on close */
+  useEffect(() => {
+    if (isOpen) return
+    const t = setTimeout(() => {
+      setScreen('home'); setBrand(null); setSelModel(null)
+      setModelQ(''); setShopQ('')
+      setChatMessages([]); setInputValue(''); setIsLoading(false)
+      setMsgCount(0); setQaOpen(false)
+    }, 350)
+    return () => clearTimeout(t)
+  }, [isOpen])
+
+  /* Escape */
+  useEffect(() => {
+    if (!isOpen) return
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    document.addEventListener('keydown', h)
+    return () => document.removeEventListener('keydown', h)
+  }, [isOpen, close])
+
+  /* Click-outside — activé un frame après l'ouverture pour ignorer le clic d'ouverture */
+  useEffect(() => {
+    if (!isOpen) return
+
+    let removeListener: (() => void) | null = null
+
+    const rafId = requestAnimationFrame(() => {
+      const handleOutside = (e: MouseEvent) => {
+        if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+          close()
+        }
+      }
+      document.addEventListener('mousedown', handleOutside)
+      removeListener = () => document.removeEventListener('mousedown', handleOutside)
+    })
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      removeListener?.()
+    }
+  }, [isOpen, close])
+
+  /* Derived */
+  const iPhoneModels = useMemo(() => searchIphoneModels(modelQuery, 8), [modelQuery])
+  const repairs      = useMemo(() => selModel ? getIphoneRepairs(selModel.id) : [], [selModel])
+  const shopResults  = useMemo(() => {
+    const q  = shopQuery.toLowerCase().trim()
+    const ps = SHOP_PRODUCTS.filter(p => p.availability === 'en-stock')
+    if (!q) return ps.slice(0, 3)
+    return ps.filter(p => p.name.toLowerCase().includes(q) || (p.brand ?? '').toLowerCase().includes(q)).slice(0, 5)
+  }, [shopQuery])
+
+  /* Navigation */
+  const goBack = useCallback((s: GuidedScreen) => setScreen(s), [])
+
+  const selectBrand = useCallback((key: BrandKey) => {
+    setBrand(key)
+    if (key === 'iphone') { setModelQ(''); setScreen('iphone-model') }
+    else setScreen('other-brand')
+  }, [])
+
+  const handleQuickAction = useCallback((s: GuidedScreen) => {
+    setScreen(s)
+    setQaOpen(false)
+  }, [])
+
+  /* AI chat */
+  const sendToAI = useCallback(async (msg: string) => {
+    const text = msg.trim()
+    if (!text || isLoading || msgCount >= MAX_SESSION_MESSAGES) return
+
+    const userMsg: AiMessage = { role: 'user', content: text }
+    const updated = [...chatMessages, userMsg]
+    setChatMessages(updated)
+    setInputValue('')
+    inputRef.current?.blur()
+    setIsLoading(true)
+    setMsgCount(c => c + 1)
+    setScreen('home')
+
+    try {
+      const history = updated.slice(-6).map(m => ({ role: m.role, content: m.content }))
+      const res  = await fetch('/api/chat', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ message: text, history: history.slice(0, -1) }),
+      })
+      const data = await res.json() as { message: string; suggestions?: AiMessage['suggestions'] }
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.message, suggestions: data.suggestions }])
+    } catch {
+      setChatMessages(prev => [...prev, {
+        role:    'assistant',
+        content: 'Erreur réseau. Veuillez réessayer ou contacter ClikClak.',
+        isError: true,
+        suggestions: [{ label: 'Contacter ClikClak', href: '/contact-clik-clak-lausanne' }],
+      }])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isLoading, msgCount, chatMessages])
+
+  /* ── Guided screens ── */
+  const renderGuidedScreen = () => {
+    switch (screen) {
+      case 'find-price':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/70">Pour quelle marque&nbsp;?</p>
+            <div className="flex flex-wrap gap-2">
+              {BRANDS.map(b => <Chip key={b.key} label={b.label} onClick={() => selectBrand(b.key)} />)}
+            </div>
+          </div>
+        )
+      case 'iphone-model':
+        return (
+          <div className="flex flex-col gap-3 p-4">
+            <BackBtn to="find-price" onClick={goBack} />
+            <input type="search" value={modelQuery} onChange={e => setModelQ(e.target.value)}
+              placeholder="Rechercher un modèle iPhone…"
+              style={{ fontSize: 16 }}
+              className="w-full px-3 py-2.5 font-light rounded-lg border border-white/[0.1] bg-white/[0.05] text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-accent/40" />
+            <div className="flex flex-col gap-1.5">
+              {iPhoneModels.map(m => (
+                <button key={m.id} type="button" onClick={() => { setSelModel(m); setScreen('iphone-repair') }}
+                  className="text-left px-3 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[13px] font-light text-foreground/80 hover:border-accent/25 hover:text-accent transition-colors focus-visible:outline-none">
+                  {m.label}
+                </button>
+              ))}
+              {iPhoneModels.length === 0 && <p className="text-[13px] font-light text-foreground/40">Aucun modèle trouvé.</p>}
+            </div>
+          </div>
+        )
+      case 'iphone-repair':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="iphone-model" onClick={goBack} />
+            <p className="text-sm font-light" style={{ color: 'rgba(204,255,51,0.85)' }}>{selModel?.label}</p>
+            <div className="flex flex-col gap-1.5">
+              {repairs.map(r => (
+                <div key={r.label} className="flex items-center justify-between px-3 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02]">
+                  <span className="text-[13px] font-light text-foreground/80">{r.label}</span>
+                  <span className="text-[13px] font-light text-accent">{r.price}</span>
+                </div>
+              ))}
+            </div>
+            {selModel && <NavLink href={selModel.href} onClose={close}>Voir la page complète</NavLink>}
+            <p className="text-[11px] font-light text-foreground/35">Les tarifs peuvent varier selon les pièces disponibles.</p>
+          </div>
+        )
+      case 'other-brand':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="find-price" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/70">Tarifs {brand ? BRAND_LABELS[brand] : ''}</p>
+            {brand && brand !== 'other' ? (
+              <>
+                <NavLink href={BRAND_PAGE_HREFS[brand]} onClose={close}>Voir les tarifs {BRAND_LABELS[brand]}</NavLink>
+                <p className="text-[11px] font-light text-foreground/35">Les tarifs varient selon le modèle exact.</p>
+              </>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <NavLink href="/reparation-smartphone-express" onClose={close}>Réparation smartphone</NavLink>
+                <NavLink href="/reparation-tablette-express"   onClose={close}>Réparation tablette</NavLink>
+                <NavLink href="/reparation-ordinateur-express" onClose={close}>Réparation ordinateur</NavLink>
+              </div>
+            )}
+          </div>
+        )
+      case 'identify-model':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">Comment identifier votre modèle</p>
+            <div className="flex flex-col gap-3 text-[13px] font-light text-foreground/65 leading-relaxed">
+              <div><span className="text-accent">iPhone / iPad</span><br />Réglages &gt; Général &gt; Informations</div>
+              <div><span className="text-accent">Samsung / Android</span><br />Paramètres &gt; À propos du téléphone</div>
+              <div><span className="text-accent">MacBook / Mac</span><br />Menu Apple &gt; À propos de ce Mac</div>
+            </div>
+            <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Envoyer une photo</NavLink>
+          </div>
+        )
+      case 'data-recovery':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">Récupération de données</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Aucun résultat ne peut être garanti avant analyse.</p>
+            <div className="flex flex-col gap-2">
+              <NavLink href="/services/recuperation-donnees"  onClose={close}>Voir la page récupération</NavLink>
+              <NavLink href="/contact-clik-clak-lausanne"     onClose={close}>Contacter ClikClak</NavLink>
+            </div>
+          </div>
+        )
+      case 'sell-device':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">Vendre un appareil</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Smartphone, tablette, Mac, montre ou écouteurs. Offre après contrôle réel.</p>
+            <NavLink href="/services/rachat-de-votre-smartphone" onClose={close}>Demander une estimation</NavLink>
+          </div>
+        )
+      case 'depannage':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">Dépannage 7/7</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Selon disponibilité et faisabilité technique.</p>
+            <NavLink href="/services/depannage-reparation-domicile" onClose={close}>Demander un dépannage</NavLink>
+          </div>
+        )
+      case 'shop':
+        return (
+          <div className="flex flex-col gap-3 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <input type="search" value={shopQuery} onChange={e => setShopQ(e.target.value)}
+              placeholder="Chercher un produit…"
+              style={{ fontSize: 16 }}
+              className="w-full px-3 py-2.5 font-light rounded-lg border border-white/[0.1] bg-white/[0.05] text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-accent/40" />
+            <div className="flex flex-col gap-1.5">
+              {shopResults.map(p => (
+                <Link key={p.id} href={`/shop-reparation-smartphone-lausanne/${p.slug}`} onClick={close}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:border-accent/20 transition-colors focus-visible:outline-none">
+                  <span className="text-[13px] font-light text-foreground/80 truncate mr-2">{p.name}</span>
+                  <span className="text-[13px] font-light text-accent shrink-0">CHF {p.price.toFixed(0)}</span>
+                </Link>
+              ))}
+              {shopResults.length === 0 && <p className="text-[13px] font-light text-foreground/40">Aucun produit trouvé.</p>}
+            </div>
+            <NavLink href="/shop-reparation-smartphone-lausanne" onClose={close}>Voir tout le shop</NavLink>
+          </div>
+        )
+      case 'contact':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <BackBtn to="home" onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">Contacter ClikClak</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Formulaire de contact ou passage en boutique à Lausanne.</p>
+            <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Formulaire de contact</NavLink>
+          </div>
+        )
+      default: return null
+    }
+  }
+
+  /* ── Render ── */
+  return (
+    <>
+      {/* Overlay mobile — assombrit le site derrière le chatbot ouvert.
+          z-[54] : sous le panel (z-55), au-dessus de tout le contenu.
+          md:hidden : desktop inchangé.
+          Clic sur l'overlay → ferme le chatbot. */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[54] md:hidden"
+          style={{
+            background:            'rgba(0,0,0,0.55)',
+            backdropFilter:        'blur(2px)',
+            WebkitBackdropFilter:  'blur(2px)',
+          }}
+          onClick={close}
+          aria-hidden
+        />
+      )}
+
+      {/* Panel — GSAP gère autoAlpha + transform, ne pas mettre opacity/visibility/transform ici */}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="ClikClak Bot"
+        aria-hidden={!isOpen}
+        className="fixed z-[55] flex flex-col bottom-[104px] md:bottom-[88px] inset-x-2 md:inset-x-auto md:right-[84px] md:left-auto md:w-[380px]"
+      style={{
+        maxHeight:    'calc(100svh - 140px)',
+        background:   '#111',
+        border:       '1px solid rgba(242,242,242,0.12)',
+        borderRadius: 12,
+        overflow:     'hidden',
+        /* Lueur lime subtile quand ouvert */
+        boxShadow: isOpen
+          ? '0 0 0 1px rgba(204,255,51,0.2), 0 0 32px rgba(204,255,51,0.12), 0 0 72px rgba(204,255,51,0.06), 0 8px 40px rgba(0,0,0,0.6)'
+          : '0 8px 40px rgba(0,0,0,0.6)',
+        transition: 'box-shadow 0.5s ease',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 shrink-0"
+        style={{ borderBottom: '1px solid rgba(242,242,242,0.08)' }}>
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/chatbot/icon-chatbot-chatbox.svg" alt="" aria-hidden
+            width={26} height={26} style={{ display: 'block', flexShrink: 0, opacity: 1 }} />
+          <div className="flex flex-col">
+            <span className="text-sm font-light leading-tight" style={{ color: 'rgba(242,242,242,0.9)' }}>
+              ClikClak Bot
+            </span>
+            <span className="text-[11px] font-light leading-tight" style={{ color: 'rgba(242,242,242,0.35)' }}>
+              Assistant réparation &amp; services
+            </span>
+          </div>
+        </div>
+        <button type="button" onClick={close} aria-label="Fermer le chatbot"
+          className="inline-flex items-center justify-center p-1 shrink-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
+          style={{ background: 'transparent', border: 'none' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/ui/icon-close.svg" alt="" aria-hidden width={52} height={52} style={{ display: 'block', opacity: 1 }} />
+        </button>
+      </div>
+
+      {/* Content area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+        {screen !== 'home' ? renderGuidedScreen() : (
+          <div className="flex flex-col gap-3 p-4">
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <div
+                  className={`px-3 py-2.5 rounded-xl text-[13px] font-light leading-relaxed max-w-[85%] ${msg.role === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm'}`}
+                  style={msg.role === 'user' ? {
+                    background: 'rgba(204,255,51,0.12)', border: '1px solid rgba(204,255,51,0.2)', color: 'rgba(242,242,242,0.9)',
+                  } : {
+                    background: msg.isError ? 'rgba(255,80,80,0.08)' : 'rgba(242,242,242,0.06)',
+                    border: `1px solid ${msg.isError ? 'rgba(255,80,80,0.15)' : 'rgba(242,242,242,0.08)'}`,
+                    color: 'rgba(242,242,242,0.85)',
+                  }}
+                >
+                  {msg.content}
+                </div>
+                {msg.suggestions && msg.suggestions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 max-w-[85%]">
+                    {msg.suggestions.map((s, si) =>
+                      s.href ? (
+                        <Link key={si} href={s.href} onClick={close}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] font-light rounded-lg border border-accent/25 text-accent hover:border-accent/50 hover:bg-accent/[0.07] transition-colors focus-visible:outline-none">
+                          {s.label} <span aria-hidden>→</span>
+                        </Link>
+                      ) : (
+                        <button key={si} type="button" onClick={() => sendToAI(s.label)}
+                          className="inline-flex items-center px-2.5 py-1.5 text-[12px] font-light rounded-lg border border-white/[0.12] text-foreground/70 hover:border-accent/30 hover:text-accent transition-colors focus-visible:outline-none">
+                          {s.label}
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            {isLoading && <LoadingDots />}
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="shrink-0 px-3 pt-3 pb-2" style={{ borderTop: '1px solid rgba(242,242,242,0.08)' }}>
+        {msgCount >= MAX_SESSION_MESSAGES ? (
+          <div className="flex flex-col gap-2 pb-1">
+            <p className="text-[12px] font-light text-foreground/45">Nombre de messages maximum atteint.</p>
+            <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Contacter ClikClak</NavLink>
+          </div>
+        ) : (
+          <form onSubmit={e => { e.preventDefault(); if (inputValue.trim()) sendToAI(inputValue) }}
+            className="flex items-center gap-2">
+            <input ref={inputRef} type="text" value={inputValue} onChange={e => setInputValue(e.target.value)}
+              placeholder="Posez votre question : prix, panne, modèle, shop…"
+              disabled={isLoading}
+              style={{ fontSize: 16 }}
+              className="flex-1 px-3 py-2 font-light rounded-lg border border-white/[0.1] bg-white/[0.05] text-foreground/80 placeholder:text-foreground/30 focus:outline-none focus:border-accent/40 disabled:opacity-50" />
+            <button type="submit" disabled={isLoading || !inputValue.trim()} aria-label="Envoyer"
+              className="flex items-center justify-center w-8 h-8 rounded-lg border border-accent/30 text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 focus-visible:outline-none shrink-0">
+              →
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Quick actions toggle */}
+      <div className="shrink-0" style={{ borderTop: '1px solid rgba(242,242,242,0.06)' }}>
+        <button type="button" onClick={() => setQaOpen(prev => !prev)}
+          className="flex items-center justify-between w-full px-4 py-2.5 text-[12px] font-light transition-colors focus-visible:outline-none"
+          style={{ color: '#ccff33' }}>
+          <span>Actions rapides</span>
+          <span aria-hidden style={{ fontSize: 10 }}>{qaOpen ? '▴' : '▾'}</span>
+        </button>
+        {qaOpen && (
+          <div className="px-4 pb-3 flex flex-wrap gap-2">
+            {QUICK_ACTIONS.map(a => (
+              <Chip key={a.screen} label={a.label} onClick={() => handleQuickAction(a.screen)} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+    </>
+  )
+}

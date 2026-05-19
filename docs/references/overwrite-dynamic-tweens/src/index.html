@@ -1,0 +1,56 @@
+<div class="header">
+  <h1>Dynamic tweens <br/><code>overwrite: true</code> vs <code>"auto"</code></h1>
+  <p></p>
+</div>
+
+<div class="demo-area">
+   <div class="demo-col">
+    <div class="demo-label"><b>magnetic only</b><br>no wiggle, overwrite: true</div>
+    <div class="mag-zone" data-mode="true" data-wiggle="false">
+      <button class="mag-btn summer" id="btnPlain">
+        <div class="bg"></div>
+        <span class="label">dynamic</span>
+      </button>
+    </div>
+    <button class="code-peek" data-code="2">&lt;/&gt;</button>
+  </div>
+  <div class="demo-col">
+    <div class="demo-label"><b>overwrite: false</b><br>tweens may conflict</div>
+    <div class="mag-zone" data-mode="false" data-wiggle="false">
+      <button class="mag-btn danger" id="btnFalse">
+        <div class="bg"></div>
+        <span class="label">false</span>
+      </button>
+    </div>
+    <button class="code-peek" data-code="3">&lt;/&gt;</button>
+  </div>
+  <div class="demo-col">
+    <div class="demo-label"><b>overwrite: true</b><br>kills ALL other tweens on target</div>
+    <div class="mag-zone" data-mode="true" data-wiggle="true">
+      <button class="mag-btn orange" id="btnTrue">
+        <div class="bg"></div>
+        <span class="label">true</span>
+      </button>
+    </div>
+    <button class="code-peek" data-code="0">&lt;/&gt;</button>
+  </div>
+  <div class="demo-col">
+    <div class="demo-label"><b>overwrite: "auto"</b><br>kills only conflicting props</div>
+    <div class="mag-zone" data-mode="auto" data-wiggle="true">
+      <button class="mag-btn macha" id="btnAuto">
+        <div class="bg"></div>
+        <span class="label">auto</span>
+      </button>
+    </div>
+    <button class="code-peek" data-code="1">&lt;/&gt;</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">×</button>
+    <pre><code class="language-js" id="modalCode"></code></pre>
+  </div>
+</div>
+<!-- <a target="_blank" href="https://gsap.com/resources/conflict/">learn more</a>
+ -->

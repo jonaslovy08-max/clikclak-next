@@ -1,0 +1,986 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================================
+   Variables CSS — Design System ClikClak.ch
+   Source de vérité : clikclak-design-system.md + couleurs.md
+   Ne jamais ajouter de couleur hors de ces variables.
+   ================================================================ */
+:root {
+  /* ── Fond & texte principal ─────────────────────────────────── */
+  --background:           #191919;
+  --foreground:           #ffffff;
+
+  /* ── Surfaces claires (sections inversées) ──────────────────── */
+  --surface:              #f2f2f2;
+  --surface-foreground:   #191919;
+
+  /* ── Gris moyens ─────────────────────────────────────────────── */
+  --muted:                #505050;
+  --muted-foreground:     #f2f2f2;
+
+  /* ── Accent principal lime ───────────────────────────────────── */
+  --primary:              #ccff33;
+  --primary-foreground:   #191919;
+  --accent:               #ccff33;
+  --accent-foreground:    #191919;
+
+  /* ── Cartes sombres ──────────────────────────────────────────── */
+  --card:                 #191919;
+  --card-foreground:      #ffffff;
+
+  /* ── Bordures ────────────────────────────────────────────────── */
+  --border:               rgba(255, 255, 255, 0.22);
+  --border-soft:          rgba(255, 255, 255, 0.12);
+  --border-accent:        #ccff33;
+
+  /* ── Grille technique & overlays ─────────────────────────────── */
+  --grid-line:            rgba(255, 255, 255, 0.08);
+  --overlay-dark:         rgba(25, 25, 25, 0.72);
+
+  /* ── États ───────────────────────────────────────────────────── */
+  --danger:               #ef4444;
+  --success:              #22c55e;
+
+  /* ── Rayon des angles ────────────────────────────────────────── */
+  --radius-btn:           6px;
+  --radius-card:          12px;
+  --radius-badge:         4px;
+
+  /* ── Transition partagée pour tous les éléments interactifs ──── */
+  --transition-interactive: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+/* ================================================================
+   Base
+   ================================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  /* isolation: isolate → stacking context sur body.
+     Le fond radial-gradient + couleur #191919 est défini ici.
+     La grille SVG est appliquée localement aux sections après le hero. */
+  isolation: isolate;
+  background-color: var(--background);
+  /* Dégradé radial fixe — halo sombre depuis le haut/centre, sobre et premium.
+     background-color #191919 couvre les extensions de scroll hors viewport. */
+  background-image: radial-gradient(
+    circle at 50% -8%,
+    #373737 0%,
+    #2a2a2a 16%,
+    #202020 28%,
+    #191919 44%,
+    #191919 100%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: var(--foreground);
+  font-family: var(--font-rubik), system-ui, sans-serif;
+  /* Évite le scroll horizontal causé par les chevrons hero demi-débordants */
+  overflow-x: hidden;
+}
+
+/* --app-height : fallback CSS avant hydration JS.
+   AppHeight.tsx surcharge avec window.innerHeight px dès le montage —
+   solution fiable sur Safari iOS (svh/dvh instables avant iOS 16.4). */
+:root {
+  --app-height: 100vh;
+}
+
+/* Hero wrapper — fullscreen mobile.
+   100svh (small viewport height) = hauteur viewport avec tout le chrome visible.
+   Stable au scroll : ne change pas quand la barre d'adresse iOS Safari se masque.
+   Remplace var(--app-height) qui déclenchait un jump au scroll via l'événement
+   resize déclenché par le masquage de la barre d'adresse iOS Safari. */
+@media (max-width: 767px) {
+  .hero-main-wrap {
+    min-height: 100vh;    /* fallback navigateurs sans support svh */
+    min-height: 100svh;   /* stable : ne varie pas avec le chrome Safari */
+  }
+}
+
+/* Mobile uniquement — background-attachment:fixed non supporté iOS/Android.
+   Solution : pseudo-element fixe qui simule le même comportement que desktop.
+   Gradient = copie exacte de .mobile-nav-overlay.                            */
+@media (max-width: 767px) {
+  body {
+    background-image:     none;    /* désactivé : géré par ::before ci-dessous */
+    background-attachment: scroll; /* reset explicite du fixed desktop          */
+  }
+
+  body::before {
+    content:             '';
+    position:            fixed;
+    inset:               0;
+    z-index:             -1;
+    pointer-events:      none;
+    background-color:    #191919;
+    background-image:    radial-gradient(
+      circle at 45% 0%,
+      rgba(55, 55, 55, 0.98) 0%,
+      rgba(35, 35, 35, 0.98) 28%,
+      rgba(25, 25, 25, 0.98) 72%
+    );
+    background-repeat:   no-repeat;
+    background-position: top center;
+    background-size:     100vw 100svh;
+  }
+}
+
+/* ================================================================
+   Focus visible — cohérent avec l'accent lime (WCAG AA)
+   Règle globale — s'applique à tous les éléments interactifs
+   ================================================================ */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ================================================================
+   Classes d'interaction centralisées
+   Ces classes définissent le comportement hover/focus pour :
+   - .interactive-card  → cartes, service cards, product cards
+   - .interactive-button → boutons secondaires ghost
+   - .glow-hover        → effet lueur lime seul (composable)
+   ================================================================ */
+
+/* Cartes interactives — état normal */
+.interactive-card {
+  transition: var(--transition-interactive);
+}
+
+/* Cartes interactives — hover */
+.interactive-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 28px rgba(204, 255, 51, 0.28);
+  transform: translateY(-2px);
+}
+
+/* Cartes interactives — focus clavier */
+.interactive-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 28px rgba(204, 255, 51, 0.28);
+}
+
+/* Boutons ghost — transition partagée */
+.interactive-button {
+  transition: var(--transition-interactive);
+}
+
+/* Effet lueur lime seul — composable avec d'autres classes */
+.glow-hover:hover {
+  box-shadow: 0 0 28px rgba(204, 255, 51, 0.28);
+}
+
+/* ================================================================
+   Animation — SignatureLoader (brand mark)
+   Tracé progressif des contours : stroke-dashoffset L → 0
+   ----------------------------------------------------------------
+   Direction : dashoffset = longueur du tracé (caché) → 0 (visible).
+   Artista génère dashoffset L → 2L (inverse) — corrigé ici en L → 0.
+
+   Séquençage (bottom d'abord, top ensuite) :
+     elem-1  bottom path lime   0s      → 1.1s
+     elem-2  bottom ligne lime  0.75s   → 1.15s
+     elem-3  top path blanc     1.05s   → 2.15s   ← démarre quand bottom est quasi-fini
+     elem-4  top ligne blanc    1.8s    → 2.2s
+     elem-5  top point blanc    1.95s   → 2.2s
+   Durée totale : ≈ 2.2s
+
+   Réglages rapides :
+     durée grands tracés   → 1.2s dans .svg-elem-1 et .svg-elem-3
+     durée petits traits   → 0.5s dans .svg-elem-2 et .svg-elem-4
+     décalage entre traits → delay (3e param animation) dans chaque classe
+     easing                → cubic-bezier dans chaque classe
+
+   Longueurs mesurées par SVG Artista — ne pas modifier sans remesurer le SVG.
+   ================================================================ */
+
+@keyframes draw-stroke {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── bottom d'abord ───────────────────────────────────────────── */
+
+/* Grand tracé bottom (lime) — se dessine en premier */
+.svg-elem-1 {
+  stroke-dasharray: 936.32px;
+  stroke-dashoffset: 936.32px;
+  animation: draw-stroke 1.1s cubic-bezier(0.19, 1, 0.22, 1) 0s both;
+}
+
+/* Petit trait horizontal bottom (lime) — vers la fin du bottom path */
+.svg-elem-2 {
+  stroke-dasharray: 53.07px;
+  stroke-dashoffset: 53.07px;
+  animation: draw-stroke 0.4s cubic-bezier(0.19, 1, 0.22, 1) 0.75s both;
+}
+
+/* ── top ensuite, quand bottom est quasi-fini ─────────────────── */
+
+/* Grand tracé top (blanc) — démarre quand bottom est à ~95% */
+.svg-elem-3 {
+  stroke-dasharray: 936.31px;
+  stroke-dashoffset: 936.31px;
+  animation: draw-stroke 1.1s cubic-bezier(0.19, 1, 0.22, 1) 1.05s both;
+}
+
+/* Petit trait horizontal top (blanc) — vers la fin du top path */
+.svg-elem-4 {
+  stroke-dasharray: 27.97px;
+  stroke-dashoffset: 27.97px;
+  animation: draw-stroke 0.4s cubic-bezier(0.19, 1, 0.22, 1) 1.8s both;
+}
+
+/* Point terminal top (blanc) — apparaît en dernier */
+.svg-elem-5 {
+  stroke-dasharray: 2px;
+  stroke-dashoffset: 2px;
+  animation: draw-stroke 0.25s cubic-bezier(0.19, 1, 0.22, 1) 1.95s both;
+}
+
+/* prefers-reduced-motion — tous les traits apparaissent directement */
+@media (prefers-reduced-motion: reduce) {
+  .svg-elem-1,
+  .svg-elem-2,
+  .svg-elem-3,
+  .svg-elem-4,
+  .svg-elem-5 {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ================================================================
+   Shiny CTA — repris de la version CodePen validée
+   ─────────────────────────────────────────────────────────────────
+   Adaptations ClikClak : border-radius var(--radius-btn), police
+   Rubik, variantes primary/secondary, pas d'import Google Fonts.
+   animation-composition: add → Chrome 112+, Safari 16.5+, Firefox 115+
+   ================================================================ */
+
+@property --gradient-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --gradient-angle-offset {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --gradient-percent {
+  syntax: "<percentage>";
+  initial-value: 5%;
+  inherits: false;
+}
+
+@property --gradient-shine {
+  syntax: "<color>";
+  initial-value: white;
+  inherits: false;
+}
+
+/* Permet d'animer le fond du padding-box (transition lime → sombre sur primary) */
+@property --shiny-cta-bg {
+  syntax: "<color>";
+  initial-value: #191919;
+  inherits: false;
+}
+
+@keyframes gradient-angle {
+  to { --gradient-angle: 360deg; }
+}
+
+/* ── Base ── */
+.shiny-cta {
+  --shiny-cta-bg:               #191919;
+  --shiny-cta-fg:               #f2f2f2;
+  --shiny-cta-highlight:        #ccff33;
+  --shiny-cta-highlight-subtle: rgba(204, 255, 51, 0.5);
+  --animation:   gradient-angle linear infinite;
+  --duration:    1.3s;
+  --shadow-size: 2px;
+
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  outline-offset: 4px;
+  border: 1px solid #ccff33;
+  border-radius: var(--radius-btn);
+  color: var(--shiny-cta-fg);
+  background:
+    linear-gradient(var(--shiny-cta-bg), var(--shiny-cta-bg)) padding-box,
+    conic-gradient(
+      from calc(var(--gradient-angle) - var(--gradient-angle-offset)),
+      transparent,
+      var(--shiny-cta-highlight)        var(--gradient-percent),
+      var(--gradient-shine)             calc(var(--gradient-percent) * 2),
+      var(--shiny-cta-highlight)        calc(var(--gradient-percent) * 3),
+      transparent                       calc(var(--gradient-percent) * 4)
+    ) border-box;
+}
+
+/* Variante fond lime — bouton primaire
+   Double classe → spécificité > base
+   Même réglages shiny que secondary : arc lime identique au hover */
+.shiny-cta.shiny-cta-primary {
+  --shiny-cta-bg:               #ccff33;
+  --shiny-cta-fg:               #191919;
+  --shiny-cta-highlight:        #ccff33;
+  --shiny-cta-highlight-subtle: rgba(204, 255, 51, 0.5);
+}
+
+/* Variante outline lime — bouton secondaire
+   Double classe → spécificité > base */
+.shiny-cta.shiny-cta-secondary {
+  --shiny-cta-bg:               #191919;
+  --shiny-cta-fg:               #ccff33;
+  --shiny-cta-highlight:        #ccff33;
+  --shiny-cta-highlight-subtle: rgba(204, 255, 51, 0.5);
+}
+
+/* Primary au hover : transition lime → sombre, texte → lime
+   Même rendu visuel que secondary au hover */
+.shiny-cta.shiny-cta-primary:is(:hover, :focus-visible) {
+  --shiny-cta-bg: #191919;
+  color: #ccff33;
+}
+
+/* Pseudo-éléments communs — uniquement ::before (dot pattern) */
+.shiny-cta::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  translate: -50% -50%;
+  z-index: -1;
+}
+
+/* span::before — désactivé : créait un rectangle vert interne au hover */
+.shiny-cta span::before {
+  display: none;
+}
+
+/* Dot pattern */
+.shiny-cta::before {
+  --size: calc(100% - var(--shadow-size) * 3);
+  --position: 2px;
+  --space: calc(var(--position) * 2);
+  width: var(--size);
+  height: var(--size);
+  background:
+    radial-gradient(
+      circle at var(--position) var(--position),
+      white calc(var(--position) / 4),
+      transparent 0
+    ) padding-box;
+  background-size: var(--space) var(--space);
+  background-repeat: space;
+  mask-image:
+    conic-gradient(
+      from calc(var(--gradient-angle) + 45deg),
+      black,
+      transparent 10% 90%,
+      black
+    );
+  border-radius: inherit;
+  opacity: 0;
+  z-index: -1;
+}
+
+/* Inner shimmer — désactivé : crée un rectangle dégradé visible sur bouton rectangulaire */
+.shiny-cta::after {
+  display: none;
+}
+
+/* Span */
+.shiny-cta span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Animate */
+.shiny-cta {
+  --transition: 380ms cubic-bezier(0.25, 1, 0.5, 1);
+  transition: var(--transition);
+  transition-property: --gradient-angle-offset, --gradient-percent, --gradient-shine,
+    --shiny-cta-bg, color, border-color, box-shadow;
+}
+
+.shiny-cta,
+.shiny-cta::before {
+  animation:
+    var(--animation) var(--duration),
+    var(--animation) calc(var(--duration) / 0.4) reverse paused;
+  animation-composition: add;
+}
+
+/* Hover / focus */
+.shiny-cta:is(:hover, :focus-visible) {
+  border: 1px solid transparent !important;
+  --gradient-percent:      10%;
+  --gradient-angle-offset: 95deg;
+  --gradient-shine:        var(--shiny-cta-highlight-subtle);
+  /* Fond blanc 10 % — inset spread 200px couvre tout bouton jusqu'à 400px large */
+  box-shadow: inset 0 0 0 200px rgba(255, 255, 255, 0.10);
+}
+
+.shiny-cta:is(:hover, :focus-visible),
+.shiny-cta:is(:hover, :focus-visible)::before {
+  animation-play-state: running;
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .shiny-cta,
+  .shiny-cta::before {
+    animation: none;
+  }
+}
+
+/* ================================================================
+   prefers-reduced-motion — neutralise les transforms sur cartes
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .interactive-card:hover {
+    transform: none;
+  }
+}
+
+/* ================================================================
+   Animations hero — apparition au chargement (CSS pur, pas de JS)
+   Keyframe : opacity 0→1 + translateY 20px→0
+   Easing   : cubic-bezier(0.22, 1, 0.36, 1) — sortie douce
+   Fill     : both → conserve l'état from avant le délai
+   ================================================================ */
+@keyframes hero-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Classe de base */
+.hero-animate {
+  animation: hero-fade-in-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Décalages pour la séquence image → texte → CTAs */
+.hero-animate-delay-1 { animation-delay: 0.15s; }
+.hero-animate-delay-2 { animation-delay: 0.30s; }
+
+/* prefers-reduced-motion — apparition directe, sans mouvement */
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate,
+  .hero-animate-delay-1,
+  .hero-animate-delay-2 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Dots / traits de pagination hero — transition douce sur le fond */
+.hero-pagination-dot {
+  transition: background 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-pagination-dot { transition: none; }
+}
+
+/* ================================================================
+   Hamburger icon — port fidèle de Codrops AnimatedMenuIcon
+   ─────────────────────────────────────────────────────────────────
+   Technique : stroke-dasharray / stroke-dashoffset sur 3 paths SVG.
+   Chaque path encode la barre horizontale (début du path) ET la
+   diagonale de la croix (fin du path). Le JS anime l'offset pour
+   faire voyager le segment visible le long de la trajectoire.
+   Animation gérée en JS (rAF + easing elastic/bounce).
+   Ref : docs/references/codrops-animated-menu-icon/
+   ================================================================ */
+
+/* Caché jusqu'à l'initialisation JS (évite le flash des paths complets) */
+.hamburger-icon-svg { visibility: hidden; }
+.hamburger-icon-svg[data-ready] { visibility: visible; }
+
+.hamburger-icon-path {
+  stroke: #ccff33;
+  /* stroke-width en unités SVG (espace 800×800).
+     Avec 80×80px : scale = 80/800 = 0.10
+     14 × 0.10 = 1.4px visuel — propre et lisible. */
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: transparent;
+}
+
+/* ================================================================
+   Mobile nav overlay — animation portée de Codrops demo.css
+   ─────────────────────────────────────────────────────────────────
+   Source : docs/references/codrops-animated-menu-icon/css/demo.css
+   (.dummy / .dummy--active → .mobile-nav-overlay / .is-open)
+
+   Fermé   : items translate3d(-100%) + scale3d(0.5,1,1) hors écran.
+   Ouvert  : translate3d(0,0,0) avec overshoot cubic-bezier(0.56,1.19,0.2,1.05)
+             et stagger 50ms entre chaque lien.
+   Fermeture : stagger inversé — dernier lien sort en premier.
+   ================================================================ */
+
+/* ── Container overlay ── */
+.mobile-nav-overlay {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  /* Fermeture : délai de visibility pour laisser jouer les transitions des items */
+  transition: opacity 0.4s ease, visibility 0s 0.6s;
+  /* Fond #191919 + halo radial identique au fond global du site */
+  background: radial-gradient(
+    circle at 45% 0%,
+    rgba(55, 55, 55, 0.98) 0%,
+    rgba(35, 35, 35, 0.98) 28%,
+    rgba(25, 25, 25, 0.98) 72%
+  );
+}
+
+.mobile-nav-overlay.is-open {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  /* Ouverture : visibility immédiate */
+  transition: opacity 0.35s ease, visibility 0s;
+}
+
+/* ── Items — état fermé (Codrops .dummy__item) ── */
+.mobile-nav-item {
+  /* Slide hors écran à gauche + squish horizontal, transform-origin droite */
+  transform: translate3d(-100%, 0, 0) translate3d(-2em, 0, 0) scale3d(0.5, 1, 1);
+  transform-origin: 100% 50%;
+  /* Fermeture : easing de sortie Codrops */
+  transition: transform 0.5s cubic-bezier(0.7, 0, 0.3, 1);
+  will-change: transform;
+  position: relative;   /* nécessaire pour ::after absolu */
+}
+
+/* Stagger fermeture — dernier lien en premier (Codrops reverse stagger) */
+.mobile-nav-item:nth-child(5) { transition-delay: 0.05s; }
+.mobile-nav-item:nth-child(4) { transition-delay: 0.10s; }
+.mobile-nav-item:nth-child(3) { transition-delay: 0.15s; }
+.mobile-nav-item:nth-child(2) { transition-delay: 0.20s; }
+.mobile-nav-item:nth-child(1) { transition-delay: 0.25s; }
+
+/* ── Items — état ouvert (Codrops .dummy--active .dummy__item) ── */
+.mobile-nav-overlay.is-open .mobile-nav-item {
+  transform: translate3d(0, 0, 0);
+  /* Ouverture : overshoot spring Codrops */
+  transition-timing-function: cubic-bezier(0.56, 1.19, 0.2, 1.05);
+}
+
+/* Stagger ouverture — premier lien en premier */
+.mobile-nav-overlay.is-open .mobile-nav-item:nth-child(1) { transition-delay: 0.05s; }
+.mobile-nav-overlay.is-open .mobile-nav-item:nth-child(2) { transition-delay: 0.10s; }
+.mobile-nav-overlay.is-open .mobile-nav-item:nth-child(3) { transition-delay: 0.15s; }
+.mobile-nav-overlay.is-open .mobile-nav-item:nth-child(4) { transition-delay: 0.20s; }
+.mobile-nav-overlay.is-open .mobile-nav-item:nth-child(5) { transition-delay: 0.25s; }
+
+/* Séparateurs — ligne fine centrée à 85%, positionnée en bas de l'élément */
+.mobile-nav-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left:  7.5%;   /* (100% - 85%) / 2 */
+  width: 85%;
+  height: 1px;
+  background: rgba(242, 242, 242, 0.18);
+}
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-overlay          { transition: none; }
+  .mobile-nav-item             { transform: none !important; transition: none; }
+}
+
+/* ── Masquer les boutons flottants quand le menu mobile est ouvert ── */
+@media (max-width: 767px) {
+  body.mobile-menu-open #floating-contact-actions {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0s 0.25s;
+  }
+}
+
+/* ================================================================
+   Grille technique (usage : sections hero, blocs sombres)
+   ================================================================ */
+.grid-bg {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ================================================================
+   Repair selector — boutons onglets et items dropdown
+   ─────────────────────────────────────────────────────────────────
+   Source unique pour toutes les pages réparation.
+   Les états dynamiques (border color, bg actif) restent en inline.
+   .repair-tab-btn → boutons famille / génération (grille)
+   .repair-dd-item → items dropdown modèles
+   ================================================================ */
+
+.repair-tab-btn {
+  width:            100%;
+  display:          flex;
+  align-items:      center;
+  justify-content:  center;
+  height:           clamp(44px, 4.5vw, 58px);
+  padding:          0 12px;
+  background-color: #262626;
+  border-radius:    var(--radius-btn);   /* 6px */
+  font-size:        clamp(15px, 1.4vw, 18px);
+  font-weight:      300;
+}
+
+.repair-dd-item {
+  width:            100%;
+  display:          flex;
+  align-items:      center;
+  justify-content:  space-between;
+  padding:          12px 16px;
+  font-size:        15px;
+  font-weight:      300;
+  text-align:       left;
+}
+
+/* ================================================================
+   ServiceSelector — cartes appareils
+   ─────────────────────────────────────────────────────────────────
+   Icône : couleurs originales SVG, opacity 1, aucune modification.
+   Ni filtre, ni opacité, ni transition sur les icônes.
+   Label : gris #8a8a8a → #f2f2f2 au hover/focus.
+   ================================================================ */
+
+.service-card-label {
+  color: #8a8a8a;
+  transition: color 300ms ease;
+}
+.service-card:hover .service-card-label,
+.service-card:focus-visible .service-card-label {
+  color: #f2f2f2;
+}
+
+/* ================================================================
+   Grille de fond — appliquée aux sections APRÈS le hero uniquement.
+   ─────────────────────────────────────────────────────────────────
+   .post-hero-grid : wrapper relatif isolé.
+   La grille est absolute inset-0 (z:-1) à l'intérieur du wrapper,
+   elle ne couvre pas le premier écran hero.
+   ================================================================ */
+
+.post-hero-grid {
+  position: relative;
+  isolation: isolate;
+}
+.post-hero-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url('/assets/ui/grid_background.svg');
+  background-repeat: repeat;
+  background-position: top left;
+  background-size: 400px 400px;
+  opacity: 0.05;
+}
+
+/* ================================================================
+   Dropdown desktop — menu Réparation
+   ─────────────────────────────────────────────────────────────────
+   Animation : opacity + translateY via CSS, 220ms ease-out.
+   Pas de GSAP — mouvement simple ne le nécessite pas.
+   Le dropdown est un descendant DOM du nav → onMouseLeave du nav
+   ne se déclenche pas tant que la souris est sur le dropdown.
+   ================================================================ */
+
+.nav-dropdown-panel {
+  position:   absolute;
+  top:        calc(100% + 10px);
+  left:       50%;
+  z-index:    60;
+  min-width:  160px;
+
+  /* Apparence */
+  background:        rgba(25, 25, 25, 0.85);
+  border:            1px solid #f2f2f2;
+  border-radius:     8px;
+  padding:           4px 0;
+  backdrop-filter:   blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  /* État initial caché (SSR) — GSAP prend le relais au mount
+     via gsap.set(panel, { autoAlpha:0, yPercent:-30, scale:0.7, xPercent:-50 }).
+     Aucune CSS transition : GSAP gère toutes les animations. */
+  opacity:           0;
+  visibility:        hidden;
+  pointer-events:    none;
+  will-change:       transform, opacity;
+}
+
+/* .is-open : active uniquement pointer-events — opacity/visibility gérés par GSAP */
+.nav-dropdown-panel.is-open {
+  pointer-events: auto;
+}
+
+.nav-dropdown-item {
+  display:     block;
+  padding:     9px 18px;
+  font-size:   0.875rem;  /* 14px */
+  font-weight: 400;
+  color:       rgba(242, 242, 242, 0.70);
+  white-space: nowrap;
+  transition:  color 180ms ease, background 180ms ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.nav-dropdown-item:hover,
+.nav-dropdown-item:focus-visible {
+  color:      #ccff33;
+  background: rgba(204, 255, 51, 0.07);
+  outline:    none;
+}
+
+/* ================================================================
+   Contact action panel — ouverture vers le HAUT.
+   Même style que .nav-dropdown-panel, positionné au-dessus du trigger.
+   GSAP init : yPercent:30, scale:0.7, transformOrigin:'bottom center'.
+   ================================================================ */
+
+/* Mobile-first : position fixe, pleine largeur viewport */
+.contact-action-panel {
+  position:   fixed;
+  bottom:     96px;           /* au-dessus de la ligne de pictos (72px + 16px + marge) */
+  left:       50%;
+  z-index:    60;
+  width:      calc(100vw - 24px);
+  max-width:  calc(100vw - 24px);
+
+  background:               rgba(25, 25, 25, 0.85);
+  border:                   1px solid #f2f2f2;
+  border-radius:            8px;
+  padding:                  6px 0;
+  backdrop-filter:          blur(8px);
+  -webkit-backdrop-filter:  blur(8px);
+
+  opacity:        0;
+  visibility:     hidden;
+  pointer-events: none;
+  will-change:    transform, opacity;
+}
+
+/* Desktop : position absolue au-dessus du bouton */
+@media (min-width: 768px) {
+  .contact-action-panel {
+    position:   absolute;
+    bottom:     calc(100% + 10px);
+    width:      auto;
+    max-width:  none;
+    min-width:  190px;
+    padding:    4px 0;
+  }
+}
+
+.contact-action-panel.is-open {
+  pointer-events: auto;
+}
+
+.contact-action-item {
+  display:       block;
+  padding:       14px 20px;
+  color:         rgba(242, 242, 242, 0.75);
+  white-space:   normal;
+  transition:    color 180ms ease, background 180ms ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (min-width: 768px) {
+  .contact-action-item {
+    padding:     10px 18px;
+    white-space: nowrap;
+  }
+}
+
+.contact-action-item:last-child {
+  border-bottom: none;
+}
+
+.contact-action-item:hover,
+.contact-action-item:focus-visible {
+  color:      #ccff33;
+  background: rgba(204, 255, 51, 0.07);
+  outline:    none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Pas de CSS transition sur ce composant — GSAP gère les animations.
+     prefers-reduced-motion est géré directement dans DesktopNav.tsx :
+     si activé, gsap.set() instantané à la place de la timeline. */
+}
+
+/* ================================================================
+   Water Damage Card — Rain effect
+   Port de Omar Khaled (CodePen XWJZaeG)
+   Ref locale : docs/references/css-rain-effect/
+   ─────────────────────────────────────────────────────────────────
+   Appliqué uniquement à la card "Dégâts d'eau" de la section 2.
+   Scoped .wd-* — aucun impact sur le reste du site.
+
+   Technique :
+     .wd-rain-container : z-index:1, derrière icônes (z-index:2).
+     .wd-drop : position:absolute bottom:100%, tombe via translateY(280px).
+       280px couvre toute la card (~150-220px) sans travel inutile.
+     .wd-stem : filet 1.5px, opacité 0.38 — visible et sobre.
+   ================================================================ */
+
+@keyframes wd-rain-drop {
+  0%   { transform: translateY(0); }
+  75%  { transform: translateY(280px); }
+  100% { transform: translateY(280px); }
+}
+
+@keyframes wd-rain-stem {
+  0%   { opacity: 1; }
+  65%  { opacity: 1; }
+  75%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Container — z-index:1, au-dessus du fond de la card, derrière icônes (z-index:2) */
+.wd-rain-container {
+  position:       absolute;
+  inset:          0;
+  pointer-events: none;
+  z-index:        1;
+}
+
+/* Goutte */
+.wd-drop {
+  position:       absolute;
+  bottom:         100%;
+  width:          10px;
+  height:         52px;
+  pointer-events: none;
+  animation:      wd-rain-drop linear infinite;
+}
+
+/* Filet — 1.5px, opacité 0.38 — visible et sobre sur fond sombre */
+.wd-stem {
+  width:       1.5px;
+  height:      65%;
+  margin-left: 4px;
+  background: linear-gradient(
+    to bottom,
+    rgba(242, 242, 242, 0),
+    rgba(242, 242, 242, 0.38)
+  );
+  animation: wd-rain-stem linear infinite;
+}
+
+/* prefers-reduced-motion — animation désactivée, filets invisibles */
+@media (prefers-reduced-motion: reduce) {
+  .wd-drop { animation: none; }
+  .wd-stem { animation: none; opacity: 0; }
+}
+
+/* ================================================================
+   Supprime la ligne de séparation visible sous le header.
+   La première section de chaque page hérite d'un border-t
+   identique aux séparateurs inter-sections ; sur la homepage
+   le hero absorbe cet espace, mais sur les autres pages la
+   bordure apparaît directement sous le header.
+   ================================================================ */
+header + main > section:first-of-type {
+  border-top: none;
+}
+
+/* ================================================================
+   choice-card-frame — gradient subtil pour les cartes sélectionnables
+   Appliqué aux cadres de sélection appareil, marque et réparation.
+   ─────────────────────────────────────────────────────────────────
+   background-image (pas le shorthand background) : coexiste avec
+   les background-color inline et les animations GSAP backgroundColor
+   sans conflit — les deux propriétés CSS sont indépendantes.
+   Aucune animation. Statique. Lisibilité intacte.
+   ================================================================ */
+.choice-card-frame {
+  background-image: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.045)  0%,
+    rgba(255, 255, 255, 0.015) 45%,
+    rgba(204, 255,  51, 0.018) 100%
+  );
+}
+
+/* ================================================================
+   grid-background.svg — élément graphique global fixé bas gauche.
+   body::after (body::before est réservé au gradient mobile).
+   ─────────────────────────────────────────────────────────────────
+   position: fixed → reste en place au scroll sans layout shift.
+   z-index: -1    → derrière tout le contenu.
+   pointer-events: none → invisible aux interactions.
+   opacity réduite → discret, premium, ne gêne pas la lecture.
+   ================================================================ */
+body::after {
+  content:             '';
+  position:            fixed;
+  left:                0;
+  bottom:              0;
+  width:               1000px;
+  height:              1000px;
+  z-index:             -1;
+  pointer-events:      none;
+  background-image:    url('/assets/ui/grid-background.svg');
+  background-repeat:   no-repeat;
+  background-position: left bottom;
+  background-size:     contain;
+  opacity:             0.30;
+}
+
+@media (max-width: 767px) {
+  body::after {
+    width:   728px;
+    height:  728px;
+    opacity: 0.18;
+  }
+}
+

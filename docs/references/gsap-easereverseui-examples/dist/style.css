@@ -1,0 +1,239 @@
+@font-face {
+  font-display: block;
+  font-family: Mori;
+  font-weight: 400;
+  src: url(https://assets.codepen.io/16327/PPMori-Regular.woff) format("woff");
+}
+@font-face {
+  font-display: block;
+  font-family: Mori;
+  font-weight: 600;
+  src: url(https://assets.codepen.io/16327/PPMori-SemiBold.woff) format("woff");
+}
+@font-face {
+  font-display: block;
+  font-family: Fraktion Mono;
+  font-weight: 400;
+  src: url(https://assets.codepen.io/16327/PPFraktionMono-Bold.woff)
+    format("woff");
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: none !important;
+  animation: none !important;
+}
+
+:root {
+  --green: #0ae448;
+  --lt: #abff84;
+  --black: #0e100f;
+  --white: #fffce1;
+  --grey: #191919;
+  --s75: #bbbaa6;
+  --s50: #7c7c6f;
+  --s25: #191919;
+}
+
+body {
+  font-family: Mori, sans-serif;
+  background: var(--black);
+  color: var(--s75);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 60px;
+  gap: 48px;
+}
+
+code {
+  font-family: Fraktion Mono, monospace;
+  font-size: 0.72rem;
+  background: rgba(10, 228, 72, 0.08);
+  color: var(--green);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+h1 {
+  color: var(--white);
+  font-weight: 400;
+  font-size: 1.4rem;
+  text-align: center;
+}
+.subtitle {
+  color: var(--s50);
+  font-size: 0.82rem;
+  text-align: center;
+  max-width: 55ch;
+  margin-top: -32px;
+}
+
+.toggle-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--s50);
+}
+.toggle-bar input {
+  accent-color: var(--green);
+}
+.toggle-bar code {
+  font-family: Fraktion Mono, monospace;
+  font-size: 0.72rem;
+  background: var(--grey);
+  color: var(--green);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.demos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+}
+
+.demo-card {
+  background: var(--grey);
+  border: 1px solid var(--s25);
+  border-radius: 12px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-width: 260px;
+  flex: 1;
+  max-width: 380px;
+  min-height: 200px;
+  justify-content: center;
+}
+.demo-label {
+  font-family: Fraktion Mono, monospace;
+  font-size: 0.7rem;
+  color: var(--s50);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hover-btn {
+  background: linear-gradient(114deg, #0ae448 20%, #abff84 65%);
+  color: var(--black);
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-family: Mori, sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transform-origin: center;
+}
+
+.dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-trigger {
+  background: var(--s25);
+  color: var(--white);
+  border: 2px solid var(--s50);
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-family: Mori, sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dd-arrow {
+  transform-origin: center center;
+  display: block;
+}
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--s25);
+  border: 2px solid var(--s50);
+  border-radius: 8px;
+  min-width: 170px;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  will-change: transform;
+}
+.dropdown-menu.open {
+  pointer-events: auto;
+}
+.dropdown-item {
+  will-change: transform;
+  padding: 9px 16px;
+  color: var(--s75);
+  font-size: 0.82rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+.dropdown-item:hover {
+  background: rgba(10, 228, 72, 0.08);
+  color: var(--white);
+}
+
+.tooltip-wrap {
+  position: relative;
+  display: inline-block;
+}
+.tooltip-target {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(317deg, #ffe9fe 10%, #ff96f9 83%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--black);
+  font-size: 1.2rem;
+  transform-origin: center;
+}
+.tooltip-bubble {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--white);
+  color: var(--black);
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transform-origin: bottom center;
+}
+.tooltip-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--white);
+}
