@@ -220,7 +220,7 @@ function RepairCard({ label, href, mainIcon, actionIcon, mainIconSize = 'w-[82%]
       </div>
 
       {/* Label sous le cadre */}
-      <span className="service-card-label text-xs md:text-sm font-light text-center leading-snug">
+      <span className="service-card-label text-base md:text-sm font-light text-center leading-snug">
         {labelLines.map((line, i) => (
           <span key={i} className="block">{line}</span>
         ))}
