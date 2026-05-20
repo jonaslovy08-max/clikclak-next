@@ -43,7 +43,7 @@ export default function DepannageSection() {
               {' '}ClikClak vous accompagne 7/7.
             </p>
 
-            <div className="flex flex-col gap-3 text-sm md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
+            <div className="flex flex-col gap-3 text-base md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
               <p>
                 Besoin d&apos;aide pour un smartphone, une tablette ou un ordinateur ? ClikClak vous accompagne pour le diagnostic, la configuration, le transfert de données ou les pannes urgentes, selon disponibilité.
               </p>
@@ -51,7 +51,7 @@ export default function DepannageSection() {
 
             <ul className="flex flex-col gap-2">
               {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-sm font-light text-foreground/70">
+                <li key={b} className="flex items-start gap-2 text-base font-light text-foreground/70">
                   <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>
                   {b}
                 </li>

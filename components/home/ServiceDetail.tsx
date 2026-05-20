@@ -276,7 +276,7 @@ export default function ServiceDetail() {
               </h3>
             </div>
 
-            <p className="text-sm md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
+            <p className="text-base md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
               Écran cassé, batterie faible ou connecteur instable. Diagnostic clair, réparation soignée et prix affichés selon votre modèle.
             </p>
 

@@ -54,14 +54,14 @@ export default function WaterDamageSection() {
             </p>
 
             {/* Corps de texte */}
-            <p className="text-sm md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
+            <p className="text-base md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
               Éteignez-le, ne le rechargez pas et faites contrôler l&apos;appareil rapidement. Une intervention dans les premières heures limite les dommages.
             </p>
 
             {/* Points clés */}
             <ul className="flex flex-col gap-2">
               {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-sm font-light text-foreground/70">
+                <li key={b} className="flex items-start gap-2 text-base font-light text-foreground/70">
                   <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>
                   {b}
                 </li>
