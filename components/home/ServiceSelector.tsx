@@ -152,7 +152,7 @@ function DeviceCard({ device }: { device: Device }) {
       </div>
 
       {/* Label — CSS via .service-card-label dans globals.css */}
-      <span className="service-card-label text-sm md:text-base font-light text-center leading-snug">
+      <span className="service-card-label text-base font-light text-center leading-snug">
         {labelLines.map((line, i) => (
           <span key={i} className="block">{line}</span>
         ))}

@@ -191,7 +191,7 @@ export default function RepairModelSearch({
       >
         {results.length === 0 ? (
           <div
-            className="rms-item px-5 py-4 text-sm font-light"
+            className="rms-item px-5 py-4 text-base font-light"
             style={{ color: 'rgba(242,242,242,0.35)' }}
           >
             Aucun modèle trouvé pour «&nbsp;{query.trim()}&nbsp;»
@@ -201,7 +201,7 @@ export default function RepairModelSearch({
             key={result.modelId}
             type="button"
             onClick={() => handleSelect(result)}
-            className="rms-item w-full flex items-center gap-4 px-5 py-4 text-sm font-light text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+            className="rms-item w-full flex items-center gap-4 px-5 py-4 text-base font-light text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
             style={{
               borderTop:       idx > 0 ? '1px solid rgba(242,242,242,0.07)' : undefined,
               backgroundColor: 'transparent',
