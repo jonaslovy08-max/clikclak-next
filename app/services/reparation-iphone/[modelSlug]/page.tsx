@@ -12,6 +12,7 @@ import { MainRepairCard } from '@/components/repair/MainRepairCard'
 import { iphoneModels, generations } from '@/data/iphoneRepairs'
 import { stripCents } from '@/data/repairTypes'
 import { SITE_URL } from '@/lib/seo'
+import ShareButton from '@/components/share/ShareButton'
 
 /* ── Génération statique de toutes les pages modèle ──────────────────────── */
 export function generateStaticParams() {
@@ -112,12 +113,19 @@ export default async function IphoneModelPage({
 
             {/* ══ 3. TARIFS PRINCIPAUX ═══════════════════════════════════ */}
             <div className="flex flex-col gap-6">
-              <h2
-                className="font-light"
-                style={{ fontSize: 'clamp(18px, 2vw, 26px)', color: 'rgba(242,242,242,0.9)' }}
-              >
-                Tarifs de réparation
-              </h2>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <h2
+                  className="font-light"
+                  style={{ fontSize: 'clamp(18px, 2vw, 26px)', color: 'rgba(242,242,242,0.9)' }}
+                >
+                  Tarifs de réparation
+                </h2>
+                <ShareButton
+                  title={`Tarifs de réparation ${model.label} | ClikClak`}
+                  text={`Consultez les tarifs de réparation pour ${model.label} chez ClikClak Lausanne.`}
+                  url={`${SITE_URL}/services/reparation-iphone/${model.id}/`}
+                />
+              </div>
 
               {/* Écran + Batterie */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

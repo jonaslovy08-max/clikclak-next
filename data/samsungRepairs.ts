@@ -103,12 +103,19 @@ export const samsungBrandData: RepairBrandData = {
   brandIcon:          '/assets/icons/icon-samsung.svg',
   breadcrumbLabel:    'Réparation Samsung Lausanne',
   breadcrumbHref:     '/reparation-smartphone-express/',
-  defaultModelId:     'galaxy-s25-ultra',
   initialFamilyCount: 6,
   repairNote:         'La plupart des réparations Samsung sont réalisées en boutique à Lausanne. Délai estimé selon la disponibilité des pièces.',
   searchPlaceholder:  'Rechercher mon Samsung...',
 
   families: [
+    {
+      id: 'galaxy-s26', label: 'Galaxy S26', shortLabel: 'S26', buttonPrefix: 'Galaxy ',
+      models: [
+        m('galaxy-s26-ultra', 'Galaxy S26 Ultra', surDemande()),
+        m('galaxy-s26-plus',  'Galaxy S26+',      surDemande()),
+        m('galaxy-s26',       'Galaxy S26',       surDemande()),
+      ],
+    },
     {
       id: 'galaxy-s25', label: 'Galaxy S25', shortLabel: 'S25', buttonPrefix: 'Galaxy ',
       models: [

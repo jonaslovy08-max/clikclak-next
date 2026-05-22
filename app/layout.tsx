@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { DEFAULT_OG_IMAGE } from '@/lib/seo'
 import { Rubik } from 'next/font/google'
 import './globals.css'
 import CustomCursor from '@/components/ui/CustomCursor'
@@ -34,6 +35,11 @@ export const metadata: Metadata = {
     siteName: 'Clik Clak Repair',
     locale: 'fr_CH',
     type: 'website',
+    images: [{ url: DEFAULT_OG_IMAGE }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [DEFAULT_OG_IMAGE],
   },
   icons: {
     icon: [

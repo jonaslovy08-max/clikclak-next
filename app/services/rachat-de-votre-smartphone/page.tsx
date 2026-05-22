@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { Button } from '@/components/ui/Button'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 import RecentShopProducts from '@/components/shop/RecentShopProducts'
@@ -81,31 +83,55 @@ export default function RachatSmartphonePage() {
 
         {/* ══ HERO ════════════════════════════════════════════════════ */}
         <section className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10" aria-label="Vendez votre ancien appareil à ClikClak">
-          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
-            <div>
-              <span className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
-                style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}>
-                Rachat d&apos;appareils
-              </span>
+          <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center">
+
+            {/* ── Texte ── */}
+            <div className="flex-1 flex flex-col gap-6">
+              <div>
+                <span className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
+                  style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}>
+                  Rachat d&apos;appareils
+                </span>
+              </div>
+              <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight">
+                Vendez votre ancien appareil{' '}<span className="text-accent">à ClikClak</span>
+              </h1>
+              {/* Image mobile */}
+              <div className="block md:hidden -mx-6 w-screen overflow-hidden">
+                <Image
+                  src="/assets/images/homepage/service-sections/smartphone-buyback-mobile.webp"
+                  alt="Rachat d'appareils chez ClikClak Lausanne"
+                  width={0} height={0} sizes="100vw"
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="font-light leading-relaxed max-w-2xl"
+                style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}>
+                Smartphone, tablette, Mac, ordinateur, montre connectée ou écouteurs : sélectionnez votre appareil, indiquez son état et recevez une offre rapide selon le modèle, la condition réelle et le potentiel de reconditionnement.
+              </p>
+              <ul className="flex flex-col gap-2">
+                {['Prix équitable', 'Suppression sécurisée des données', 'Envoi gratuit selon conditions', 'Paiement rapide après contrôle', 'Reconditionnement ou recyclage responsable'].map(b => (
+                  <li key={b} className="flex items-start gap-2 text-sm font-light" style={{ color: 'rgba(242,242,242,0.7)' }}>
+                    <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>{b}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-wrap items-center gap-4">
+                <Button href="#estimation-rachat" size="lg">Commencer l&apos;estimation</Button>
+                <Button href="#comment-ca-marche" variant="secondary" size="lg">Comment ça marche ?</Button>
+              </div>
             </div>
-            <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight max-w-3xl">
-              Vendez votre ancien appareil{' '}<span className="text-accent">à ClikClak</span>
-            </h1>
-            <p className="font-light leading-relaxed max-w-2xl"
-              style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}>
-              Smartphone, tablette, Mac, ordinateur, montre connectée ou écouteurs : sélectionnez votre appareil, indiquez son état et recevez une offre rapide selon le modèle, la condition réelle et le potentiel de reconditionnement.
-            </p>
-            <ul className="flex flex-col gap-2">
-              {['Prix équitable', 'Suppression sécurisée des données', 'Envoi gratuit selon conditions', 'Paiement rapide après contrôle', 'Reconditionnement ou recyclage responsable'].map(b => (
-                <li key={b} className="flex items-start gap-2 text-sm font-light" style={{ color: 'rgba(242,242,242,0.7)' }}>
-                  <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>{b}
-                </li>
-              ))}
-            </ul>
-            <div className="flex flex-wrap items-center gap-4">
-              <Button href="#estimation-rachat" size="lg">Commencer l&apos;estimation</Button>
-              <Button href="#comment-ca-marche" variant="secondary" size="lg">Comment ça marche ?</Button>
+
+            {/* ── Image desktop ── */}
+            <div className="hidden md:block w-[45%] shrink-0 rounded-xl overflow-hidden">
+              <Image
+                src="/assets/images/homepage/service-sections/smartphone-buyback.webp"
+                alt="Rachat d'appareils chez ClikClak Lausanne"
+                width={0} height={0} sizes="45vw"
+                className="w-full h-auto"
+              />
             </div>
+
           </div>
         </section>
 
@@ -272,6 +298,7 @@ export default function RachatSmartphonePage() {
       </main>
 
       <RecentShopProducts />
+      <RelatedBlogPosts postSlugs={['connaitre-modele-iphone', 'batterie-smartphone-fatiguee']} />
       <SiteFooter />
       <SectionPinning />
     </>

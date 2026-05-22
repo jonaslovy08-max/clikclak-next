@@ -2,6 +2,30 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   // ================================================================
+  // HEADERS DE SÉCURITÉ
+  // ================================================================
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options',  value: 'nosniff' },
+          { key: 'X-Frame-Options',         value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy',         value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy',      value: 'camera=(), microphone=(), geolocation=()' },
+          /*
+            CSP intentionnellement non activée — le site utilise :
+              Cloudflare Turnstile (challenges.cloudflare.com)
+              Google Maps (maps.googleapis.com)
+              images / scripts internes + GSAP CDN possible
+            À activer progressivement après tests complets en staging.
+          */
+        ],
+      },
+    ]
+  },
+
+  // ================================================================
   // REDIRECTIONS — à implémenter en Phase 7
   // Toute modification doit être validée dans docs/SEO_DECISIONS.md
   // ================================================================

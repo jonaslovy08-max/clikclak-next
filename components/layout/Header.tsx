@@ -3,15 +3,47 @@ import Link from 'next/link'
 import MobileMenu from './MobileMenu'
 import DesktopNav from './DesktopNav'
 
-const navLinks = [
-  { label: 'Accueil',                 href: '/' },
-  { label: 'Réparation',              href: '/reparation', hasDropdown: true },
-  { label: 'Récupération de données', href: '/services/recuperation-donnees' },
+export type NavSubLink = { label: string; href: string }
+
+export type NavLink = {
+  label:       string
+  href:        string
+  accent?:     boolean
+  hasDropdown?: boolean
+  subLinks?:   NavSubLink[]
+}
+
+const navLinks: NavLink[] = [
+  { label: 'Accueil',    href: '/' },
+  {
+    label:       'Réparation',
+    href:        '/reparation',
+    hasDropdown: true,
+    subLinks: [
+      { label: 'Smartphone',  href: '/reparation-smartphone-express'         },
+      { label: 'Tablette',    href: '/reparation-tablette-express'            },
+      { label: 'Ordinateur',  href: '/reparation-ordinateur-express'          },
+      { label: 'Dépannage',   href: '/services/depannage-reparation-domicile' },
+      { label: 'Voir tous…',  href: '/reparation/'                            },
+    ],
+  },
+  {
+    label:       'Services',
+    href:        '/services-nav',
+    hasDropdown: true,
+    subLinks: [
+      { label: 'Récupération de données', href: '/services/recuperation-donnees'         },
+      { label: "Rachat d'appareils",      href: '/services/rachat-de-votre-smartphone'   },
+      { label: 'Dépannage 7/7',           href: '/services/depannage-reparation-domicile' },
+      { label: 'Service de coursier',     href: '/service-de-coursier'                   },
+      { label: "Dégâts d'eau",            href: '/reparation-degat-eau-lausanne'          },
+    ],
+  },
 ]
 
-const rightLinks = [
+const rightLinks: NavLink[] = [
   { label: 'Contact', href: '/contact-clik-clak-lausanne' },
-  { label: 'Shop', href: '/shop-reparation-smartphone-lausanne', accent: true },
+  { label: 'Shop',    href: '/shop-reparation-smartphone-lausanne', accent: true },
 ]
 
 const allLinks = [...navLinks, ...rightLinks]

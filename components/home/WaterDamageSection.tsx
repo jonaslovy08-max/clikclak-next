@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import ContactPopover from '@/components/home/ContactPopover'
+import BulletToggle  from '@/components/ui/BulletToggle'
 
 const bullets = [
   'Diagnostic complet',
@@ -29,24 +30,27 @@ export default function WaterDamageSection() {
         <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-center">
 
           {/* Colonne gauche : image */}
-          <div className="w-full md:w-[48%] shrink-0 rounded-xl overflow-hidden">
+          <div className="-mx-6 w-screen md:mx-0 md:w-[48%] shrink-0 rounded-none md:rounded-xl overflow-hidden">
+            <Image
+              src="/assets/images/homepage/service-sections/water-damage-mobile.webp"
+              alt="Réparation dégâts d'eau smartphone chez Clik Clak Repair Lausanne"
+              width={0}
+              height={0}
+              sizes="100vw"
+              className="block md:hidden w-full h-auto"
+            />
             <Image
               src="/assets/images/homepage/service-sections/water-damage.webp"
               alt="Réparation dégâts d'eau smartphone chez Clik Clak Repair Lausanne"
               width={0}
               height={0}
               sizes="(max-width: 768px) 100vw, 48vw"
-              className="w-full h-auto"
+              className="hidden md:block w-full h-auto"
             />
           </div>
 
           {/* Colonne droite : texte + CTA */}
           <div className="flex-1 flex flex-col gap-4 md:pt-2">
-
-            {/* Label */}
-            <span className="text-[11px] text-foreground/35 uppercase tracking-[0.22em]">
-              Réparation spécialisée
-            </span>
 
             {/* Sous-titre */}
             <p className="text-base md:text-lg font-light leading-snug">
@@ -58,15 +62,11 @@ export default function WaterDamageSection() {
               Éteignez-le, ne le rechargez pas et faites contrôler l&apos;appareil rapidement. Une intervention dans les premières heures limite les dommages.
             </p>
 
-            {/* Points clés */}
-            <ul className="flex flex-col gap-2">
-              {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-base font-light text-foreground/70">
-                  <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>
-                  {b}
-                </li>
-              ))}
-            </ul>
+            <BulletToggle
+              bullets={bullets}
+              labelClosed="Que faire rapidement ?"
+              labelOpen="Masquer les conseils"
+            />
 
             {/* CTAs */}
             <div className="flex flex-col gap-3 mt-2">

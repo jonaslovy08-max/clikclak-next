@@ -8,47 +8,58 @@ import gsap from 'gsap'
 import { cn } from '@/lib/utils'
 import { getActiveSection, getSectionNavHref } from '@/lib/navUtils'
 import { useCart } from '@/components/shop/CartContext'
+import type { NavLink } from '@/components/layout/Header'
 
 /*
-  DesktopNav — barre indicatrice lime + dropdown "Réparation" avec GSAP.
+  DesktopNav — barre indicatrice lime + deux dropdowns GSAP (Réparation + Services).
 
-  Animation dropdown (port fidèle de gsap-easereverseui-examples / script.js) :
-    Init   : gsap.set(panel,  { autoAlpha:0, yPercent:-30, scale:0.7, xPercent:-50 })
-             gsap.set(arrow,  { rotation:0 })
-             gsap.set(items,  { opacity:1, x:0 })
+  Chaque dropdown a ses propres refs (wrapRef, menuRef, arrowRef, tlRef).
+  openDropdownId : null | 'reparation' | 'services' — un seul ouvert à la fois.
+  Quand l'un s'ouvre, l'autre se ferme via le sync useEffect.
+
+  Animation dropdown (port fidèle gsap-easereverseui) :
+    Init   : gsap.set(panel, { autoAlpha:0, yPercent:-30, scale:0.7, xPercent:-50 })
     Open   : timeline.timeScale(1).play()
-               → arrow  rotation 0→180°,   elastic.out(1.2, 0.3), 0.9s
-               → panel  autoAlpha/scale/y,  elastic.out(1.2, 0.3), 1s
-               → items  from x:-20 opacity:0, back.out(3), stagger:0.07, offset:0.1
     Close  : timeline.timeScale(2.5).reverse()
 
-  Indicateur underline :
-    - Quand le dropdown est ouvert, la barre reste sous "Réparation".
-    - Au survol des autres liens (dropdown ouvert), la barre ne bouge pas.
-    - À la fermeture du dropdown, la barre revient au lien actif.
-
-  Ouverture : clic uniquement — reste ouvert après le clic.
-  Fermeture : second clic · clic extérieur · Escape.
-
-  Active link :
-    - Résolu via getActiveSection(pathname) — aucun fallback sur "Accueil".
-    - Si aucune section ne correspond, la barre est masquée.
-    - rightLinks (Contact, Shop) ne déclenchent pas la barre (hors portée nav).
+  Ouverture : clic uniquement.
+  Fermeture : second clic · clic extérieur · Escape · changement de route.
 */
 
-type NavLink = { label: string; href: string; accent?: boolean; hasDropdown?: boolean }
+type DropdownId = 'reparation' | 'services'
 
 const BAR_TRANSITION =
   'transform 300ms cubic-bezier(0.25,1,0.5,1), width 300ms cubic-bezier(0.25,1,0.5,1)'
 
-const REPARATION_DROPDOWN_ITEMS = [
-  { label: 'Smartphone',  href: '/reparation-smartphone-express'  },
-  { label: 'Tablette',    href: '/reparation-tablette-express'    },
-  { label: 'Ordinateur',  href: '/reparation-ordinateur-express'  },
-  { label: 'Dépannage',   href: '/services/depannage-reparation-domicile' },
-  { label: 'Voir tous…',  href: '/reparation/'                    },
-]
+/* ── Helper GSAP init ──────────────────────────────────────────────────── */
+function initDropdownAnim(
+  menuEl: HTMLDivElement | null,
+  arrowEl: SVGSVGElement | null,
+  tlRef: React.MutableRefObject<gsap.core.Timeline | null>,
+  reduced: boolean,
+) {
+  if (!menuEl) return
+  gsap.set(menuEl, { autoAlpha: 0, yPercent: -30, scale: 0.7, xPercent: -50, transformOrigin: 'top center' })
+  if (arrowEl) gsap.set(arrowEl, { rotation: 0 })
+  if (!reduced) {
+    const items = menuEl.querySelectorAll('.nav-dropdown-item')
+    gsap.set(items, { clearProps: 'all' })
+    tlRef.current = gsap.timeline({ paused: true })
+      .to(arrowEl ?? [], {
+        rotation: 180, duration: 0.65, ease: 'elastic.out(0.9, 0.4)', easeReverse: 'power2.inOut',
+      } as gsap.TweenVars, 0)
+      .to(menuEl, {
+        autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.75, ease: 'elastic.out(0.9, 0.4)', easeReverse: 'power3.out',
+      } as gsap.TweenVars, 0)
+      .fromTo(items,
+        { opacity: 0, x: -16, immediateRender: false },
+        { opacity: 1, x: 0, duration: 0.42, ease: 'back.out(2)', easeReverse: 'power2.out', stagger: 0.055 } as gsap.TweenVars,
+        0.08,
+      )
+  }
+}
 
+/* ── Composant ─────────────────────────────────────────────────────────── */
 export default function DesktopNav({
   navLinks,
   rightLinks,
@@ -56,30 +67,47 @@ export default function DesktopNav({
   navLinks:   NavLink[]
   rightLinks: NavLink[]
 }) {
-  const pathname           = usePathname()
-  const navRef             = useRef<HTMLElement>(null)
-  const barRef             = useRef<HTMLSpanElement>(null)
-  const dropdownWrapperRef = useRef<HTMLDivElement>(null)
-  const ddMenuRef          = useRef<HTMLDivElement>(null)
-  const ddArrowRef         = useRef<SVGSVGElement>(null)
-  const ddTlRef            = useRef<gsap.core.Timeline | null>(null)
-  const dropdownOpenRef    = useRef(false)
-  const prevOpenRef        = useRef(false)
+  const pathname = usePathname()
+  const navRef   = useRef<HTMLElement>(null)
+  const barRef   = useRef<HTMLSpanElement>(null)
 
-  const [visible,      setVisible]      = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  /* Dropdown Réparation */
+  const repairWrapRef  = useRef<HTMLDivElement>(null)
+  const repairMenuRef  = useRef<HTMLDivElement>(null)
+  const repairArrowRef = useRef<SVGSVGElement>(null)
+  const repairTlRef    = useRef<gsap.core.Timeline | null>(null)
 
-  /* Panier — hydration-safe (0 côté SSR, mis à jour après montage) */
+  /* Dropdown Services */
+  const servicesWrapRef  = useRef<HTMLDivElement>(null)
+  const servicesMenuRef  = useRef<HTMLDivElement>(null)
+  const servicesArrowRef = useRef<SVGSVGElement>(null)
+  const servicesTlRef    = useRef<gsap.core.Timeline | null>(null)
+
+  /* Open state — null | 'reparation' | 'services' */
+  const [openDropdownId, setOpenDropdownId] = useState<DropdownId | null>(null)
+  const openDropdownIdRef = useRef<DropdownId | null>(null)
+  const prevOpenIdRef     = useRef<DropdownId | null>(null)
+
+  /* Barre visible */
+  const [visible, setVisible] = useState(false)
+
+  /* Panier — hydration-safe */
   const { totalItems } = useCart()
   const [cartCount, setCartCount] = useState(0)
   useEffect(() => { setCartCount(totalItems) }, [totalItems])
 
-  /* ── Active link ───────────────────────────────────────────── */
+  /* ── Active link ───────────────────────────────────────────────── */
   const activeSection = getActiveSection(pathname)
-  /* Href sous lequel positionner la barre (null = bar cachée) */
   const activeHref    = getSectionNavHref(activeSection)
 
-  /* ── Barre indicatrice ──────────────────────────────────────── */
+  /* ── Helpers dropdown refs ──────────────────────────────────────── */
+  const refsFor = useCallback((id: DropdownId) => ({
+    tl:    id === 'reparation' ? repairTlRef    : servicesTlRef,
+    menu:  id === 'reparation' ? repairMenuRef  : servicesMenuRef,
+    arrow: id === 'reparation' ? repairArrowRef : servicesArrowRef,
+  }), [])
+
+  /* ── Barre indicatrice ──────────────────────────────────────────── */
   const moveTo = useCallback((el: HTMLElement, instant?: boolean) => {
     const bar = barRef.current
     const nav = navRef.current
@@ -95,7 +123,7 @@ export default function DesktopNav({
   }, [])
 
   const returnToActive = useCallback(() => {
-    if (dropdownOpenRef.current) return
+    if (openDropdownIdRef.current) return
     if (!activeHref) return
     const el = navRef.current?.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
     if (el) moveTo(el)
@@ -103,28 +131,25 @@ export default function DesktopNav({
 
   /* Snap initial + repositionnement au changement de route */
   useEffect(() => {
-    if (!activeHref) {
-      setVisible(false)
-      return
-    }
+    if (!activeHref) { setVisible(false); return }
     const el = navRef.current?.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
     if (!el) return
     moveTo(el, true)
     setVisible(true)
   }, [activeHref, moveTo])
 
-  /* Fermer le dropdown au changement de route */
-  useEffect(() => {
-    setDropdownOpen(false)
-  }, [pathname])
+  /* Fermer les dropdowns au changement de route */
+  useEffect(() => { setOpenDropdownId(null) }, [pathname])
 
   /* Recalcul de la barre au resize */
   useEffect(() => {
     const recalc = () => {
       const nav = navRef.current
       if (!nav) return
-      const el = dropdownOpenRef.current
-        ? nav.querySelector<HTMLElement>('[aria-haspopup="menu"]')
+      const openId = openDropdownIdRef.current
+      const openHref = openId === 'reparation' ? '/reparation' : openId === 'services' ? '/services-nav' : null
+      const el = openHref
+        ? nav.querySelector<HTMLElement>(`[data-href="${openHref}"]`)
         : activeHref
           ? nav.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
           : null
@@ -134,107 +159,75 @@ export default function DesktopNav({
     return () => window.removeEventListener('resize', recalc)
   }, [activeHref, moveTo])
 
-  /* ── GSAP setup ─────────────────────────────────────────────── */
+  /* ── GSAP setup (une fois au mount) ────────────────────────────── */
   useEffect(() => {
-    const ddMenu  = ddMenuRef.current
-    const ddArrow = ddArrowRef.current
-    if (!ddMenu) return
-
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    gsap.set(ddMenu, {
-      autoAlpha:       0,
-      yPercent:        -30,
-      scale:           0.7,
-      xPercent:        -50,
-      transformOrigin: 'top center',
-    })
-    if (ddArrow) gsap.set(ddArrow, { rotation: 0 })
-    if (!reduced) {
-      const items = ddMenu.querySelectorAll('.nav-dropdown-item')
-      gsap.set(items, { clearProps: 'all' })
-      ddTlRef.current = gsap.timeline({ paused: true })
-        .to(ddArrow ?? [], {
-          rotation:    180,
-          duration:    0.65,
-          ease:        'elastic.out(0.9, 0.4)',
-          easeReverse: 'power2.inOut',
-        } as gsap.TweenVars, 0)
-        .to(ddMenu, {
-          autoAlpha:   1,
-          yPercent:    0,
-          scale:       1,
-          duration:    0.75,
-          ease:        'elastic.out(0.9, 0.4)',
-          easeReverse: 'power3.out',
-        } as gsap.TweenVars, 0)
-        .fromTo(
-          items,
-          { opacity: 0, x: -16, immediateRender: false },
-          {
-            opacity:     1,
-            x:           0,
-            duration:    0.42,
-            ease:        'back.out(2)',
-            easeReverse: 'power2.out',
-            stagger:     0.055,
-          } as gsap.TweenVars,
-          0.08,
-        )
+    initDropdownAnim(repairMenuRef.current,    repairArrowRef.current,    repairTlRef,    reduced)
+    initDropdownAnim(servicesMenuRef.current,  servicesArrowRef.current,  servicesTlRef,  reduced)
+    return () => {
+      repairTlRef.current?.kill();   repairTlRef.current   = null
+      servicesTlRef.current?.kill(); servicesTlRef.current = null
     }
-
-    return () => { ddTlRef.current?.kill(); ddTlRef.current = null }
   }, [])
 
-  /* ── Sync ref + GSAP play/reverse + retour barre ───────────── */
+  /* ── Sync GSAP play/reverse lors des changements d'openDropdownId ── */
   useEffect(() => {
-    dropdownOpenRef.current = dropdownOpen
-    const wasOpen = prevOpenRef.current
-    prevOpenRef.current = dropdownOpen
+    openDropdownIdRef.current = openDropdownId
+    const prevId = prevOpenIdRef.current
+    prevOpenIdRef.current = openDropdownId
 
-    const ddMenu  = ddMenuRef.current
-    if (!ddMenu) return
-
-    if (dropdownOpen && !wasOpen) {
-      if (ddTlRef.current) {
-        ddTlRef.current.timeScale(1).play()
+    /* Fermer le dropdown précédent */
+    if (prevId && prevId !== openDropdownId) {
+      const { tl, menu, arrow } = refsFor(prevId)
+      if (tl.current) {
+        tl.current.timeScale(2.5).reverse()
       } else {
-        gsap.set(ddMenu, { autoAlpha: 1, yPercent: 0, scale: 1, xPercent: -50 })
-        if (ddArrowRef.current) gsap.set(ddArrowRef.current, { rotation: 180 })
+        if (menu.current)  gsap.set(menu.current,  { autoAlpha: 0 })
+        if (arrow.current) gsap.set(arrow.current, { rotation: 0 })
       }
-    } else if (!dropdownOpen && wasOpen) {
-      if (ddTlRef.current) {
-        ddTlRef.current.timeScale(2.5).reverse()
-      } else {
-        gsap.set(ddMenu, { autoAlpha: 0 })
-        if (ddArrowRef.current) gsap.set(ddArrowRef.current, { rotation: 0 })
-      }
-      const el = activeHref
-        ? navRef.current?.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
-        : null
-      if (el) moveTo(el)
     }
-  }, [dropdownOpen, activeHref, moveTo])
 
-  /* ── Clic extérieur ─────────────────────────────────────────── */
-  useEffect(() => {
-    if (!dropdownOpen) return
-    const onClick = (e: MouseEvent) => {
-      if (dropdownWrapperRef.current && !dropdownWrapperRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
+    /* Ouvrir le nouveau dropdown + déplacer la barre */
+    if (openDropdownId) {
+      const { tl, menu, arrow } = refsFor(openDropdownId)
+      if (tl.current) {
+        tl.current.timeScale(1).play()
+      } else {
+        if (menu.current)  gsap.set(menu.current,  { autoAlpha: 1, yPercent: 0, scale: 1, xPercent: -50 })
+        if (arrow.current) gsap.set(arrow.current, { rotation: 180 })
       }
+      const openHref = openDropdownId === 'reparation' ? '/reparation' : '/services-nav'
+      const el = navRef.current?.querySelector<HTMLElement>(`[data-href="${openHref}"]`)
+      if (el) moveTo(el)
+    } else if (prevId) {
+      /* Tout fermé → retour au lien actif */
+      if (activeHref) {
+        const el = navRef.current?.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
+        if (el) moveTo(el)
+      }
+    }
+  }, [openDropdownId, activeHref, moveTo, refsFor])
+
+  /* ── Clic extérieur — ferme les deux dropdowns ─────────────────── */
+  useEffect(() => {
+    if (!openDropdownId) return
+    const onClick = (e: MouseEvent) => {
+      const t = e.target as Node
+      const insideRepair   = repairWrapRef.current?.contains(t)
+      const insideServices = servicesWrapRef.current?.contains(t)
+      if (!insideRepair && !insideServices) setOpenDropdownId(null)
     }
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
-  }, [dropdownOpen])
+  }, [openDropdownId])
 
-  /* ── Escape ─────────────────────────────────────────────────── */
+  /* ── Escape ─────────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!dropdownOpen) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDropdownOpen(false) }
+    if (!openDropdownId) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenDropdownId(null) }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [dropdownOpen])
+  }, [openDropdownId])
 
   return (
     <>
@@ -246,7 +239,7 @@ export default function DesktopNav({
         onBlur={e => {
           if (!e.currentTarget.contains(e.relatedTarget as Node)) {
             returnToActive()
-            setDropdownOpen(false)
+            setOpenDropdownId(null)
           }
         }}
       >
@@ -280,8 +273,8 @@ export default function DesktopNav({
                     ? 'text-foreground'
                     : 'text-foreground/65 hover:text-foreground',
                 )}
-                onMouseEnter={e => { if (!dropdownOpenRef.current) moveTo(e.currentTarget) }}
-                onFocus={e       => { if (!dropdownOpenRef.current) moveTo(e.currentTarget) }}
+                onMouseEnter={e => { if (!openDropdownIdRef.current) moveTo(e.currentTarget) }}
+                onFocus={e       => { if (!openDropdownIdRef.current) moveTo(e.currentTarget) }}
               >
                 {link.label}
               </Link>
@@ -289,15 +282,23 @@ export default function DesktopNav({
           }
 
           /* Lien avec dropdown */
-          const isActive = link.href === activeHref
+          const ddId: DropdownId = link.href === '/reparation' ? 'reparation' : 'services'
+          const isOpen           = openDropdownId === ddId
+          const isActive         = link.href === activeHref
+          const wrapRef          = ddId === 'reparation' ? repairWrapRef   : servicesWrapRef
+          const menuRef          = ddId === 'reparation' ? repairMenuRef   : servicesMenuRef
+          const arrowRef         = ddId === 'reparation' ? repairArrowRef  : servicesArrowRef
+          const domId            = ddId === 'reparation' ? 'reparation-dropdown' : 'services-dropdown'
+          const subLinks         = link.subLinks ?? []
+
           return (
-            <div key={link.href} ref={dropdownWrapperRef} className="relative">
+            <div key={link.href} ref={wrapRef} className="relative">
               <button
                 type="button"
                 data-href={link.href}
                 aria-haspopup="menu"
-                aria-expanded={dropdownOpen}
-                aria-controls="reparation-dropdown"
+                aria-expanded={isOpen}
+                aria-controls={domId}
                 className={cn(
                   'inline-flex items-center gap-1 text-[19px] font-light transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm',
@@ -305,11 +306,11 @@ export default function DesktopNav({
                 )}
                 onMouseEnter={e => moveTo(e.currentTarget)}
                 onFocus={e       => moveTo(e.currentTarget)}
-                onClick={() => setDropdownOpen(prev => !prev)}
+                onClick={() => setOpenDropdownId(prev => prev === ddId ? null : ddId)}
               >
                 {link.label}
                 <svg
-                  ref={ddArrowRef}
+                  ref={arrowRef}
                   aria-hidden="true"
                   width="10" height="10"
                   viewBox="0 0 10 10"
@@ -321,22 +322,22 @@ export default function DesktopNav({
               </button>
 
               <div
-                ref={ddMenuRef}
-                id="reparation-dropdown"
+                ref={menuRef}
+                id={domId}
                 role="menu"
-                aria-label="Sous-menu Réparation"
-                className={cn('nav-dropdown-panel', dropdownOpen && 'is-open')}
+                aria-label={`Sous-menu ${link.label}`}
+                className={cn('nav-dropdown-panel', isOpen && 'is-open')}
               >
-                {REPARATION_DROPDOWN_ITEMS.map((item, idx) => (
+                {subLinks.map((item, idx) => (
                   <Link
-                    key={item.label}
+                    key={item.href}
                     href={item.href}
                     role="menuitem"
                     className="nav-dropdown-item"
-                    style={idx === REPARATION_DROPDOWN_ITEMS.length - 1
+                    style={idx === subLinks.length - 1
                       ? { borderTop: '1px solid rgba(242,242,242,0.1)' }
                       : undefined}
-                    onClick={() => setDropdownOpen(false)}
+                    onClick={() => setOpenDropdownId(null)}
                   >
                     {item.label}
                   </Link>
@@ -384,7 +385,6 @@ export default function DesktopNav({
                   }
                   className="inline-flex items-center gap-2 leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
                 >
-                  {/* width/height proportionnels au viewBox 95.33×69.82 (ratio 1.366) */}
                   <Image
                     src="/assets/ui/icon-shop.svg"
                     alt=""

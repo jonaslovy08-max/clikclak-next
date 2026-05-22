@@ -89,7 +89,7 @@ export function MainRepairCard({
             <p className="font-semibold leading-tight" style={{ fontSize: 'clamp(20px, 2.8vw, 34px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
               {repair.name}
             </p>
-            <p className="font-light" style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', color: isScreen ? '#5a5a5a' : '#b4b4b4' }}>
+            <p className="font-light" style={{ fontSize: 'clamp(14px, 1.4vw, 18px)', color: isScreen ? '#5a5a5a' : '#b4b4b4' }}>
               A partir de :
             </p>
           </div>
@@ -117,10 +117,10 @@ export function MainRepairCard({
             <img src="/assets/ui/icon-repair-action.svg" alt="" aria-hidden style={{ height: 26, width: 26, objectFit: 'contain' }} />
           </div>
           <div className="min-w-0">
-            <p className="font-light leading-tight" style={{ fontSize: 'clamp(11px, 1.2vw, 18px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
+            <p className="font-light leading-tight" style={{ fontSize: 'clamp(13px, 1.3vw, 18px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
               {repair.subtitle}
             </p>
-            <p className="font-light" style={{ fontSize: 'clamp(11px, 1.2vw, 18px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
+            <p className="font-light" style={{ fontSize: 'clamp(13px, 1.3vw, 18px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
               {modelLabel}
             </p>
           </div>

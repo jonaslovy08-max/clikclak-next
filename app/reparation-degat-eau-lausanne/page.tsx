@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
@@ -53,6 +54,12 @@ export default function ReparationDegatEauPage() {
       ]}
       note="L'objectif peut être la remise en fonctionnement ou la récupération des données, mais aucune durée de vie ne peut être garantie après contact liquide."
       faqItems={FAQ}
+      heroImage={{
+        src:       '/assets/images/homepage/service-sections/water-damage.webp',
+        mobileSrc: '/assets/images/homepage/service-sections/water-damage-mobile.webp',
+        alt:       'Réparation après dégât d\'eau chez ClikClak Lausanne',
+      }}
+      bottomSlot={<RelatedBlogPosts postSlugs={['telephone-tombe-dans-l-eau', 'connaitre-modele-iphone']} />}
     />
   )
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
@@ -52,6 +53,12 @@ export default function ChangementBatteriePage() {
         'Test de charge après intervention',
       ]}
       faqItems={FAQ}
+      heroImage={{
+        src:       '/assets/images/homepage/service-sections/replace-battery.webp',
+        mobileSrc: '/assets/images/homepage/service-sections/replace-battery-mobile.webp',
+        alt:       'Changement de batterie smartphone ClikClak Lausanne',
+      }}
+      bottomSlot={<RelatedBlogPosts postSlugs={['batterie-smartphone-fatiguee', 'connaitre-modele-iphone']} />}
     />
   )
 }

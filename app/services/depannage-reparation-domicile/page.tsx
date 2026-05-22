@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import ContactPopover from '@/components/home/ContactPopover'
 import { Button } from '@/components/ui/Button'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
@@ -97,39 +99,63 @@ export default function DepannageDomicilePage() {
           className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10"
           aria-label="Dépannage 7/7 à Lausanne"
         >
-          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
-            <div>
-              <span
-                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
-                style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}
+          <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center">
+
+            {/* ── Texte ── */}
+            <div className="flex-1 flex flex-col gap-6">
+              <div>
+                <span
+                  className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
+                  style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}
+                >
+                  Dépannage 7/7
+                </span>
+              </div>
+              <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight">
+                Dépannage 7/7{' '}
+                <span className="text-accent">à Lausanne</span>
+              </h1>
+              {/* Image mobile — après le H1 */}
+              <div className="block md:hidden -mx-6 w-screen overflow-hidden">
+                <Image
+                  src="/assets/images/homepage/service-sections/depannage-7-7-mobile.webp"
+                  alt="Dépannage 7/7 ClikClak pour smartphone, tablette et ordinateur"
+                  width={0} height={0} sizes="100vw"
+                  className="w-full h-auto"
+                />
+              </div>
+              <p
+                className="font-light leading-relaxed max-w-2xl"
+                style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
               >
-                Dépannage 7/7
-              </span>
+                Un problème avec votre smartphone, tablette ou ordinateur ? ClikClak vous accompagne 7/7 pour les demandes de dépannage, diagnostic, configuration, transfert de données ou assistance technique, selon disponibilité et type d&apos;intervention.
+              </p>
+              <p
+                className="text-sm font-light leading-relaxed max-w-xl pl-4"
+                style={{ color: 'rgba(242,242,242,0.45)', borderLeft: '2px solid rgba(204,255,51,0.3)' }}
+              >
+                Les interventions sont proposées selon disponibilité, zone d&apos;intervention, type de demande et faisabilité technique.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <Button href="#demande-depannage" size="lg">
+                  Demander un dépannage
+                </Button>
+                <Button href="tel:+41213204477" variant="secondary" size="lg">
+                  Appeler ClikClak
+                </Button>
+              </div>
             </div>
-            <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight max-w-3xl">
-              Dépannage 7/7{' '}
-              <span className="text-accent">à Lausanne</span>
-            </h1>
-            <p
-              className="font-light leading-relaxed max-w-2xl"
-              style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
-            >
-              Un problème avec votre smartphone, tablette ou ordinateur ? ClikClak vous accompagne 7/7 pour les demandes de dépannage, diagnostic, configuration, transfert de données ou assistance technique, selon disponibilité et type d&apos;intervention.
-            </p>
-            <p
-              className="text-sm font-light leading-relaxed max-w-xl pl-4"
-              style={{ color: 'rgba(242,242,242,0.45)', borderLeft: '2px solid rgba(204,255,51,0.3)' }}
-            >
-              Les interventions sont proposées selon disponibilité, zone d&apos;intervention, type de demande et faisabilité technique.
-            </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Button href="#demande-depannage" size="lg">
-                Demander un dépannage
-              </Button>
-              <Button href="tel:+41213204477" variant="secondary" size="lg">
-                Appeler ClikClak
-              </Button>
+
+            {/* ── Image desktop ── */}
+            <div className="hidden md:block w-[45%] shrink-0 rounded-xl overflow-hidden">
+              <Image
+                src="/assets/images/homepage/service-sections/depannage-7-7.webp"
+                alt="Dépannage 7/7 ClikClak pour smartphone, tablette et ordinateur"
+                width={0} height={0} sizes="45vw"
+                className="w-full h-auto"
+              />
             </div>
+
           </div>
         </section>
 
@@ -310,6 +336,7 @@ export default function DepannageDomicilePage() {
 
       </main>
 
+      <RelatedBlogPosts postSlugs={['connaitre-modele-iphone', 'batterie-smartphone-fatiguee', 'telephone-tombe-dans-l-eau']} />
       <SiteFooter />
       <SectionPinning />
     </>

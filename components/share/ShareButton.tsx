@@ -74,10 +74,12 @@ export default function ShareButton({ title, text, url, className }: Props) {
     }
   }
 
-  /* ── Copier le lien ── */
+  /* ── Copier le lien (titre + URL pour un partage enrichi) ── */
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(fullUrl || url)
+      const u    = fullUrl || url
+      const copy = title ? `${title}\n${u}` : u
+      await navigator.clipboard.writeText(copy)
       setCopied(true)
       setOpen(false)
       setTimeout(() => setCopied(false), 2200)

@@ -1,11 +1,9 @@
 'use client'
 
 import { useRef, useEffect, useCallback } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/Button'
 import AnimatedScreenRepairIcon    from '@/components/icons/AnimatedScreenRepairIcon'
 import AnimatedBatteryRepairIcon   from '@/components/icons/AnimatedBatteryRepairIcon'
 import AnimatedChargeConnectorIcon from '@/components/icons/AnimatedChargeConnectorIcon'
@@ -232,67 +230,18 @@ function RepairCard({ label, href, mainIcon, actionIcon, mainIconSize = 'w-[82%]
 export default function ServiceDetail() {
   return (
     <section
-      id="services-detail"
+      id="reparations-courantes"
       className="px-6 md:px-14 lg:px-20 py-32 md:py-40 lg:py-48 border-t border-white/10"
-      aria-label="Réparation smartphone Lausanne"
+      aria-label="Réparations courantes ClikClak"
     >
-      <div className="w-full max-w-6xl mx-auto flex flex-col gap-5">
+      <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
 
-        {/* ── Grande accroche — mêmes réglages que section 1 ── */}
         <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-          <span className="text-accent">Réparation</span>{' '}smartphone
-          <br />Lausanne
+          Réparations <span className="text-accent">courantes</span>
         </h2>
 
-        {/* ── Séparateur — identique à section 1 ── */}
-
-
-        {/* ── Photo + texte ── */}
-        <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-start">
-
-          {/* Photo */}
-          <div className="w-full md:w-[48%] shrink-0 rounded-xl overflow-hidden">
-            <Image
-              src="/assets/images/homepage/service-sections/reparation-smartphone.webp"
-              alt="Réparation smartphone chez Clik Clak Lausanne"
-              width={0}
-              height={0}
-              sizes="(max-width: 768px) 100vw, 44vw"
-              className="w-full h-auto"
-            />
-          </div>
-
-          {/* Contenu textuel */}
-          <div className="flex-1 flex flex-col gap-5 md:pt-2">
-            <span className="text-foreground/35 text-[11px] tracking-[0.22em] uppercase">
-              Lausanne
-            </span>
-
-            {/* Titre avec barre lime */}
-            <div className="flex items-start gap-3">
-              <span className="mt-[5px] block w-[3px] min-h-[18px] self-stretch bg-accent shrink-0" aria-hidden />
-              <h3 className="text-base md:text-lg font-light text-foreground leading-snug">
-                Réparation smartphone Lausanne
-              </h3>
-            </div>
-
-            <p className="text-base md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
-              Écran cassé, batterie faible ou connecteur instable. Diagnostic clair, réparation soignée et prix affichés selon votre modèle.
-            </p>
-
-            <div className="mt-2">
-              <Button href="/reparation-smartphone-express" size="lg">
-                Voir les réparations
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Séparateur ── */}
-
-
         {/* ── 5 types de réparation avec hover GSAP ── */}
-        <div className="mt-16 md:mt-24 lg:mt-32 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
           {repairs.map(({ label, href, mainIcon, actionIcon, mainIconSize, rainEffect, animated }) => (
             <RepairCard key={label} label={label} href={href} mainIcon={mainIcon} actionIcon={actionIcon} mainIconSize={mainIconSize} rainEffect={rainEffect} animated={animated} />
           ))}

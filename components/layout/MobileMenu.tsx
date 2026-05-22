@@ -7,7 +7,13 @@ import { cn } from '@/lib/utils'
 import { getActiveSection } from '@/lib/navUtils'
 import { useCart } from '@/components/shop/CartContext'
 
-type NavLink = { label: string; href: string; accent?: boolean }
+type NavLink = {
+  label:        string
+  href:         string
+  accent?:      boolean
+  hasDropdown?: boolean
+  subLinks?:    { label: string; href: string }[]
+}
 
 /* ============================================================
    Port TypeScript du moteur d'animation Codrops AnimatedMenuIcon
@@ -143,7 +149,8 @@ export default function MobileMenu({ links }: { links: NavLink[] }) {
   const [cartCount, setCartCount] = useState(0)
   useEffect(() => { setCartCount(totalItems) }, [totalItems])
 
-  const [isOpen,  setIsOpen]  = useState(false)
+  const [isOpen,       setIsOpen]       = useState(false)
+  const [expandedLabel, setExpandedLabel] = useState<string | null>(null)
   const toClose   = useRef(true)
   const svgRef    = useRef<SVGSVGElement>(null)
   const pathARef  = useRef<SVGPathElement>(null)
@@ -276,19 +283,73 @@ export default function MobileMenu({ links }: { links: NavLink[] }) {
       >
         <nav aria-label="Navigation principale" className="flex flex-col items-center">
           {links.map((link) => {
-            const isShop    = link.href.startsWith('/shop-reparation-smartphone-lausanne')
-            const isContact = link.href.startsWith('/contact-clik-clak-lausanne')
-            const isRepair  = link.href === '/reparation'
-            const isHome    = link.href === '/'
-            const isRecovery = link.href.startsWith('/services/recuperation-donnees')
+            const isShop     = link.href.startsWith('/shop-reparation-smartphone-lausanne')
+            const isContact  = link.href.startsWith('/contact-clik-clak-lausanne')
+            const isRepair   = link.href === '/reparation'
+            const isHome     = link.href === '/'
+            const isServices = link.href === '/services-nav'
 
             const isActive =
-              (isHome    && activeSection === 'home')    ||
-              (isRepair  && activeSection === 'repair')  ||
-              (isRecovery && activeSection === 'recovery') ||
-              (isContact && activeSection === 'contact') ||
-              (isShop    && activeSection === 'shop')
+              (isHome     && activeSection === 'home')     ||
+              (isRepair   && activeSection === 'repair')   ||
+              (isServices && activeSection === 'services') ||
+              (isContact  && activeSection === 'contact')  ||
+              (isShop     && activeSection === 'shop')
 
+            /* Item avec dropdown → accordéon */
+            if (link.hasDropdown && link.subLinks && link.subLinks.length > 0) {
+              const isExpanded = expandedLabel === link.label
+              return (
+                <div key={link.href} className="flex flex-col items-center w-full">
+                  <button
+                    type="button"
+                    aria-expanded={isExpanded}
+                    onClick={() => setExpandedLabel(prev => prev === link.label ? null : link.label)}
+                    className={cn(
+                      'mobile-nav-item',
+                      'inline-flex items-center justify-center gap-2 text-[2rem] leading-none py-5 px-6 font-light',
+                      'hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm',
+                      isActive || isExpanded ? 'text-accent' : 'text-foreground',
+                    )}
+                  >
+                    {link.label}
+                    {/* Chevron */}
+                    <svg
+                      aria-hidden="true"
+                      width="14" height="14"
+                      viewBox="0 0 10 10"
+                      fill="none"
+                      style={{
+                        display:    'block',
+                        flexShrink: 0,
+                        transform:  isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 220ms ease',
+                      }}
+                    >
+                      <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {/* Sous-liens */}
+                  {isExpanded && (
+                    <div className="flex flex-col items-center gap-1 pb-3">
+                      {link.subLinks.map(sub => (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={closeMenu}
+                          className="text-xl font-light text-foreground/65 hover:text-accent transition-colors py-2 px-6 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            /* Lien direct */
             return (
               <Link
                 key={link.href}
@@ -303,29 +364,35 @@ export default function MobileMenu({ links }: { links: NavLink[] }) {
                     : link.accent ? 'text-accent' : 'text-foreground',
                 )}
               >
-                {link.label === 'Récupération de données' ? (
-                  <><span className="block">Récupération</span><span className="block whitespace-nowrap">de données</span></>
-                ) : link.label}
-
-                {/* Compteur panier à côté de Shop */}
-                {isShop && cartCount > 0 && (
-                  <span
-                    className="flex items-center justify-center rounded-full text-[11px] font-medium leading-none self-start mt-1"
-                    style={{
-                      minWidth:   18,
-                      height:     18,
-                      padding:    '0 4px',
-                      background: '#ccff33',
-                      color:      '#191919',
-                    }}
-                    aria-label={`${cartCount} article${cartCount > 1 ? 's' : ''} dans le panier`}
-                  >
-                    {cartCount}
-                  </span>
-                )}
+                {link.label}
               </Link>
             )
           })}
+
+          {/* Ligne Panier — visible uniquement si le panier contient des produits */}
+          {cartCount > 0 && (
+            <Link
+              href="/shop-reparation-smartphone-lausanne/panier"
+              onClick={closeMenu}
+              className={cn(
+                'mobile-nav-item',
+                'relative inline-flex items-center justify-center gap-3 text-[2rem] leading-none py-5 px-6 font-light',
+                'text-foreground hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm',
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/ui/icon-shop.svg" alt="" aria-hidden
+                width={22} height={22} style={{ display: 'block', flexShrink: 0 }} />
+              Panier
+              <span
+                className="flex items-center justify-center rounded-full text-[11px] font-medium leading-none self-start mt-1"
+                style={{ minWidth: 18, height: 18, padding: '0 4px', background: '#ccff33', color: '#191919' }}
+                aria-label={`${cartCount} article${cartCount > 1 ? 's' : ''} dans le panier`}
+              >
+                {cartCount}
+              </span>
+            </Link>
+          )}
         </nav>
 
         {/* Liens sociaux — bas de l'overlay mobile. Mêmes assets que SocialLinks.tsx */}

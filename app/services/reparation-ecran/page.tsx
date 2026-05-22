@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import ScreenCrackOverlay from '@/components/repair/ScreenCrackOverlay'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
@@ -55,6 +56,12 @@ export default function ReparationEcranPage() {
         'Test complet après réparation',
       ]}
       faqItems={FAQ}
+      heroImage={{
+        src:       '/assets/images/homepage/service-sections/screen-change.webp',
+        mobileSrc: '/assets/images/homepage/service-sections/screen-change-mobile.webp',
+        alt:       'Réparation écran smartphone ClikClak Lausanne',
+      }}
+      bottomSlot={<RelatedBlogPosts postSlugs={['connaitre-modele-iphone', 'telephone-tombe-dans-l-eau', 'batterie-smartphone-fatiguee']} />}
     />
     </>
   )

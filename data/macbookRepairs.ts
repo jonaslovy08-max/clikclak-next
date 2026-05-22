@@ -74,7 +74,6 @@ export const macbookBrandData: RepairBrandData = {
   brandIcon:         '/assets/icons/icon-iphone.svg',
   breadcrumbLabel:   'Réparation MacBook à Lausanne',
   breadcrumbHref:    '/reparation-ordinateur-express',
-  defaultModelId:    'macbook-pro-16-2021-plus',
   repairNote:        "Les tarifs MacBook / iMac sont indicatifs et peuvent varier selon la configuration exacte, la disponibilité des pièces et l'état de l'appareil. Un diagnostic peut être nécessaire avant confirmation du prix.",
   searchPlaceholder: 'Rechercher mon MacBook...',
 

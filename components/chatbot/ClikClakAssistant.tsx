@@ -467,15 +467,10 @@ export default function ClikClakAssistant() {
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/chatbot/icon-chatbot-chatbox.svg" alt="" aria-hidden
-            width={26} height={26} style={{ display: 'block', flexShrink: 0, opacity: 1 }} />
-          <div className="flex flex-col">
-            <span className="text-sm font-light leading-tight" style={{ color: 'rgba(242,242,242,0.9)' }}>
-              ClikClak Bot
-            </span>
-            <span className="text-[11px] font-light leading-tight" style={{ color: 'rgba(242,242,242,0.35)' }}>
-              Assistant réparation &amp; services
-            </span>
-          </div>
+            width={36} height={36} style={{ display: 'block', flexShrink: 0 }} />
+          <span className="text-sm font-light leading-tight" style={{ color: 'rgba(242,242,242,0.9)' }}>
+            ClikClak Bot
+          </span>
         </div>
         <button type="button" onClick={close} aria-label="Fermer le chatbot"
           className="inline-flex items-center justify-center p-1 shrink-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
@@ -492,7 +487,7 @@ export default function ClikClakAssistant() {
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`px-3 py-2.5 rounded-xl text-[13px] font-light leading-relaxed max-w-[85%] ${msg.role === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm'}`}
+                  className={`px-3 py-2.5 rounded-xl text-base font-light leading-snug max-w-[85%] ${msg.role === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm'}`}
                   style={msg.role === 'user' ? {
                     background: 'rgba(204,255,51,0.12)', border: '1px solid rgba(204,255,51,0.2)', color: 'rgba(242,242,242,0.9)',
                   } : {
@@ -536,15 +531,18 @@ export default function ClikClakAssistant() {
           </div>
         ) : (
           <form onSubmit={e => { e.preventDefault(); if (inputValue.trim()) sendToAI(inputValue) }}
-            className="flex items-center gap-2">
+            className="flex items-stretch gap-2">
             <input ref={inputRef} type="text" value={inputValue} onChange={e => setInputValue(e.target.value)}
               placeholder="Posez votre question : prix, panne, modèle, shop…"
               disabled={isLoading}
-              style={{ fontSize: 16 }}
-              className="flex-1 px-3 py-2 font-light rounded-lg border border-white/[0.1] bg-white/[0.05] text-foreground/80 placeholder:text-foreground/30 focus:outline-none focus:border-accent/40 disabled:opacity-50" />
+              style={{ fontSize: 16, background: '#f2f2f2', color: '#191919' }}
+              className="flex-1 px-3 py-2 font-light rounded-lg border border-[rgba(25,25,25,0.15)] placeholder:text-black/40 focus:outline-none focus:border-[rgba(25,25,25,0.4)] disabled:opacity-50" />
             <button type="submit" disabled={isLoading || !inputValue.trim()} aria-label="Envoyer"
-              className="flex items-center justify-center w-8 h-8 rounded-lg border border-accent/30 text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 focus-visible:outline-none shrink-0">
-              →
+              className="flex items-center justify-center px-3 rounded-lg transition-colors focus-visible:outline-none shrink-0"
+              style={{ background: '#ccff33', border: 'none' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/chatbot/icon-send-chatbot.svg" alt="" aria-hidden
+                width={18} height={18} style={{ display: 'block' }} />
             </button>
           </form>
         )}
@@ -556,7 +554,10 @@ export default function ClikClakAssistant() {
           className="flex items-center justify-between w-full px-4 py-2.5 text-[12px] font-light transition-colors focus-visible:outline-none"
           style={{ color: '#ccff33' }}>
           <span>Actions rapides</span>
-          <span aria-hidden style={{ fontSize: 10 }}>{qaOpen ? '▴' : '▾'}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qaOpen ? '/assets/ui/icon-chevron-toggle-up.svg' : '/assets/ui/icon-chevron-toggle-down.svg'}
+            alt="" aria-hidden width={12} height={12} style={{ display: 'block' }} />
         </button>
         {qaOpen && (
           <div className="px-4 pb-3 flex flex-wrap gap-2">

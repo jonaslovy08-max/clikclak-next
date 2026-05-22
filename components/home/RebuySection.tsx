@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import ContactPopover from '@/components/home/ContactPopover'
+import BulletToggle  from '@/components/ui/BulletToggle'
 
 /*
   RebuySection — Section 3 : Rachat de vos anciens smartphones.
@@ -34,19 +35,23 @@ export default function RebuySection() {
           <span className="text-accent">Rachat</span>{' '}de vos anciens appareils
         </h2>
 
-        {/* ── Séparateur — identique sections 1 & 2 ── */}
-
+        {/* ── Image mobile — sous le titre, variante portrait ── */}
+        <div className="block md:hidden -mx-6 w-screen rounded-none overflow-hidden">
+          <Image
+            src="/assets/images/homepage/service-sections/smartphone-buyback-mobile.webp"
+            alt="Smartphone repris contre paiement chez Clik Clak Repair"
+            width={0}
+            height={0}
+            sizes="100vw"
+            className="w-full h-auto"
+          />
+        </div>
 
         {/* ── Contenu : texte gauche / image droite ── */}
         <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-center">
 
           {/* Colonne gauche : texte + CTAs */}
           <div className="flex-1 flex flex-col gap-4 md:pt-2">
-
-            {/* Label */}
-            <span className="text-[11px] text-foreground/35 uppercase tracking-[0.22em]">
-              Achat d&apos;occasion
-            </span>
 
             {/* Sous-titre */}
             <p className="text-base md:text-lg font-light leading-snug">
@@ -58,35 +63,29 @@ export default function RebuySection() {
               Faites-le estimer simplement, même s&apos;il est abîmé. Reprise claire, rapide et sans engagement.
             </p>
 
-            {/* Points clés */}
-            <ul className="flex flex-col gap-2">
-              {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-base font-light text-foreground/70">
-                  <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>
-                  {b}
-                </li>
-              ))}
-            </ul>
+            <BulletToggle
+              bullets={bullets}
+              labelClosed="Conditions de reprise"
+              labelOpen="Masquer les conditions"
+            />
 
             {/* CTAs */}
             <div className="flex flex-col gap-3 mt-2">
-              {/* Même style que "Réparer !" du hero */}
               <Button href="/services/rachat-de-votre-smartphone" size="lg">
                 Estimer mon smartphone
               </Button>
-              {/* Même composant ContactPopover que le hero */}
               <ContactPopover />
             </div>
           </div>
 
-          {/* Colonne droite : image */}
-          <div className="w-full md:w-[48%] shrink-0 rounded-xl overflow-hidden">
+          {/* Colonne droite : image desktop uniquement */}
+          <div className="hidden md:block md:w-[48%] shrink-0 rounded-xl overflow-hidden">
             <Image
               src="/assets/images/homepage/service-sections/smartphone-buyback.webp"
               alt="Smartphone repris contre paiement chez Clik Clak Repair"
               width={0}
               height={0}
-              sizes="(max-width: 768px) 100vw, 48vw"
+              sizes="48vw"
               className="w-full h-auto"
             />
           </div>

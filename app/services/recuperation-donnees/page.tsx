@@ -1,8 +1,9 @@
-/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import ContactPopover from '@/components/home/ContactPopover'
 import DataRecoveryFAQ from '@/components/recovery/DataRecoveryFAQ'
 import { SITE_URL } from '@/lib/seo'
@@ -72,41 +73,52 @@ export default function RecuperationDonneesPage() {
           className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10"
           aria-label="Récupération de données à Lausanne"
         >
-          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
+          <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center">
 
-            <div className="flex flex-col gap-2">
-              <img
-                src="/assets/icons/icon-data-recovery.svg"
-                alt=""
-                aria-hidden
-                style={{ height: 'clamp(80px, 10vw, 128px)', width: 'auto', objectFit: 'contain', alignSelf: 'flex-start' }}
-              />
+            {/* ── Texte ── */}
+            <div className="flex-1 flex flex-col gap-6">
+              <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight">
+                Récupération de{' '}
+                <span className="text-accent">données</span>{' '}
+                à Lausanne
+              </h1>
+              {/* Image mobile */}
+              <div className="block md:hidden -mx-6 w-screen overflow-hidden">
+                <Image
+                  src="/assets/images/homepage/service-sections/data-recovery-mobile.webp"
+                  alt="Récupération de données ClikClak Lausanne"
+                  width={0} height={0} sizes="100vw"
+                  className="w-full h-auto"
+                />
+              </div>
+              <p
+                className="font-light leading-relaxed max-w-2xl"
+                style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
+              >
+                Photos, contacts, documents, messages, fichiers professionnels ou souvenirs personnels :
+                ClikClak analyse votre appareil ou support de stockage afin d&apos;estimer les chances
+                de récupération et vous proposer une intervention adaptée.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <ContactPopover />
+                <a
+                  href="#transfert-donnees"
+                  className="inline-flex items-center gap-2 text-sm font-light px-5 py-2.5 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                  style={{ border: '1px solid rgba(242,242,242,0.2)', color: 'rgba(242,242,242,0.75)' }}
+                >
+                  Transférer mes données
+                </a>
+              </div>
             </div>
 
-            <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight max-w-3xl">
-              Récupération de{' '}
-              <span className="text-accent">données</span>{' '}
-              à Lausanne
-            </h1>
-
-            <p
-              className="font-light leading-relaxed max-w-2xl"
-              style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
-            >
-              Photos, contacts, documents, messages, fichiers professionnels ou souvenirs personnels :
-              ClikClak analyse votre appareil ou support de stockage afin d&apos;estimer les chances
-              de récupération et vous proposer une intervention adaptée.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <ContactPopover />
-              <a
-                href="#transfert-donnees"
-                className="inline-flex items-center gap-2 text-sm font-light px-5 py-2.5 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
-                style={{ border: '1px solid rgba(242,242,242,0.2)', color: 'rgba(242,242,242,0.75)' }}
-              >
-                Transférer mes données
-              </a>
+            {/* ── Image desktop ── */}
+            <div className="hidden md:block w-[45%] shrink-0 rounded-xl overflow-hidden">
+              <Image
+                src="/assets/images/homepage/service-sections/data-recovery.webp"
+                alt="Récupération de données ClikClak Lausanne"
+                width={0} height={0} sizes="45vw"
+                className="w-full h-auto"
+              />
             </div>
 
           </div>
@@ -575,6 +587,7 @@ export default function RecuperationDonneesPage() {
       </main>
 
       <DataRecoveryFAQ />
+      <RelatedBlogPosts postSlugs={['telephone-tombe-dans-l-eau', 'connaitre-modele-iphone']} />
       <SiteFooter />
       <SectionPinning />
     </>

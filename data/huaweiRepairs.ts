@@ -31,7 +31,6 @@ export const huaweiBrandData: RepairBrandData = {
   brandIcon:         '/assets/icons/icon-huawei.svg',
   breadcrumbLabel:   'Réparation Huawei Lausanne',
   breadcrumbHref:    '/reparation-smartphone-express/',
-  defaultModelId:    'huawei-p30',
   repairNote:        'Réparation Huawei à Lausanne. Contactez-nous pour tout modèle non listé ou pour un diagnostic.',
   searchPlaceholder: 'Rechercher mon Huawei...',
 

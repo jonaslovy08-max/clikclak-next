@@ -51,6 +51,9 @@ export default function RepairModelSearch({
   const animRef               = useRef<gsap.core.Tween | gsap.core.Timeline | null>(null)
   const prevOpen              = useRef(false)
   const reduced               = useRef(false)
+  /* Ref SVG pour l'animation draw en boucle (tracé unique) */
+  const pathRef   = useRef<SVGPathElement>(null)
+  const drawTlRef = useRef<gsap.core.Timeline | null>(null)
 
   const results  = searchRepairs(query, repairSearchIndex)
   const open     = query.trim().length >= 2
@@ -78,6 +81,21 @@ export default function RepairModelSearch({
     if (!panel) return
     gsap.set(panel, { autoAlpha: 0, yPercent: -8, scale: 0.97, transformOrigin: 'top center' })
     return () => { animRef.current?.kill(); animRef.current = null }
+  }, [])
+
+  /* Animation draw en boucle sur l'icône SVG (tracé unique) */
+  useLayoutEffect(() => {
+    const path = pathRef.current
+    if (!path) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const len = path.getTotalLength()
+    gsap.set(path, { strokeDasharray: len, strokeDashoffset: len })
+
+    drawTlRef.current = gsap.timeline({ repeat: -1, repeatDelay: 1.5 })
+      .to(path, { strokeDashoffset: 0, duration: 1.2, ease: 'power3.out' })
+
+    return () => { drawTlRef.current?.kill(); drawTlRef.current = null }
   }, [])
 
   /* Ouverture / fermeture du dropdown */
@@ -160,19 +178,24 @@ export default function RepairModelSearch({
         style={inputStyle}
       />
       <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/assets/ui/icon-search.svg"
-          alt=""
+        {/* SVG inline — tracé unique, draw animation GSAP en boucle */}
+        <svg
+          viewBox="0 0 42.3 47"
+          width="22"
+          height="22"
+          fill="none"
           aria-hidden
-          style={{
-            height:  22,
-            width:   22,
-            objectFit: 'contain',
-            opacity:   isActive ? 1 : 0.55,
-            transition: 'opacity 250ms ease',
-          }}
-        />
+          focusable="false"
+        >
+          <path
+            ref={pathRef}
+            d="M5.3,19.1C5.3,9.3,13.2,1.3,23.1,1.3s17.8,8,17.8,17.8-8,17.8-17.8,17.8-8-1.4-11-3.8L1.1,44.1"
+            stroke="#ccff33"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </span>
 
       {/* Dropdown — GSAP contrôle autoAlpha, pas de style React opacity/visibility */}

@@ -36,7 +36,6 @@ export const sonyXperiaBrandData: RepairBrandData = {
   brandIcon:         '/assets/icons/icon-sony-xperia.svg',
   breadcrumbLabel:   'Réparation Sony Xperia Lausanne',
   breadcrumbHref:    '/reparation-smartphone-express/',
-  defaultModelId:    'xperia-z5',
   repairNote:        'Les tarifs Sony Xperia sont indicatifs et peuvent varier selon la disponibilité des pièces et l\'état de l\'appareil.',
   searchPlaceholder: 'Rechercher mon Sony Xperia...',
 

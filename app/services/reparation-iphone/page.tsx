@@ -15,6 +15,8 @@ import { iphoneModels, generations, type IphoneModel } from '@/data/iphoneRepair
 import RepairModelSearch from '@/components/RepairModelSearch'
 import { MaskedIcon, MainRepairCard } from '@/components/repair/MainRepairCard'
 import { stripCents } from '@/data/repairTypes'
+import ShareButton from '@/components/share/ShareButton'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 
 /*
   Page /services/reparation-iphone/
@@ -31,7 +33,9 @@ import { stripCents } from '@/data/repairTypes'
               icon-diagnostic-action.svg → lime
 */
 
-const DEFAULT_MODEL_ID    = 'iphone-16-pro'
+// Les modèles sont triés du plus récent au plus ancien.
+// Le modèle par défaut est donc le premier élément de la liste.
+const DEFAULT_MODEL_ID    = iphoneModels[0].id
 const INITIAL_GEN_COUNT   = 5        /* générations visibles par défaut */
 
 
@@ -310,7 +314,7 @@ export default function ReparationIphonePage() {
                 <Link
                   href="/reparation-smartphone-express/"
                   className="absolute left-0 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
-                  style={{ fontSize: 13, color: '#909090' }}
+                  style={{ fontSize: 14, color: '#909090' }}
                 >
                   <img
                     src="/assets/ui/icon-chevron-left.svg"
@@ -322,7 +326,7 @@ export default function ReparationIphonePage() {
                 </Link>
                 <span
                   className="font-light"
-                  style={{ fontSize: 'clamp(13px, 1.4vw, 22px)', color: '#a8a8a8' }}
+                  style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: '#a8a8a8' }}
                 >
                   Réparation iPhone Lausanne
                 </span>
@@ -441,21 +445,13 @@ export default function ReparationIphonePage() {
 
             {selectedModel && (
               <div ref={tariffRef} className="flex flex-col gap-10">
-                {/* ══ 7. PARTAGER (icône PUIS texte, aligné à droite) ═ */}
-                <div className="flex justify-end items-center gap-2">
-                  <img
-                    src="/assets/ui/icon-arrow-up-right.svg"
-                    alt=""
-                    aria-hidden
-                    style={{ height: 18, width: 18, objectFit: 'contain' }}
+                {/* ══ 7. PARTAGER ═══════════════════════════════════ */}
+                <div className="flex justify-end">
+                  <ShareButton
+                    title="Réparation iPhone Lausanne | ClikClak"
+                    text="Consultez les services de réparation iPhone chez ClikClak Lausanne."
+                    url="/services/reparation-iphone/"
                   />
-                  <button
-                    type="button"
-                    className="focus-visible:outline-none"
-                    style={{ fontSize: 'clamp(13px, 1.5vw, 22px)', color: '#a0a0a0' }}
-                  >
-                    Partager
-                  </button>
                 </div>
 
                 {/* ══ 8. PANNEAU TARIF ════════════════════════════════ */}
@@ -501,13 +497,13 @@ export default function ReparationIphonePage() {
                           >
                             <span
                               className="font-light"
-                              style={{ fontSize: 'clamp(12px, 1.1vw, 16px)', color: '#b0b0b0' }}
+                              style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: '#b0b0b0' }}
                             >
                               {repair.name}
                             </span>
                             <span
                               className="font-light"
-                              style={{ fontSize: 'clamp(12px, 1.1vw, 16px)', color: '#c8c8c8' }}
+                              style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: '#ccff33' }}
                             >
                               {stripCents(repair.price)}
                             </span>
@@ -528,7 +524,7 @@ export default function ReparationIphonePage() {
                 <p
                   className="text-center mx-auto"
                   style={{
-                    fontSize:   'clamp(12px, 1.2vw, 18px)',
+                    fontSize:   'clamp(14px, 1.3vw, 18px)',
                     color:      '#a5a5a5',
                     maxWidth:   640,
                     lineHeight: 1.6,
@@ -547,6 +543,7 @@ export default function ReparationIphonePage() {
       <RecentShopProducts />
       <RepairEngagements />
       <RepairFAQ />
+      <RelatedBlogPosts postSlugs={['connaitre-modele-iphone', 'batterie-smartphone-fatiguee', 'telephone-tombe-dans-l-eau']} />
       <SiteFooter />
       <SectionPinning />
     </>

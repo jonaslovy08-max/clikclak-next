@@ -23,7 +23,6 @@ export const oppoBrandData: RepairBrandData = {
   brandIcon:         '/assets/icons/icon-oppo.svg',
   breadcrumbLabel:   'Réparation OPPO Lausanne',
   breadcrumbHref:    '/reparation-smartphone-express/',
-  defaultModelId:    'oppo-find-x3-pro',
   repairNote:        'Réparation OPPO à Lausanne. Contactez-nous pour tout modèle non listé ou pour un diagnostic.',
   searchPlaceholder: 'Rechercher mon OPPO...',
 

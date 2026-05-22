@@ -255,17 +255,29 @@ export default function FloatingContactActions({ layout = 'stack', className }: 
 
   /* Stack — BUTTON HOVER + tooltip GSAP */
   return (
-    <div
-      id="floating-contact-actions"
-      className={cn(
-        'fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-row items-center gap-6',
-        'md:left-auto md:translate-x-0 md:right-5 md:bottom-16 md:z-40 md:flex-col md:gap-3',
-        className,
-      )}
-    >
-      {allItems.map((item) => (
-        <FloatingItem key={item.label} item={item} onChatbot={openChatbot} />
-      ))}
-    </div>
+    <>
+      {/* Dégradé fixe mobile — derrière les boutons, au-dessus du contenu */}
+      <div
+        id="floating-contact-gradient"
+        aria-hidden
+        className="fixed inset-x-0 bottom-0 h-[150px] pointer-events-none md:hidden z-[29]"
+        style={{
+          background: 'linear-gradient(to top, #191919 0%, #191919 28%, rgba(25,25,25,0.75) 55%, rgba(25,25,25,0) 100%)',
+        }}
+      />
+
+      <div
+        id="floating-contact-actions"
+        className={cn(
+          'fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-row items-center gap-6',
+          'md:left-auto md:translate-x-0 md:right-5 md:bottom-16 md:z-40 md:flex-col md:gap-3',
+          className,
+        )}
+      >
+        {allItems.map((item) => (
+          <FloatingItem key={item.label} item={item} onChatbot={openChatbot} />
+        ))}
+      </div>
+    </>
   )
 }

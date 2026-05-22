@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SITE_URL } from '@/lib/seo'
+import { SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import ShopProductBrowser from '@/components/shop/ShopProductBrowser'
 import { SHOP_PRODUCTS, isProductPurchasable, GRADE_LABELS, GRADE_DESCRIPTIONS, type ShopGrade } from '@/data/shopProducts'
-import CategoryHeroButtons from '@/components/shop/CategoryHeroButtons'
 
 export const metadata: Metadata = {
   title: 'Shop ClikClak Lausanne | Smartphones, accessoires et pièces détachées',
@@ -22,6 +21,13 @@ export const metadata: Metadata = {
     url:    `${SITE_URL}/shop-reparation-smartphone-lausanne/`,
     locale: 'fr_CH',
     type:   'website',
+    images: [{ url: DEFAULT_OG_IMAGE }],
+  },
+  twitter: {
+    card:        'summary_large_image',
+    title:       'Shop ClikClak Lausanne | Smartphones, accessoires et pièces détachées',
+    description: 'Smartphones, tablettes, ordinateurs, pièces détachées et accessoires disponibles selon stock.',
+    images:      [DEFAULT_OG_IMAGE],
   },
 }
 
@@ -171,43 +177,19 @@ export default function ShopPage() {
 
         {/* ══ HERO ══════════════════════════════════════════════════ */}
         <section
-          className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10"
+          className="px-6 md:px-14 lg:px-20 pt-14 pb-4 border-t border-white/10"
           aria-label="Shop ClikClak Lausanne"
         >
-          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
-            <div>
-              <span
-                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
-                style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}
-              >
-                Shop Lausanne
-              </span>
-            </div>
-            <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight max-w-3xl">
-              Shop ClikClak
+          <div className="w-full max-w-6xl mx-auto">
+            <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight">
+              Shop <span className="text-accent">ClikClak</span>
             </h1>
-            <p
-              className="font-light leading-relaxed max-w-2xl"
-              style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
-            >
-              Smartphones, tablettes, ordinateurs, pièces détachées et accessoires
-              sélectionnés selon disponibilité.
-            </p>
-            <p
-              className="text-sm font-light leading-relaxed max-w-xl pl-4"
-              style={{ color: 'rgba(242,242,242,0.45)', borderLeft: '2px solid rgba(204,255,51,0.3)' }}
-            >
-              Les produits et pièces détachées sont proposés selon disponibilité.
-              Pour les pièces de réparation, vérifiez toujours la compatibilité
-              avec votre modèle avant achat.
-            </p>
-            <CategoryHeroButtons />
           </div>
         </section>
 
         {/* ══ CATALOGUE (3 catégories + recherche + grille) ════════ */}
         <section
-          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          className="px-6 md:px-14 lg:px-20 pt-6 pb-16"
           aria-label="Catalogue shop"
         >
           <div className="w-full max-w-6xl mx-auto">

@@ -77,12 +77,12 @@ export default function ReparationTabletteExpressPage() {
                 <Link
                   href="/reparation/"
                   className="absolute left-0 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
-                  style={{ fontSize: 13, color: '#909090' }}
+                  style={{ fontSize: 14, color: '#909090' }}
                 >
                   <img src="/assets/ui/icon-chevron-left.svg" alt="" aria-hidden style={{ height: 14, width: 14, objectFit: 'contain' }} />
                   <span>Retour</span>
                 </Link>
-                <span className="font-light" style={{ fontSize: 'clamp(13px, 1.4vw, 22px)', color: '#a8a8a8' }}>
+                <span className="font-light" style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: '#a8a8a8' }}>
                   Réparation Tablettes
                 </span>
               </div>

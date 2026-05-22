@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { getPublishedPosts } from '@/lib/blog'
 
 const BASE = 'https://clikclak.ch'
 
@@ -39,6 +40,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     /* ── Shop ───────────────────────────────────────────────── */
     { url: `${BASE}/shop-reparation-smartphone-lausanne/`,     priority: 0.7, changeFrequency: 'weekly'  },
+
+    /* ── Blog ──────────────────────────────────────────────── */
+    { url: `${BASE}/blog/`,                                    priority: 0.6, changeFrequency: 'weekly'  },
+    ...getPublishedPosts().map(({ meta }) => ({
+      url:             `${BASE}/blog/${meta.slug}/`,
+      priority:        0.5 as const,
+      changeFrequency: 'monthly' as const,
+      lastModified:    meta.updatedAt,
+    })),
 
     /* ── Pages institutionnelles ────────────────────────────── */
     { url: `${BASE}/contact-clik-clak-lausanne/`,              priority: 0.6, changeFrequency: 'monthly' },

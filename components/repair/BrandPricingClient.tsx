@@ -37,7 +37,7 @@ export interface BrandPricingClientProps {
   breadcrumbHref:     string       /* lien Retour */
   families:           GenericFamily[]
   models:             GenericModel[]
-  defaultModelId:     string
+  defaultModelId?:    string
   initialFamilyCount?: number      /* familles visibles sans "Voir plus" (défaut : toutes) */
   repairNote?:        string       /* note sous le panneau tarifs */
   searchPlaceholder?: string
@@ -152,7 +152,9 @@ export default function BrandPricingClient({
   const hasMore      = families.length > INITIAL
 
   const [openFamilyId,   setOpenFamilyId]   = useState<string | null>(null)
-  const [selectedModelId, setSelectedModelId] = useState(defaultModelId)
+  // Les modèles sont triés du plus récent au plus ancien.
+  // Le modèle par défaut est donc le premier élément de la liste.
+  const [selectedModelId, setSelectedModelId] = useState(defaultModelId ?? models[0]?.id ?? '')
   const [showAll,        setShowAll]         = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -449,10 +451,10 @@ export default function BrandPricingClient({
                             className="flex items-center justify-between py-2.5"
                             style={{ borderBottom: '1px solid rgba(242,242,242,0.07)' }}
                           >
-                            <span className="font-light" style={{ fontSize: 'clamp(12px, 1.1vw, 16px)', color: '#b0b0b0' }}>
+                            <span className="font-light" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: '#b0b0b0' }}>
                               {repair.name}
                             </span>
-                            <span className="font-light whitespace-nowrap ml-4" style={{ fontSize: 'clamp(12px, 1.1vw, 16px)', color: priceColor(repair.price) }}>
+                            <span className="font-light whitespace-nowrap ml-4" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: priceColor(repair.price) }}>
                               {repair.price}
                             </span>
                           </div>
@@ -467,7 +469,7 @@ export default function BrandPricingClient({
 
                 {/* Note */}
                 {repairNote && (
-                  <p className="text-center mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 18px)', color: '#a5a5a5', maxWidth: 640, lineHeight: 1.6 }}>
+                  <p className="text-center mx-auto" style={{ fontSize: 'clamp(14px, 1.3vw, 18px)', color: '#a5a5a5', maxWidth: 640, lineHeight: 1.6 }}>
                     {repairNote}
                   </p>
                 )}

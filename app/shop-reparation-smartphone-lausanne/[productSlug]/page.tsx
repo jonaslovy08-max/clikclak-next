@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { SITE_URL } from '@/lib/seo'
+import { SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
@@ -31,8 +31,10 @@ export async function generateMetadata(
   const product = SHOP_PRODUCTS.find(p => p.slug === productSlug)
   if (!product) return {}
 
-  const title = `${product.name} — Shop ClikClak Lausanne`
+  const title       = `${product.name} — Shop ClikClak Lausanne`
   const description = product.shortDescription
+  const ogDesc      = `CHF ${product.price.toFixed(0)} — ${product.shortDescription}`
+  const ogImage     = product.images[0] ?? DEFAULT_OG_IMAGE
 
   return {
     title,
@@ -42,10 +44,17 @@ export async function generateMetadata(
     },
     openGraph: {
       title,
-      description,
+      description: ogDesc,
       url:    `${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}/`,
       locale: 'fr_CH',
       type:   'website',
+      images: [{ url: ogImage }],
+    },
+    twitter: {
+      card:        'summary_large_image',
+      title,
+      description: ogDesc,
+      images:      [ogImage],
     },
   }
 }

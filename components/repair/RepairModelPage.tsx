@@ -178,12 +178,12 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                           className="flex items-center justify-between px-5 py-3.5"
                           style={{ borderTop: idx > 0 ? '1px solid rgba(242,242,242,0.07)' : undefined }}
                         >
-                          <span className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.75)' }}>
+                          <span className="font-light" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: 'rgba(242,242,242,0.75)' }}>
                             {repair.label}
                           </span>
                           <span
-                            className="text-sm font-light whitespace-nowrap ml-4"
-                            style={{ color: priceColor(priceStr) }}
+                            className="font-light whitespace-nowrap ml-4"
+                            style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: priceColor(priceStr) }}
                           >
                             {priceStr}
                           </span>

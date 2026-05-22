@@ -19,28 +19,28 @@
                     compatibleModels, condition, shortDescription, tags
 */
 
-import { useState, useMemo, useId, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useId } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   type ShopProduct,
   type ShopMainCategory,
-  MAIN_CATEGORY_LABELS,
   AVAILABILITY_STYLES,
   GRADE_LABELS,
   getProductBadge,
 } from '@/data/shopProducts'
 import AddToCartButton from './AddToCartButton'
+import { Button }       from '@/components/ui/Button'
 
 /* ── Styles partagés ──────────────────────────────────────────── */
 const IS: React.CSSProperties = {
   width:            '100%',
   background:       'rgba(255,255,255,0.04)',
   border:           '1px solid #ccff33',
-  borderRadius:     8,
+  borderRadius:     12,
   padding:          '14px 48px 14px 16px',
-  fontSize:         15,
+  fontSize:         16,
   fontWeight:       300,
   color:            'rgba(242,242,242,0.9)',
   outline:          'none',
@@ -220,7 +220,7 @@ function ProductCard({ product }: { product: ShopProduct }) {
       )}
 
       {/* Contenu */}
-      <div className="flex flex-col gap-3 p-4 flex-1">
+      <div className="flex flex-col gap-4 p-5 flex-1">
 
         {/* Badge produit + pastille grade */}
         <div className="self-start flex items-center gap-1.5 flex-wrap">
@@ -257,15 +257,15 @@ function ProductCard({ product }: { product: ShopProduct }) {
 
         {/* Nom + description */}
         <div className="flex flex-col gap-1.5 flex-1">
-          <p className="text-sm font-light leading-snug" style={{ color: 'rgba(242,242,242,0.9)' }}>
+          <p className="text-lg font-light leading-snug" style={{ color: 'rgba(242,242,242,0.92)' }}>
             {product.name}
           </p>
           {product.brand && (
-            <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
+            <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
               {product.brand}
             </p>
           )}
-          <p className="text-xs font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.5)' }}>
+          <p className="text-sm font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.5)' }}>
             {product.shortDescription}
           </p>
           {product.compatibleModels && product.compatibleModels.length > 0 && (
@@ -276,7 +276,7 @@ function ProductCard({ product }: { product: ShopProduct }) {
         </div>
 
         {/* Pied */}
-        <div className="flex flex-col gap-3 pt-3" style={{ borderTop: '1px solid rgba(242,242,242,0.07)' }}>
+        <div className="flex flex-col gap-4 pt-4" style={{ borderTop: '1px solid rgba(242,242,242,0.07)' }}>
           {/* Prix + disponibilité */}
           <div className="flex items-center justify-between gap-2">
             <span
@@ -291,26 +291,16 @@ function ProductCard({ product }: { product: ShopProduct }) {
             >
               {avail.label}
             </span>
-            <span className="text-base font-light" style={{ color: 'rgba(242,242,242,0.85)' }}>
+            <span className="text-2xl font-medium" style={{ color: 'rgba(242,242,242,0.92)' }}>
               CHF {product.price.toFixed(0)}
             </span>
           </div>
           {/* CTA */}
           <div className="flex gap-2" onClick={stop} onKeyDown={stop} role="none">
-            <AddToCartButton productId={product.id} size="sm" className="flex-1" />
-            <Link
-              href={href}
-              onClick={stop}
-              className="flex-1 inline-flex items-center justify-center text-xs font-light rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-[border-color,background] duration-150"
-              style={{
-                border:     '1px solid rgba(242,242,242,0.1)',
-                background: 'rgba(255,255,255,0.02)',
-                color:      'rgba(242,242,242,0.55)',
-                padding:    '7px 12px',
-              }}
-            >
+            <AddToCartButton productId={product.id} size="lg" className="flex-1 !min-w-0" />
+            <Button href={href} variant="secondary" size="lg" className="flex-1 !min-w-0">
               Détail
-            </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -320,29 +310,9 @@ function ProductCard({ product }: { product: ShopProduct }) {
 
 /* ── Composant principal ──────────────────────────────────────── */
 export default function ShopProductBrowser({ products }: { products: ShopProduct[] }) {
-  const uid                         = useId()
-  const catalogueRef                = useRef<HTMLDivElement>(null)
-  const [search, setSearch]         = useState('')
-  const [activeCategory, setActiveCategory] = useState<ActiveCategory>(ALL)
-
-  const selectCategory = useCallback((cat: ActiveCategory) => {
-    setActiveCategory(cat)
-    setTimeout(() => {
-      catalogueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 50)
-  }, [])
-
-  /* Écoute les clics des boutons hero (CategoryHeroButtons) */
-  useEffect(() => {
-    function onSetCategory(e: Event) {
-      const { cat } = (e as CustomEvent<{ cat: string }>).detail
-      if (cat === 'occasion-neuf' || cat === 'pieces-detachees' || cat === 'accessoires-autres' || cat === 'all') {
-        selectCategory(cat as ActiveCategory)
-      }
-    }
-    window.addEventListener('shop-set-category', onSetCategory)
-    return () => window.removeEventListener('shop-set-category', onSetCategory)
-  }, [selectCategory])
+  const uid                                   = useId()
+  const [search, setSearch]                   = useState('')
+  const [activeCategory, setActiveCategory]   = useState<ActiveCategory>(ALL)
 
   const filtered = useMemo(() => {
     return products.filter(p => {
@@ -355,105 +325,82 @@ export default function ShopProductBrowser({ products }: { products: ShopProduct
 
   return (
     <>
-      {/* ══════════════════════════════════════════════════════════
-          Section : Catalogue
-      ══════════════════════════════════════════════════════════ */}
       <div
-        ref={catalogueRef}
         id="produits"
-        className="flex flex-col gap-6"
+        className="flex flex-col gap-4"
         style={{ scrollMarginTop: '80px' }}
       >
-        {/* Titre catalogue */}
-        <div className="flex flex-col gap-2">
-          <h2 className="text-[1.5rem] md:text-[1.75rem] font-light leading-tight">
-            Catalogue{' '}
-            <span className="text-accent">
-              {activeCategory === ALL ? 'complet' : MAIN_CATEGORY_LABELS[activeCategory]}
-            </span>
-          </h2>
-          <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
-            Tous les produits sont proposés selon disponibilité.
-          </p>
+        {/* Champ recherche */}
+        <div className="relative">
+          <label htmlFor={`${uid}-search`} className="sr-only">
+            Rechercher dans le catalogue
+          </label>
+          <input
+            id={`${uid}-search`}
+            type="search"
+            autoComplete="off"
+            spellCheck={false}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher un produit…"
+            aria-label="Rechercher dans le catalogue shop"
+            style={{
+              ...IS,
+              borderColor: undefined,
+              boxShadow:   hasSearch ? '0 0 0 2px rgba(204,255,51,0.08)' : undefined,
+            }}
+            onFocus={e => {
+              e.currentTarget.style.borderColor = '#ccff33'
+              e.currentTarget.style.boxShadow   = '0 0 0 2px rgba(204,255,51,0.1)'
+            }}
+            onBlur={e => {
+              e.currentTarget.style.borderColor = '#ccff33'
+              e.currentTarget.style.boxShadow   = hasSearch ? '0 0 0 2px rgba(204,255,51,0.08)' : 'none'
+            }}
+          />
+          {hasSearch && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+              aria-label="Effacer la recherche"
+              style={{ color: 'rgba(242,242,242,0.4)', background: 'rgba(242,242,242,0.06)', fontSize: 16 }}
+            >
+              ×
+            </button>
+          )}
         </div>
 
-        {/* Barre recherche + filtres */}
-        <div
-          className="flex flex-col gap-4 p-5 rounded-xl"
-          style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.015)' }}
-        >
-          {/* Champ recherche */}
-          <div className="relative">
-            <label htmlFor={`${uid}-search`} className="sr-only">
-              Rechercher dans le catalogue
-            </label>
-            <input
-              id={`${uid}-search`}
-              type="search"
-              autoComplete="off"
-              spellCheck={false}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Rechercher un produit, une pièce ou un accessoire…"
-              aria-label="Rechercher dans le catalogue shop"
-              style={{
-                ...IS,
-                borderColor: undefined,
-                boxShadow:   hasSearch ? '0 0 0 2px rgba(204,255,51,0.08)' : undefined,
-              }}
-              onFocus={e => {
-                e.currentTarget.style.borderColor = '#ccff33'
-                e.currentTarget.style.boxShadow   = '0 0 0 2px rgba(204,255,51,0.1)'
-              }}
-              onBlur={e => {
-                e.currentTarget.style.borderColor = '#ccff33'
-                e.currentTarget.style.boxShadow   = hasSearch ? '0 0 0 2px rgba(204,255,51,0.08)' : 'none'
-              }}
-            />
-            {hasSearch && (
+        {/* Filtres catégorie */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par catégorie">
+          {FILTER_TABS.map(tab => {
+            const active = activeCategory === tab.id
+            return (
               <button
+                key={tab.id}
                 type="button"
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
-                aria-label="Effacer la recherche"
-                style={{ color: 'rgba(242,242,242,0.4)', background: 'rgba(242,242,242,0.06)', fontSize: 13 }}
+                onClick={() => setActiveCategory(tab.id)}
+                aria-pressed={active}
+                className="text-sm font-light rounded-lg px-3 py-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-[border-color,background,color] duration-150"
+                style={{
+                  border:     active ? '1px solid rgba(204,255,51,0.35)' : '1px solid rgba(242,242,242,0.1)',
+                  background: active ? 'rgba(204,255,51,0.07)' : 'rgba(255,255,255,0.02)',
+                  color:      active ? '#ccff33'                : 'rgba(242,242,242,0.55)',
+                }}
               >
-                ×
+                {tab.label}
               </button>
-            )}
-          </div>
-
-          {/* Filtres catégorie */}
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par catégorie">
-            {FILTER_TABS.map(tab => {
-              const active = activeCategory === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveCategory(tab.id)}
-                  aria-pressed={active}
-                  className="text-xs font-light rounded-lg px-3 py-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-[border-color,background,color] duration-150"
-                  style={{
-                    border:     active ? '1px solid rgba(204,255,51,0.35)' : '1px solid rgba(242,242,242,0.1)',
-                    background: active ? 'rgba(204,255,51,0.07)' : 'rgba(255,255,255,0.02)',
-                    color:      active ? '#ccff33'                : 'rgba(242,242,242,0.55)',
-                  }}
-                >
-                  {tab.label}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Compteur */}
-          <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.3)' }} aria-live="polite">
-            {filtered.length === products.length
-              ? `${products.length} produit${products.length > 1 ? 's' : ''}`
-              : `${filtered.length} résultat${filtered.length > 1 ? 's' : ''} sur ${products.length}`
-            }
-          </p>
+            )
+          })}
         </div>
+
+        {/* Compteur */}
+        <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.3)' }} aria-live="polite">
+          {filtered.length === products.length
+            ? `${products.length} produit${products.length > 1 ? 's' : ''}`
+            : `${filtered.length} résultat${filtered.length > 1 ? 's' : ''} sur ${products.length}`
+          }
+        </p>
 
         {/* Grille */}
         {filtered.length > 0 ? (

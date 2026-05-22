@@ -40,7 +40,7 @@ export interface RepairBrandData {
   breadcrumbLabel:     string
   breadcrumbHref:      string
   families:            RepairFamily[]
-  defaultModelId:      string
+  defaultModelId?:     string
   initialFamilyCount?: number
   repairNote?:         string
   searchPlaceholder?:  string

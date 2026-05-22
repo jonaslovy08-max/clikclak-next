@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'Diagnostic smartphone Lausanne | Panne, écran, batterie, charge | ClikClak',
+  title: 'Diagnostic smartphone, tablette et ordinateur à Lausanne | ClikClak',
   description:
-    'Smartphone qui ne s\'allume plus, panne inconnue, charge impossible ou écran noir ? ClikClak réalise un diagnostic à Lausanne pour identifier l\'origine du problème.',
+    'ClikClak réalise le diagnostic de smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne pour identifier l\'origine d\'une panne avant réparation.',
   alternates: { canonical: `${SITE_URL}/services/diagnostic/` },
   openGraph: {
-    title: 'Diagnostic smartphone Lausanne — ClikClak',
-    description: 'Diagnostic smartphone à Lausanne : panne inconnue, écran noir, batterie, charge. Estimation avant intervention.',
+    title: 'Diagnostic smartphone, tablette et ordinateur à Lausanne — ClikClak',
+    description: 'Diagnostic smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne : panne inconnue, écran noir, batterie, charge. Estimation avant intervention.',
     url: `${SITE_URL}/services/diagnostic/`,
     locale: 'fr_CH', type: 'website',
   },
@@ -42,8 +43,8 @@ export default function DiagnosticPage() {
   return (
     <InterventionPageLayout
       pill="Diagnostic"
-      h1="Diagnostic smartphone à Lausanne"
-      intro="Lorsqu'une panne n'est pas évidente, un diagnostic permet d'identifier si le problème vient de l'écran, de la batterie, du connecteur, de la carte mère, d'un dégât liquide ou d'un autre composant."
+      h1="Diagnostic smartphone, tablette et ordinateur à Lausanne"
+      intro="Votre appareil présente une panne, un comportement instable ou un problème difficile à identifier ? ClikClak analyse smartphones, tablettes et ordinateurs afin de déterminer l'origine du problème avant toute intervention."
       interventionItems={[
         'Contrôle visuel',
         'Test charge / batterie',
@@ -54,6 +55,12 @@ export default function DiagnosticPage() {
         'Estimation avant réparation',
       ]}
       faqItems={FAQ}
+      heroImage={{
+        src:       '/assets/images/homepage/service-sections/diagnostic.webp',
+        mobileSrc: '/assets/images/homepage/service-sections/diagnostic-mobile.webp',
+        alt:       'Diagnostic smartphone ClikClak Lausanne',
+      }}
+      bottomSlot={<RelatedBlogPosts postSlugs={['connaitre-modele-iphone', 'telephone-tombe-dans-l-eau', 'batterie-smartphone-fatiguee']} />}
     />
   )
 }

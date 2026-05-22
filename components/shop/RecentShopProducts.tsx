@@ -1,10 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
 import {
   SHOP_PRODUCTS,
   GRADE_LABELS,
   getProductBadge,
-  AVAILABILITY_STYLES,
 } from '@/data/shopProducts'
 
 /*
@@ -36,10 +36,10 @@ export default function RecentShopProducts() {
             id="recent-shop-title"
             className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight"
           >
-            Produits{' '}
-            <span className="text-accent">récents</span>
+            Produits récents{' '}
+            <span className="text-accent">du shop</span>
           </h2>
-          <p className="text-sm font-light max-w-xl leading-relaxed" style={{ color: 'rgba(242,242,242,0.5)' }}>
+          <p className="text-base font-light max-w-xl leading-relaxed" style={{ color: 'rgba(242,242,242,0.5)' }}>
             Découvrez une sélection d&apos;appareils disponibles en occasion, neuf ou reconditionné chez ClikClak.
           </p>
         </div>
@@ -49,21 +49,12 @@ export default function RecentShopProducts() {
           {PRODUCTS.map(product => {
             const href  = `/shop-reparation-smartphone-lausanne/${product.slug}`
             const badge = getProductBadge(product)
-            const avail = AVAILABILITY_STYLES[product.availability]
             const img   = product.images[0] ?? null
 
-            /* Specs prioritaires pour l'aperçu */
-            const specLines = [
-              product.specs?.storage        ? `Capacité : ${product.specs.storage}`        : null,
-              product.specs?.batteryHealth  ? `Batterie : ${product.specs.batteryHealth}`  : null,
-              product.specs?.color          ? `Couleur : ${product.specs.color}`            : null,
-            ].filter(Boolean) as string[]
-
             return (
-              <Link
+              <div
                 key={product.id}
-                href={href}
-                className="flex flex-col rounded-xl overflow-hidden h-full transition-[border-color,background] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent hover:border-[rgba(204,255,51,0.22)] hover:bg-[rgba(204,255,51,0.02)]"
+                className="flex flex-col rounded-xl overflow-hidden h-full transition-[border-color,background] duration-200 hover:border-[rgba(204,255,51,0.22)] hover:bg-[rgba(204,255,51,0.02)]"
                 style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
               >
                 {/* Image */}
@@ -80,7 +71,7 @@ export default function RecentShopProducts() {
                 )}
 
                 {/* Contenu */}
-                <div className="flex flex-col gap-3 p-4 flex-1">
+                <div className="flex flex-col gap-4 p-4 flex-1">
 
                   {/* Badges */}
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -115,53 +106,27 @@ export default function RecentShopProducts() {
                     )}
                   </div>
 
-                  {/* Nom */}
-                  <p className="text-sm font-light leading-snug" style={{ color: 'rgba(242,242,242,0.9)' }}>
+                  {/* Nom produit — agrandi */}
+                  <p className="text-lg font-light leading-snug" style={{ color: 'rgba(242,242,242,0.9)' }}>
                     {product.name}
                   </p>
 
-                  {/* Specs aperçu */}
-                  {specLines.length > 0 && (
-                    <div className="flex flex-col gap-0.5">
-                      {specLines.map(spec => (
-                        <p key={spec} className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
-                          {spec}
-                        </p>
-                      ))}
+                  {/* Prix — fort et visible */}
+                  {product.price > 0 && (
+                    <div className="mt-auto pt-3" style={{ borderTop: '1px solid rgba(242,242,242,0.07)' }}>
+                      <span className="text-2xl font-light" style={{ color: 'rgba(242,242,242,0.95)' }}>
+                        CHF {product.price.toFixed(0)}
+                      </span>
                     </div>
                   )}
 
-                  {/* Prix + dispo */}
-                  <div className="flex items-center justify-between gap-2 mt-auto pt-2" style={{ borderTop: '1px solid rgba(242,242,242,0.07)' }}>
-                    <span
-                      className="text-xs font-light"
-                      style={{
-                        color:        avail.color,
-                        background:   avail.bg,
-                        border:       `1px solid ${avail.border}`,
-                        padding:      '2px 8px',
-                        borderRadius: 4,
-                      }}
-                    >
-                      {avail.label}
-                    </span>
-                    {product.price > 0 && (
-                      <span className="text-base font-light" style={{ color: 'rgba(242,242,242,0.85)' }}>
-                        CHF {product.price.toFixed(0)}
-                      </span>
-                    )}
-                  </div>
+                  {/* Bouton Acheter */}
+                  <Button href={href} size="lg" className="w-full justify-center">
+                    Acheter
+                  </Button>
 
-                  {/* CTA */}
-                  <span
-                    className="text-xs font-light"
-                    style={{ color: 'rgba(204,255,51,0.65)' }}
-                    aria-hidden
-                  >
-                    Voir le produit →
-                  </span>
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>

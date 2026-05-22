@@ -10,6 +10,8 @@
     /services/diagnostic
 */
 
+import type React from 'react'
+import Image from 'next/image'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
@@ -18,6 +20,8 @@ import RepairEngagements from '@/components/repair/RepairEngagements'
 import InterventionDeviceSelector from '@/components/repair/InterventionDeviceSelector'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 
+interface HeroImage { src: string; mobileSrc?: string; alt: string }
+
 interface Props {
   pill:               string      /* label du bouton/pill en haut de page */
   h1:                 string      /* H1 de la page */
@@ -25,6 +29,8 @@ interface Props {
   interventionItems:  string[]    /* ce que comprend l'intervention */
   faqItems:           FaqItem[]   /* FAQ spécifique */
   note?:              string      /* note d'avertissement (dégât d'eau, etc.) */
+  heroImage?:         HeroImage   /* image optionnelle dans le hero */
+  bottomSlot?:        React.ReactNode  /* section optionnelle avant le footer */
 }
 
 const PROCESS_STEPS = [
@@ -43,7 +49,7 @@ const REASSURANCE = [
 ]
 
 export default function InterventionPageLayout({
-  pill, h1, intro, interventionItems, faqItems, note,
+  pill, h1, intro, interventionItems, faqItems, note, heroImage, bottomSlot,
 }: Props) {
   return (
     <>
@@ -56,38 +62,65 @@ export default function InterventionPageLayout({
           className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10"
           aria-label={h1}
         >
-          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
+          <div className={`w-full max-w-6xl mx-auto ${heroImage ? 'flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center' : 'flex flex-col gap-8'}`}>
 
-            {/* Pill active */}
-            <div>
-              <span
-                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
-                style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}
+            {/* ── Texte ── */}
+            <div className={heroImage ? 'flex-1 flex flex-col gap-6' : 'flex flex-col gap-8'}>
+              {/* Pill active */}
+              <div>
+                <span
+                  className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-light"
+                  style={{ border: '1px solid rgba(204,255,51,0.4)', backgroundColor: 'rgba(204,255,51,0.06)', color: '#ccff33' }}
+                >
+                  {pill}
+                </span>
+              </div>
+
+              <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight">
+                {h1.includes('à Lausanne')
+                  ? <>
+                      {h1.replace(' à Lausanne', '')}{' '}
+                      <span className="text-accent">à Lausanne</span>
+                    </>
+                  : h1
+                }
+              </h1>
+
+              {/* Image mobile (si heroImage fournie) */}
+              {heroImage && (
+                <div className="block md:hidden -mx-6 w-screen overflow-hidden">
+                  <Image
+                    src={heroImage.mobileSrc ?? heroImage.src}
+                    alt={heroImage.alt}
+                    width={0} height={0} sizes="100vw"
+                    className="w-full h-auto"
+                  />
+                </div>
+              )}
+
+              <p
+                className="font-light leading-relaxed max-w-2xl"
+                style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
               >
-                {pill}
-              </span>
+                {intro}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <ContactPopover />
+              </div>
             </div>
 
-            <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight max-w-3xl">
-              {h1.includes('à Lausanne')
-                ? <>
-                    {h1.replace(' à Lausanne', '')}{' '}
-                    <span className="text-accent">à Lausanne</span>
-                  </>
-                : h1
-              }
-            </h1>
-
-            <p
-              className="font-light leading-relaxed max-w-2xl"
-              style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
-            >
-              {intro}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <ContactPopover />
-            </div>
+            {/* ── Image desktop (si heroImage fournie) ── */}
+            {heroImage && (
+              <div className="hidden md:block w-[45%] shrink-0 rounded-xl overflow-hidden">
+                <Image
+                  src={heroImage.src}
+                  alt={heroImage.alt}
+                  width={0} height={0} sizes="45vw"
+                  className="w-full h-auto"
+                />
+              </div>
+            )}
 
           </div>
         </section>
@@ -233,6 +266,7 @@ export default function InterventionPageLayout({
       </main>
 
       <RepairEngagements />
+      {bottomSlot}
       <SiteFooter />
       <SectionPinning />
     </>

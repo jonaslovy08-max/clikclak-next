@@ -22,7 +22,6 @@ export const ipadBrandData: RepairBrandData = {
   brandIcon:         '/assets/icons/icon-iphone.svg',
   breadcrumbLabel:   'Réparation iPad Lausanne',
   breadcrumbHref:    '/reparation-tablette-express',
-  defaultModelId:    'ipad-1-2-3-4',
   repairNote:        "Les prix sont indicatifs et peuvent varier selon l'état de l'appareil et la disponibilité des pièces. Un diagnostic est effectué avant toute intervention.",
   searchPlaceholder: 'Rechercher mon iPad...',
 

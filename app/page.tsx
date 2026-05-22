@@ -4,17 +4,17 @@ import Header from '@/components/layout/Header'
 import HomeHero from '@/components/home/HomeHero'
 import ServiceSelector from '@/components/home/ServiceSelector'
 import ServiceDetail from '@/components/home/ServiceDetail'
-import DataRecoverySection from '@/components/home/DataRecoverySection'
-import RebuySection from '@/components/home/RebuySection'
-import WaterDamageSection from '@/components/home/WaterDamageSection'
+import RepairAtelierSection from '@/components/home/RepairAtelierSection'
+import DataUrgencesSection from '@/components/home/DataUrgencesSection'
+import InsuranceSection    from '@/components/home/InsuranceSection'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import HorizontalScrollingGallery from '@/components/home/HorizontalScrollingGallery'
-import DepannageSection from '@/components/home/DepannageSection'
-import CourrierSection from '@/components/home/CourrierSection'
+import MobileServicesSection from '@/components/home/MobileServicesSection'
 import RecentShopProducts from '@/components/shop/RecentShopProducts'
 import OtherServicesSection from '@/components/home/OtherServicesSection'
 import ScrollReveal from '@/components/animations/ScrollReveal'
+import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 
 export const metadata: Metadata = {
   title: 'Réparation smartphone Lausanne, réparation iPhone, Samsung',
@@ -73,31 +73,31 @@ export default function HomePage() {
       {/* ── Section 1 : sélection appareil — sans grille SVG ──────── */}
       <ScrollReveal><ServiceSelector /></ScrollReveal>
 
-      {/* ── Section : Autres services — raccourcis ancres ─────────── */}
+      {/* ── Autres services — raccourcis ancres ──────────────────── */}
       <ScrollReveal><OtherServicesSection /></ScrollReveal>
 
-      {/* ── Section 2 : détail service smartphone — sans grille ────── */}
+      {/* ── Réparer & revendre (Réparation smartphone + Rachat) ─── */}
+      <ScrollReveal><RepairAtelierSection /></ScrollReveal>
+
+      {/* ── Réparations courantes — 5 boutons avec animations GSAP ── */}
       <ScrollReveal><ServiceDetail /></ScrollReveal>
+
+      {/* ── Données & urgences (Récupération données + Dégâts eau) ── */}
+      <ScrollReveal><DataUrgencesSection /></ScrollReveal>
+
+      {/* ── Assurance & devis ─────────────────────────────────────── */}
+      <ScrollReveal><InsuranceSection /></ScrollReveal>
 
       {/* ── Produits récents shop ── */}
       <ScrollReveal><RecentShopProducts /></ScrollReveal>
 
-      {/* ── Section 3 : Récupération de données ── */}
-      <ScrollReveal><DataRecoverySection /></ScrollReveal>
+      {/* ── Services mobiles (Dépannage 7/7 + Coursier) ─────────── */}
+      <ScrollReveal><MobileServicesSection /></ScrollReveal>
 
-      {/* ── Section 4 : Dégâts d'eau ── */}
-      <ScrollReveal><WaterDamageSection /></ScrollReveal>
+      {/* ── Conseils utiles — blog ── */}
+      <RelatedBlogPosts postSlugs={['telephone-tombe-dans-l-eau', 'connaitre-modele-iphone', 'batterie-smartphone-fatiguee']} />
 
-      {/* ── Section 4 : Rachat de vos anciens smartphones ── */}
-      <ScrollReveal><RebuySection /></ScrollReveal>
-
-      {/* ── Section 5 : Dépannage à domicile ── */}
-      <ScrollReveal><DepannageSection /></ScrollReveal>
-
-      {/* ── Section 6 : Service de coursier ── */}
-      <ScrollReveal><CourrierSection /></ScrollReveal>
-
-      {/* ── Galerie horizontale — GSAP interne, pas de ScrollReveal ── */}
+      {/* ── Galerie horizontale / "Un service complet" — GSAP interne, pas de ScrollReveal ── */}
       <HorizontalScrollingGallery />
 
       {/* ── Footer / Contact ── */}

@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import Link         from 'next/link'
+import BulletToggle from '@/components/ui/BulletToggle'
 
 /*
   DepannageSection — Section homepage "Dépannage à domicile".
@@ -8,7 +9,7 @@ import Link from 'next/link'
 
 const bullets = [
   'Diagnostic sur place',
-  'Aide configuration',
+  'Aide à la configuration',
   'Transfert et sauvegarde de données',
   'Smartphone, tablette, ordinateur',
 ]
@@ -34,29 +35,21 @@ export default function DepannageSection() {
           {/* Colonne gauche : texte + bullets + CTA */}
           <div className="flex-1 flex flex-col gap-4">
 
-            <span className="text-[11px] text-foreground/35 uppercase tracking-[0.22em]">
-              Assistance selon disponibilité
-            </span>
-
             <p className="text-base md:text-lg font-light leading-snug">
               <span className="text-accent">Besoin d&apos;aide pour votre appareil ?</span>
-              {' '}ClikClak vous accompagne 7/7.
             </p>
 
             <div className="flex flex-col gap-3 text-base md:text-[0.9375rem] font-light leading-relaxed text-foreground/60">
               <p>
-                Besoin d&apos;aide pour un smartphone, une tablette ou un ordinateur ? ClikClak vous accompagne pour le diagnostic, la configuration, le transfert de données ou les pannes urgentes, selon disponibilité.
+                Smartphone, tablette ou ordinateur&nbsp;: Clik Clak vous accompagne pour le diagnostic, la configuration, le transfert de données ou les pannes urgentes, selon disponibilité.
               </p>
             </div>
 
-            <ul className="flex flex-col gap-2">
-              {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-base font-light text-foreground/70">
-                  <span className="text-accent mt-0.5 shrink-0" aria-hidden>–</span>
-                  {b}
-                </li>
-              ))}
-            </ul>
+            <BulletToggle
+              bullets={bullets}
+              labelClosed="Prestations incluses"
+              labelOpen="Masquer les prestations"
+            />
 
             <div className="flex flex-col gap-3 mt-2">
               <Link
@@ -69,25 +62,15 @@ export default function DepannageSection() {
 
           </div>
 
-          {/* Colonne droite : card visuelle */}
+          {/* TODO: Ajouter l'image finale de la section Dépannage 7/7 */}
           <div
-            className="w-full md:w-[44%] shrink-0 flex flex-col gap-4 p-5 rounded-2xl"
-            style={{ border: '1px solid rgba(242,242,242,0.1)', backgroundColor: 'rgba(255,255,255,0.02)' }}
-          >
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-light" style={{ color: '#ccff33' }}>Dépannage 7/7</p>
-              <p className="text-xs font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.5)' }}>
-                Lausanne et Suisse romande selon disponibilité
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid rgba(242,242,242,0.08)' }}>
-              {['Smartphone', 'Tablette', 'Ordinateur / MacBook', 'Transfert de données'].map(item => (
-                <p key={item} className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.55)' }}>
-                  — {item}
-                </p>
-              ))}
-            </div>
-          </div>
+            className="w-full md:w-[44%] shrink-0 rounded-xl"
+            style={{
+              aspectRatio: '4/3',
+              border: '1px solid rgba(242,242,242,0.08)',
+              background: 'rgba(255,255,255,0.01)',
+            }}
+          />
 
         </div>
 

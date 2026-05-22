@@ -33,6 +33,7 @@ function m(
 
 /* ─── Générations ─────────────────────────────────────────────────────────── */
 export const generations = [
+  { id: 'iphone-17',    label: 'iPhone 17'    },
   { id: 'iphone-16',    label: 'iPhone 16'    },
   { id: 'iphone-15',    label: 'iPhone 15'    },
   { id: 'iphone-14',    label: 'iPhone 14'    },
@@ -52,6 +53,43 @@ export const generations = [
 
 /* ─── Modèles ─────────────────────────────────────────────────────────────── */
 export const iphoneModels: IphoneModel[] = [
+
+  // ── iPhone 17 ───────────────────────────────────────────────────────────
+  m('iphone-17',         'iPhone 17',         'iphone-17',  349, 109, [
+    ['Vitre arrière / Châssis', 219],
+    ['Caméra principale',       169],
+    ['Caméra frontale',         139],
+    ['Lentille caméra',         109],
+    ['Connecteur de charge',    149],
+  ]),
+  m('iphone-17-pro',     'iPhone 17 Pro',     'iphone-17',  389, 109, [
+    ['Vitre arrière / Châssis', 219],
+    ['Caméra principale',       169],
+    ['Caméra frontale',         139],
+    ['Lentille caméra',         109],
+    ['Connecteur de charge',    149],
+  ]),
+  m('iphone-17-pro-max', 'iPhone 17 Pro Max', 'iphone-17',  389, 109, [
+    ['Vitre arrière / Châssis', 219],
+    ['Caméra principale',       169],
+    ['Caméra frontale',         139],
+    ['Lentille caméra',         109],
+    ['Connecteur de charge',    149],
+  ]),
+  m('iphone-17-air',     'iPhone 17 Air',     'iphone-17',  349, 109, [
+    ['Vitre arrière / Châssis', 219],
+    ['Caméra principale',       169],
+    ['Caméra frontale',         139],
+    ['Lentille caméra',         109],
+    ['Connecteur de charge',    149],
+  ]),
+  m('iphone-17e',        'iPhone 17e',        'iphone-17',  349, 109, [
+    ['Vitre arrière / Châssis', 219],
+    ['Caméra principale',       169],
+    ['Caméra frontale',         139],
+    ['Lentille caméra',         109],
+    ['Connecteur de charge',    149],
+  ]),
 
   // ── iPhone 16 ───────────────────────────────────────────────────────────
   m('iphone-16',         'iPhone 16',         'iphone-16',  249.99, 99.99, [

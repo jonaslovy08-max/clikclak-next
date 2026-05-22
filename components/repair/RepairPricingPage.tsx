@@ -172,7 +172,9 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
   const allModels: RepairModel[] = families.flatMap(f => f.models)
 
   const [openFamilyId,    setOpenFamilyId]    = useState<string | null>(null)
-  const [selectedModelId, setSelectedModelId] = useState(defaultModelId)
+  // Les modèles sont triés du plus récent au plus ancien.
+  // Le modèle par défaut est donc le premier élément de la liste.
+  const [selectedModelId, setSelectedModelId] = useState(defaultModelId ?? allModels[0]?.id ?? '')
   const [showAll,         setShowAll]         = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -472,10 +474,10 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
                             className="flex items-center justify-between py-2.5"
                             style={{ borderBottom: '1px solid rgba(242,242,242,0.07)' }}
                           >
-                            <span className="font-light" style={{ fontSize: 'clamp(12px, 1.1vw, 16px)', color: '#b0b0b0' }}>
+                            <span className="font-light" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: '#b0b0b0' }}>
                               {repair.label}
                             </span>
-                            <span className="font-light whitespace-nowrap ml-4" style={{ fontSize: 'clamp(12px, 1.1vw, 16px)', color: priceColor(formatPrice(repair.price)) }}>
+                            <span className="font-light whitespace-nowrap ml-4" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: priceColor(formatPrice(repair.price)) }}>
                               {formatPrice(repair.price)}
                             </span>
                           </div>
