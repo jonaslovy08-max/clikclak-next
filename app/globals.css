@@ -1036,3 +1036,12 @@ body::after {
 }
 .prose-blog .blog-cta a:hover { opacity: 0.75; }
 
+/* ── Masquer le bouton cancel natif des champs type="search" ─────────── */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  display: none;
+}
+input[type="search"]::-ms-clear {
+  display: none;
+}
+

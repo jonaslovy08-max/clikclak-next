@@ -177,26 +177,41 @@ export default function RepairModelSearch({
         )}
         style={inputStyle}
       />
-      <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
-        {/* SVG inline — tracé unique, draw animation GSAP en boucle */}
-        <svg
-          viewBox="0 0 42.3 47"
-          width="22"
-          height="22"
-          fill="none"
-          aria-hidden
-          focusable="false"
+      {hasText ? (
+        /* Bouton clear lime — remplace l'icône loupe quand du texte est saisi */
+        <button
+          type="button"
+          onClick={() => setQuery('')}
+          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#ccff33]"
+          aria-label="Effacer la recherche"
         >
-          <path
-            ref={pathRef}
-            d="M5.3,19.1C5.3,9.3,13.2,1.3,23.1,1.3s17.8,8,17.8,17.8-8,17.8-17.8,17.8-8-1.4-11-3.8L1.1,44.1"
-            stroke="#ccff33"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
+          <svg viewBox="0 0 14 14" width="14" height="14" fill="none" aria-hidden focusable="false">
+            <line x1="1" y1="1" x2="13" y2="13" stroke="#ccff33" strokeWidth="2" strokeLinecap="round" />
+            <line x1="13" y1="1" x2="1" y2="13" stroke="#ccff33" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      ) : (
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
+          {/* SVG inline — tracé unique, draw animation GSAP en boucle */}
+          <svg
+            viewBox="0 0 42.3 47"
+            width="22"
+            height="22"
+            fill="none"
+            aria-hidden
+            focusable="false"
+          >
+            <path
+              ref={pathRef}
+              d="M5.3,19.1C5.3,9.3,13.2,1.3,23.1,1.3s17.8,8,17.8,17.8-8,17.8-17.8,17.8-8-1.4-11-3.8L1.1,44.1"
+              stroke="#ccff33"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      )}
 
       {/* Dropdown — GSAP contrôle autoAlpha, pas de style React opacity/visibility */}
       <div

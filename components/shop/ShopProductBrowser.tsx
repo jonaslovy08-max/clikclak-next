@@ -362,11 +362,13 @@ export default function ShopProductBrowser({ products }: { products: ShopProduct
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#ccff33]"
               aria-label="Effacer la recherche"
-              style={{ color: 'rgba(242,242,242,0.4)', background: 'rgba(242,242,242,0.06)', fontSize: 16 }}
             >
-              ×
+              <svg viewBox="0 0 14 14" width="14" height="14" fill="none" aria-hidden focusable="false">
+                <line x1="1" y1="1" x2="13" y2="13" stroke="#ccff33" strokeWidth="2" strokeLinecap="round" />
+                <line x1="13" y1="1" x2="1" y2="13" stroke="#ccff33" strokeWidth="2" strokeLinecap="round" />
+              </svg>
             </button>
           )}
         </div>
