@@ -109,14 +109,18 @@ export default function PanierContent() {
               )}
               <div className="flex-1 flex flex-col gap-2 min-w-0">
                 <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.9)' }}>{product.name}</p>
-                <p className="text-base font-light" style={{ color: '#ccff33' }}>CHF {product.price.toFixed(0)}</p>
+                {product.price != null && (
+                  <p className="text-base font-light" style={{ color: '#ccff33' }}>CHF {product.price.toFixed(0)}</p>
+                )}
                 <div className="flex items-center gap-2">
                   <button type="button" style={QTY_BTN} onClick={() => updateQty(product.id, quantity - 1)} className="focus-visible:outline-none" aria-label="Diminuer">−</button>
                   <span className="text-sm font-light w-8 text-center" style={{ color: 'rgba(242,242,242,0.8)' }}>{quantity}</span>
                   <button type="button" style={QTY_BTN} onClick={() => updateQty(product.id, quantity + 1)} className="focus-visible:outline-none" aria-label="Augmenter">+</button>
-                  <span className="text-xs font-light ml-2" style={{ color: 'rgba(242,242,242,0.4)' }}>
-                    Sous-total : CHF {(product.price * quantity).toFixed(0)}
-                  </span>
+                  {product.price != null && (
+                    <span className="text-xs font-light ml-2" style={{ color: 'rgba(242,242,242,0.4)' }}>
+                      Sous-total : CHF {(product.price * quantity).toFixed(0)}
+                    </span>
+                  )}
                 </div>
               </div>
               <button

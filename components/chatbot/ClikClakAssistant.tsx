@@ -399,7 +399,9 @@ export default function ClikClakAssistant() {
                 <Link key={p.id} href={`/shop-reparation-smartphone-lausanne/${p.slug}`} onClick={close}
                   className="flex items-center justify-between px-3 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:border-accent/20 transition-colors focus-visible:outline-none">
                   <span className="text-[13px] font-light text-foreground/80 truncate mr-2">{p.name}</span>
-                  <span className="text-[13px] font-light text-accent shrink-0">CHF {p.price.toFixed(0)}</span>
+                  <span className="text-[13px] font-light text-accent shrink-0">
+                    {p.price != null ? `CHF ${p.price.toFixed(0)}` : 'Prix sur demande'}
+                  </span>
                 </Link>
               ))}
               {shopResults.length === 0 && <p className="text-[13px] font-light text-foreground/40">Aucun produit trouvé.</p>}

@@ -25,7 +25,7 @@ export function searchShopProducts(query: string, limit = 3): ShopProductResult[
 
   return matches.slice(0, limit).map(p => ({
     name:         p.name,
-    price:        p.price > 0 ? `CHF ${p.price.toFixed(0)}` : 'Prix sur demande',
+    price:        p.price != null && p.price > 0 ? `CHF ${p.price.toFixed(0)}` : 'Prix sur demande',
     brand:        p.brand ?? '',
     availability: p.availability === 'en-stock' ? 'En stock' : p.availability === 'sur-commande' ? 'Sur commande' : 'Indisponible',
     grade:        p.grade ?? undefined,

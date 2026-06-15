@@ -41,7 +41,7 @@ function getShopEntries(): SearchEntry[] {
       .filter(p => p.availability === 'en-stock')
       .map(p => ({
         title:       p.name,
-        description: `CHF ${p.price.toFixed(0)} — ${p.brand ?? ''}`.trim().replace(/— $/, ''),
+        description: `${p.price != null ? `CHF ${p.price.toFixed(0)} — ` : ''}${p.brand ?? ''}`.trim().replace(/— $/, ''),
         href:        `/shop-reparation-smartphone-lausanne/${p.slug}`,
         keywords:    [p.name, p.brand ?? '', p.mainCategory].map(s => s.toLowerCase()),
         type:        'shop' as const,

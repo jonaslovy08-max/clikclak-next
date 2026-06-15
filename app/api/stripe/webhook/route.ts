@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
-import { SHOP_PRODUCTS } from '@/data/shopProducts'
+import { getProductById } from '@/lib/products'
 
 /*
   POST /api/stripe/webhook
@@ -140,8 +140,8 @@ async function handlePaidOrder(session: Stripe.Checkout.Session): Promise<void> 
         ? (JSON.parse(session.metadata.productIds) as string[])
         : []
       for (const id of ids) {
-        const p = SHOP_PRODUCTS.find(x => x.id === id)
-        if (p) lineItems.push({ name: p.name, quantity: 1, price: p.price })
+        const p = getProductById(id)
+        if (p && p.priceChfCents != null) lineItems.push({ name: p.name, quantity: 1, price: p.priceChfCents / 100 })
       }
     }
   }

@@ -16,6 +16,7 @@ import {
   MAIN_CATEGORY_LABELS,
   AVAILABILITY_STYLES,
   getProductBadge,
+  isProductPurchasable,
 } from '@/data/shopProducts'
 
 /* ── Génération statique de toutes les pages produit ─────────── */
@@ -33,7 +34,7 @@ export async function generateMetadata(
 
   const title       = `${product.name} — Shop ClikClak Lausanne`
   const description = product.shortDescription
-  const ogDesc      = `CHF ${product.price.toFixed(0)} — ${product.shortDescription}`
+  const ogDesc      = product.price != null ? `CHF ${product.price.toFixed(0)} — ${product.shortDescription}` : product.shortDescription
   const ogImage     = product.images[0] ?? DEFAULT_OG_IMAGE
 
   return {
@@ -187,14 +188,23 @@ export default async function ProductPage(
                     style={{ color: avail.color, background: avail.bg, border: `1px solid ${avail.border}`, padding: '4px 12px', borderRadius: 5 }}
                   >
                     {avail.label}
+                    {product.stock != null && !isProductPurchasable(product) && ` — ${product.stock} en stock`}
                   </span>
-                  <span className="text-2xl font-light" style={{ color: 'rgba(242,242,242,0.9)' }}>
-                    CHF {product.price.toFixed(0)}
-                  </span>
+                  {product.price != null ? (
+                    <span className="text-2xl font-light" style={{ color: 'rgba(242,242,242,0.9)' }}>
+                      CHF {product.price.toFixed(0)}
+                    </span>
+                  ) : (
+                    <span className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
+                      Prix sur demande
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.35)' }}>
-                  Prix en CHF. Paiement sécurisé via Stripe. TWINT et carte bancaire acceptés.
-                </p>
+                {product.price != null && (
+                  <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.35)' }}>
+                    Prix en CHF. Paiement sécurisé via Stripe. TWINT et carte bancaire acceptés.
+                  </p>
+                )}
               </div>
 
               {/* Specs */}
@@ -259,7 +269,13 @@ export default async function ProductPage(
 
               {/* CTA */}
               <div className="flex flex-wrap gap-3 pt-2">
-                <AddToCartButton productId={product.id} size="lg" />
+                {isProductPurchasable(product) ? (
+                  <AddToCartButton productId={product.id} size="lg" />
+                ) : (
+                  <Button href="/contact-clik-clak-lausanne" variant="primary" size="lg">
+                    Demander le prix
+                  </Button>
+                )}
                 <Button href="/shop-reparation-smartphone-lausanne" variant="secondary" size="lg">
                   ← Retour au shop
                 </Button>
@@ -269,7 +285,7 @@ export default async function ProductPage(
               <div className="flex justify-end pt-1">
                 <ShareButton
                   title={`${product.name} — ClikClak Lausanne`}
-                  text={`${product.name}${product.grade ? ` — Grade ${product.grade}` : ''}. CHF ${product.price.toFixed(0)}. Disponible chez ClikClak Lausanne.`}
+                  text={`${product.name}${product.grade ? ` — Grade ${product.grade}` : ''}${product.price != null ? `. CHF ${product.price.toFixed(0)}` : ''}. Disponible chez ClikClak Lausanne.`}
                   url={`${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}/`}
                 />
               </div>

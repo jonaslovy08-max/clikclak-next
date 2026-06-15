@@ -29,6 +29,7 @@ import {
   AVAILABILITY_STYLES,
   GRADE_LABELS,
   getProductBadge,
+  isProductPurchasable,
 } from '@/data/shopProducts'
 import AddToCartButton from './AddToCartButton'
 import { Button }       from '@/components/ui/Button'
@@ -109,13 +110,14 @@ const CHEVRON_BTN: React.CSSProperties = {
 
 /* ── Card produit ─────────────────────────────────────────────── */
 function ProductCard({ product }: { product: ShopProduct }) {
-  const router    = useRouter()
-  const avail     = AVAILABILITY_STYLES[product.availability]
-  const badge     = getProductBadge(product)
-  const href      = `/shop-reparation-smartphone-lausanne/${product.slug}`
-  const multiImg  = product.images.length > 1
+  const router      = useRouter()
+  const avail       = AVAILABILITY_STYLES[product.availability]
+  const badge       = getProductBadge(product)
+  const href        = `/shop-reparation-smartphone-lausanne/${product.slug}`
+  const purchasable = isProductPurchasable(product)
+  const multiImg    = product.images.length > 1
   const [imgIdx, setImgIdx] = useState(0)
-  const currentImg = product.images[imgIdx] ?? null
+  const currentImg  = product.images[imgIdx] ?? null
 
   const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation()
 
@@ -290,17 +292,32 @@ function ProductCard({ product }: { product: ShopProduct }) {
               }}
             >
               {avail.label}
+              {!purchasable && product.stock != null && ` (${product.stock})`}
             </span>
-            <span className="text-2xl font-medium" style={{ color: 'rgba(242,242,242,0.92)' }}>
-              CHF {product.price.toFixed(0)}
-            </span>
+            {purchasable && product.price != null ? (
+              <span className="text-2xl font-medium" style={{ color: 'rgba(242,242,242,0.92)' }}>
+                CHF {product.price.toFixed(0)}
+              </span>
+            ) : (
+              <span className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
+                Prix sur demande
+              </span>
+            )}
           </div>
           {/* CTA */}
           <div className="flex gap-2" onClick={stop} onKeyDown={stop} role="none">
-            <AddToCartButton productId={product.id} size="lg" className="flex-1 !min-w-0" />
-            <Button href={href} variant="secondary" size="lg" className="flex-1 !min-w-0">
-              Détail
-            </Button>
+            {purchasable ? (
+              <>
+                <AddToCartButton productId={product.id} size="lg" className="flex-1 !min-w-0" />
+                <Button href={href} variant="secondary" size="lg" className="flex-1 !min-w-0">
+                  Détail
+                </Button>
+              </>
+            ) : (
+              <Button href={href} variant="secondary" size="lg" className="w-full justify-center">
+                Voir le détail
+              </Button>
+            )}
           </div>
         </div>
       </div>

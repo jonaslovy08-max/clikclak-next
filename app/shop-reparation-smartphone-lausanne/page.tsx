@@ -5,7 +5,11 @@ import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import ShopProductBrowser from '@/components/shop/ShopProductBrowser'
-import { SHOP_PRODUCTS, isProductPurchasable, GRADE_LABELS, GRADE_DESCRIPTIONS, type ShopGrade } from '@/data/shopProducts'
+import { SHOP_PRODUCTS, GRADE_LABELS, GRADE_DESCRIPTIONS, type ShopGrade } from '@/data/shopProducts'
+/*
+  TODO migration Supabase : remplacer SHOP_PRODUCTS par getProducts() depuis lib/products
+  et adapter ShopProductBrowser pour recevoir Product[] à la place de ShopProduct[].
+*/
 
 export const metadata: Metadata = {
   title: 'Shop ClikClak Lausanne | Smartphones, accessoires et pièces détachées',
@@ -193,7 +197,8 @@ export default function ShopPage() {
           aria-label="Catalogue shop"
         >
           <div className="w-full max-w-6xl mx-auto">
-            <ShopProductBrowser products={SHOP_PRODUCTS.filter(isProductPurchasable)} />
+            {/* Tous les produits en-stock — le bouton Acheter est géré par ProductCard */}
+            <ShopProductBrowser products={SHOP_PRODUCTS.filter(p => p.availability !== 'rupture')} />
           </div>
         </section>
 

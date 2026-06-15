@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
-import { SHOP_PRODUCTS, isProductPurchasable } from '@/data/shopProducts'
+import { getProductById, productIsPurchasable } from '@/lib/products'
 
 /*
   POST /api/stripe/checkout
@@ -63,13 +63,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Format panier invalide.' }, { status: 400 })
     }
 
-    const product = SHOP_PRODUCTS.find(p => p.id === item.productId)
-    if (!product || !isProductPurchasable(product)) {
+    const product = getProductById(item.productId)
+    if (!product || !productIsPurchasable(product)) {
       return NextResponse.json(
-        { error: `Produit non disponible : ${item.productId}` },
+        { error: `Produit non disponible à l'achat en ligne : ${item.productId}` },
         { status: 400 }
       )
     }
+
+    /* productIsPurchasable garantit priceChfCents > 0 */
+    const priceChfCents = product.priceChfCents as number
 
     if (!Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 99) {
       return NextResponse.json({ error: 'Quantité invalide.' }, { status: 400 })
@@ -84,7 +87,7 @@ export async function POST(req: NextRequest) {
           name:   product.name,
           ...(imgUrl ? { images: [imgUrl] } : {}),
         },
-        unit_amount: Math.round(product.price * 100),  // CHF → centimes Stripe
+        unit_amount: priceChfCents,  // déjà en centimes
       },
       quantity: item.quantity,
     })

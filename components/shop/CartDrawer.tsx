@@ -165,9 +165,11 @@ export default function CartDrawer() {
                   <p className="text-xs font-light leading-snug" style={{ color: 'rgba(242,242,242,0.85)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {product.name}
                   </p>
-                  <p className="text-sm font-light" style={{ color: '#ccff33' }}>
-                    CHF {product.price.toFixed(0)}
-                  </p>
+                  {product.price != null && (
+                    <p className="text-sm font-light" style={{ color: '#ccff33' }}>
+                      CHF {product.price.toFixed(0)}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-0.5">
                     <button type="button" style={QTY_BTN} onClick={() => updateQty(product.id, quantity - 1)} className="focus-visible:outline-none" aria-label="Diminuer">−</button>
                     <span className="text-xs font-light w-5 text-center" style={{ color: 'rgba(242,242,242,0.8)' }}>{quantity}</span>

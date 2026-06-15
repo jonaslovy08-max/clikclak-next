@@ -111,7 +111,7 @@ export default function RecentShopProducts() {
                   </p>
 
                   {/* Prix — fort et visible */}
-                  {product.price > 0 && (
+                  {product.price != null && product.price > 0 && (
                     <div className="mt-auto pt-3" style={{ borderTop: '1px solid rgba(242,242,242,0.07)' }}>
                       <span className="text-2xl font-light" style={{ color: 'rgba(242,242,242,0.95)' }}>
                         CHF {product.price.toFixed(0)}

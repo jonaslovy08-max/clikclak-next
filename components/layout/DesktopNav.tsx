@@ -391,7 +391,7 @@ export default function DesktopNav({
                     aria-hidden
                     width={28}
                     height={20}
-                    style={{ display: 'block', opacity: 0.75 }}
+                    style={{ display: 'block', opacity: 0.75, height: 'auto' }}
                   />
                   {cartCount > 0 && (
                     <span
