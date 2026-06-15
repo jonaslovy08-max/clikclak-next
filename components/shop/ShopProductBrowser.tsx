@@ -19,7 +19,7 @@
                     compatibleModels, condition, shortDescription, tags
 */
 
-import { useState, useMemo, useId } from 'react'
+import { useState, useMemo, useEffect, useId } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -327,11 +327,16 @@ function ProductCard({ product }: { product: ShopProduct }) {
   )
 }
 
+/* ── Pagination ───────────────────────────────────────────────── */
+const INITIAL_VISIBLE  = 24
+const PRODUCTS_INCREMENT = 24
+
 /* ── Composant principal ──────────────────────────────────────── */
 export default function ShopProductBrowser({ products }: { products: ShopProduct[] }) {
   const uid                                   = useId()
   const [search, setSearch]                   = useState('')
   const [activeCategory, setActiveCategory]   = useState<ActiveCategory>(ALL)
+  const [visibleCount, setVisibleCount]       = useState(INITIAL_VISIBLE)
 
   const filtered = useMemo(() => {
     return products.filter(p => {
@@ -340,7 +345,13 @@ export default function ShopProductBrowser({ products }: { products: ShopProduct
     })
   }, [products, search, activeCategory])
 
-  const hasSearch = search.length > 0
+  /* Réinitialise la pagination à chaque changement de filtre ou de recherche */
+  useEffect(() => { setVisibleCount(INITIAL_VISIBLE) }, [search, activeCategory])
+
+  const visible    = filtered.slice(0, visibleCount)
+  const hasMore    = visibleCount < filtered.length
+  const remaining  = filtered.length - visibleCount
+  const hasSearch  = search.length > 0
 
   return (
     <>
@@ -415,7 +426,7 @@ export default function ShopProductBrowser({ products }: { products: ShopProduct
           })}
         </div>
 
-        {/* Compteur */}
+        {/* Compteur — affiche le total filtré */}
         <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.3)' }} aria-live="polite">
           {filtered.length === products.length
             ? `${products.length} produit${products.length > 1 ? 's' : ''}`
@@ -425,11 +436,42 @@ export default function ShopProductBrowser({ products }: { products: ShopProduct
 
         {/* Grille */}
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(p => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {visible.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+
+            {/* Bouton "Afficher plus" */}
+            {hasMore && (
+              <div className="flex justify-center pt-4">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(c => c + PRODUCTS_INCREMENT)}
+                  className="text-sm font-light rounded-xl px-8 py-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent transition-[border-color,background,color] duration-150"
+                  style={{
+                    border:     '1px solid rgba(242,242,242,0.18)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color:      'rgba(242,242,242,0.65)',
+                  }}
+                  onMouseEnter={e => {
+                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(204,255,51,0.35)'
+                    ;(e.currentTarget as HTMLButtonElement).style.color       = '#ccff33'
+                  }}
+                  onMouseLeave={e => {
+                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(242,242,242,0.18)'
+                    ;(e.currentTarget as HTMLButtonElement).style.color       = 'rgba(242,242,242,0.65)'
+                  }}
+                >
+                  Afficher {Math.min(remaining, PRODUCTS_INCREMENT)} produit{Math.min(remaining, PRODUCTS_INCREMENT) > 1 ? 's' : ''} de plus
+                  <span className="ml-2" style={{ color: 'rgba(242,242,242,0.3)', fontSize: 11 }}>
+                    ({visible.length} / {filtered.length})
+                  </span>
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div
             className="flex flex-col gap-4 items-start p-8 rounded-xl"
