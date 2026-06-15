@@ -15,9 +15,8 @@ import {
 
 const PRODUCTS = SHOP_PRODUCTS.filter(
   p =>
-    p.mainCategory  === 'occasion-neuf' &&
-    p.imageSource   === 'real'          &&
-    p.isIllustrative === false
+    p.mainCategory   === 'occasion-neuf' &&
+    p.isIllustrative !== true
 ).slice(0, 3)
 
 export default function RecentShopProducts() {

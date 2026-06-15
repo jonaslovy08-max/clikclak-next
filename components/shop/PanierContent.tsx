@@ -35,7 +35,7 @@ export default function PanierContent() {
     setLoading(true)
     setError(null)
     try {
-      const res  = await fetch('/api/stripe/create-checkout-session', {
+      const res  = await fetch('/api/stripe/checkout', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ items: items.map(i => ({ productId: i.productId, quantity: i.quantity })) }),

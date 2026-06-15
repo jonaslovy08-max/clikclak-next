@@ -3,16 +3,22 @@ import { getStripe } from '@/lib/stripe'
 import { SHOP_PRODUCTS, isProductPurchasable } from '@/data/shopProducts'
 
 /*
-  POST /api/stripe/create-checkout-session
+  POST /api/stripe/checkout
 
   Body : { items: { productId: string; quantity: number }[] }
 
-  Règles :
-  - Prix lu côté serveur depuis data/shopProducts.ts (jamais depuis le client)
-  - Chaque produit doit être achetable (en-stock, price > 0)
-  - Référence commande générée côté serveur
-  - Moyens de paiement : card + twint (évolutif via Stripe dashboard)
+  Cycle de vie commande :
+    pending   → session Stripe créée, utilisateur redirigé vers Stripe Checkout
+    paid      → webhook checkout.session.completed reçu et signature vérifiée
+    cancelled → abandon panier ou timeout Stripe (cancel_url)
+
+  Règles sécurité :
+    - Prix recalculés côté serveur depuis data/shopProducts.ts — jamais depuis le client
+    - STRIPE_SECRET_KEY uniquement côté serveur (jamais exposé au client)
+    - Le webhook est la source de vérité du paiement, pas la page success
 */
+
+const DEV = process.env.NODE_ENV === 'development'
 
 interface CheckoutItem {
   productId: string
@@ -30,6 +36,7 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe()
 
   if (!stripe) {
+    if (DEV) console.warn('[stripe/checkout] STRIPE_SECRET_KEY absent — paiement désactivé en dev')
     return NextResponse.json(
       { error: 'Paiement non disponible — STRIPE_SECRET_KEY manquant.', devMode: true },
       { status: 503 }
@@ -49,6 +56,8 @@ export async function POST(req: NextRequest) {
 
   /* Validation et construction des line_items côté serveur */
   const lineItems = []
+  const baseUrl   = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clikclak.ch'
+
   for (const item of items) {
     if (typeof item.productId !== 'string' || typeof item.quantity !== 'number') {
       return NextResponse.json({ error: 'Format panier invalide.' }, { status: 400 })
@@ -66,8 +75,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Quantité invalide.' }, { status: 400 })
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clikclak.ch'
-    const imgUrl  = product.images[0] ? `${baseUrl}${product.images[0]}` : undefined
+    const imgUrl = product.images[0] ? `${baseUrl}${product.images[0]}` : undefined
 
     lineItems.push({
       price_data: {
@@ -83,21 +91,29 @@ export async function POST(req: NextRequest) {
   }
 
   const orderRef = generateOrderRef()
-  const baseUrl  = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clikclak.ch'
+
+  if (DEV) {
+    console.log(`[stripe/checkout] Création session — ref: ${orderRef}, ${items.length} produit(s)`, {
+      productIds: items.map(i => i.productId),
+    })
+  }
 
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card', 'twint'],
       mode:                 'payment',
       line_items:           lineItems,
-      success_url:          `${baseUrl}/shop-reparation-smartphone-lausanne/success?ref=${orderRef}`,
-      cancel_url:           `${baseUrl}/shop-reparation-smartphone-lausanne/cancel`,
+      /* {CHECKOUT_SESSION_ID} est un template Stripe remplacé automatiquement à la redirection */
+      success_url: `${baseUrl}/shop-reparation-smartphone-lausanne/success?session_id={CHECKOUT_SESSION_ID}&ref=${orderRef}`,
+      cancel_url:  `${baseUrl}/shop-reparation-smartphone-lausanne/cancel`,
       metadata: {
         orderReference: orderRef,
         productIds:     JSON.stringify(items.map(i => i.productId)),
         source:         'clikclak-shop',
       },
     })
+
+    if (DEV) console.log(`[stripe/checkout] Session créée — id: ${session.id}, url: ${session.url}`)
 
     return NextResponse.json({ url: session.url })
   } catch (err) {
