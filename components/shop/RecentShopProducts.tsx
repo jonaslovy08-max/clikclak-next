@@ -6,6 +6,7 @@ import {
   GRADE_LABELS,
   getProductBadge,
 } from '@/data/shopProducts'
+import { getProductMainImage } from '@/lib/products/images'
 
 /*
   Affiche jusqu'à 3 produits réels "occasion-neuf".
@@ -48,7 +49,7 @@ export default function RecentShopProducts() {
           {PRODUCTS.map(product => {
             const href  = `/shop-reparation-smartphone-lausanne/${product.slug}`
             const badge = getProductBadge(product)
-            const img   = product.images[0] ?? null
+            const img = getProductMainImage(product)
 
             return (
               <div
@@ -56,18 +57,16 @@ export default function RecentShopProducts() {
                 className="flex flex-col rounded-xl overflow-hidden h-full transition-[border-color,background] duration-200 hover:border-[rgba(204,255,51,0.22)] hover:bg-[rgba(204,255,51,0.02)]"
                 style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
               >
-                {/* Image */}
-                {img && (
-                  <div className="relative overflow-hidden w-full" style={{ aspectRatio: '4/3' }}>
-                    <Image
-                      fill
-                      src={img}
-                      alt={product.name}
-                      style={{ objectFit: 'cover', objectPosition: 'center' }}
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    />
-                  </div>
-                )}
+                {/* Image — réelle ou placeholder adapté */}
+                <div className="relative overflow-hidden w-full" style={{ aspectRatio: '4/3' }}>
+                  <Image
+                    fill
+                    src={img}
+                    alt={product.name}
+                    style={{ objectFit: 'cover', objectPosition: 'center' }}
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  />
+                </div>
 
                 {/* Contenu */}
                 <div className="flex flex-col gap-4 p-4 flex-1">

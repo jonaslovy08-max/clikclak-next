@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { useCart } from './CartContext'
 import { SHOP_PRODUCTS } from '@/data/shopProducts'
+import { getProductMainImage } from '@/lib/products/images'
 
 const ICON: React.CSSProperties = {
   display:          'flex',
@@ -150,17 +151,15 @@ export default function CartDrawer() {
                 className="flex gap-3"
                 style={{ paddingBottom: '1rem', borderBottom: '1px solid rgba(242,242,242,0.07)' }}
               >
-                {product.images[0] && (
-                  <div className="relative rounded-lg overflow-hidden shrink-0" style={{ width: 60, height: 60 }}>
-                    <Image
-                      fill
-                      src={product.images[0]}
-                      alt={product.name}
-                      style={{ objectFit: 'cover' }}
-                      sizes="60px"
-                    />
-                  </div>
-                )}
+                <div className="relative rounded-lg overflow-hidden shrink-0" style={{ width: 60, height: 60 }}>
+                  <Image
+                    fill
+                    src={getProductMainImage(product)}
+                    alt={product.name}
+                    style={{ objectFit: 'cover' }}
+                    sizes="60px"
+                  />
+                </div>
                 <div className="flex-1 flex flex-col gap-1.5 min-w-0">
                   <p className="text-xs font-light leading-snug" style={{ color: 'rgba(242,242,242,0.85)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {product.name}

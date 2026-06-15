@@ -33,6 +33,7 @@ import {
 } from '@/data/shopProducts'
 import AddToCartButton from './AddToCartButton'
 import { Button }       from '@/components/ui/Button'
+import { getProductMainImage, getProductImages } from '@/lib/products/images'
 
 /* ── Styles partagés ──────────────────────────────────────────── */
 const IS: React.CSSProperties = {
@@ -114,20 +115,21 @@ function ProductCard({ product }: { product: ShopProduct }) {
   const avail       = AVAILABILITY_STYLES[product.availability]
   const badge       = getProductBadge(product)
   const href        = `/shop-reparation-smartphone-lausanne/${product.slug}`
-  const purchasable = isProductPurchasable(product)
-  const multiImg    = product.images.length > 1
+  const purchasable  = isProductPurchasable(product)
+  const displayImages = getProductImages(product)
+  const multiImg     = displayImages.length > 1
   const [imgIdx, setImgIdx] = useState(0)
-  const currentImg  = product.images[imgIdx] ?? null
+  const currentImg   = displayImages[imgIdx] ?? getProductMainImage(product)
 
   const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation()
 
   const prevImg = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setImgIdx(i => (i - 1 + product.images.length) % product.images.length)
+    setImgIdx(i => (i - 1 + displayImages.length) % displayImages.length)
   }
   const nextImg = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setImgIdx(i => (i + 1) % product.images.length)
+    setImgIdx(i => (i + 1) % displayImages.length)
   }
 
   return (
@@ -152,7 +154,7 @@ function ProductCard({ product }: { product: ShopProduct }) {
             key={currentImg}
             fill
             src={currentImg}
-            alt={`${product.name}${multiImg ? ` — ${imgIdx + 1}/${product.images.length}` : ''}`}
+            alt={`${product.name}${multiImg ? ` — ${imgIdx + 1}/${displayImages.length}` : ''}`}
             style={{ objectFit: 'cover', objectPosition: 'center' }}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           />
@@ -180,7 +182,7 @@ function ProductCard({ product }: { product: ShopProduct }) {
               </button>
               {/* Compteur dots */}
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 pointer-events-none">
-                {product.images.map((_, i) => (
+                {displayImages.map((_, i) => (
                   <span
                     key={i}
                     style={{

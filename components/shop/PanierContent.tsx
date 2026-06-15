@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { useCart } from './CartContext'
 import { SHOP_PRODUCTS } from '@/data/shopProducts'
+import { getProductMainImage } from '@/lib/products/images'
 
 const QTY_BTN: React.CSSProperties = {
   display:        'flex',
@@ -102,11 +103,9 @@ export default function PanierContent() {
               className="flex gap-4 p-4 rounded-xl"
               style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
             >
-              {product.images[0] && (
-                <div className="relative rounded-lg overflow-hidden shrink-0" style={{ width: 80, height: 80 }}>
-                  <Image fill src={product.images[0]} alt={product.name} style={{ objectFit: 'cover' }} sizes="80px" />
-                </div>
-              )}
+              <div className="relative rounded-lg overflow-hidden shrink-0" style={{ width: 80, height: 80 }}>
+                <Image fill src={getProductMainImage(product)} alt={product.name} style={{ objectFit: 'cover' }} sizes="80px" />
+              </div>
               <div className="flex-1 flex flex-col gap-2 min-w-0">
                 <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.9)' }}>{product.name}</p>
                 {product.price != null && (

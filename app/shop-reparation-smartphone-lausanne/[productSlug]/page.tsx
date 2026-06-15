@@ -23,6 +23,7 @@ import {
   productShouldRedirect,
   productRedirectTarget,
 } from '@/lib/products'
+import { getProductImages, getProductMainImage } from '@/lib/products/images'
 
 /* ── Génération statique de toutes les pages produit ─────────── */
 export async function generateStaticParams() {
@@ -50,7 +51,7 @@ export async function generateMetadata(
   const title       = `${product.name} — Shop ClikClak Lausanne`
   const description = product.shortDescription
   const ogDesc      = product.price != null ? `CHF ${product.price.toFixed(0)} — ${product.shortDescription}` : product.shortDescription
-  const ogImage     = product.images[0] ?? DEFAULT_OG_IMAGE
+  const ogImage     = product.images[0] ? product.images[0] : DEFAULT_OG_IMAGE
 
   return {
     title,
@@ -153,7 +154,7 @@ export default async function ProductPage(
 
             {/* ── Galerie images ── */}
             <ProductImageGallery
-              images={product.images}
+              images={getProductImages(product)}
               productName={product.name}
               isIllustrative={product.isIllustrative}
             />
