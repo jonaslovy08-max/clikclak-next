@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
@@ -18,6 +18,11 @@ import {
   getProductBadge,
   isProductPurchasable,
 } from '@/data/shopProducts'
+import {
+  getProductBySlugAny,
+  productShouldRedirect,
+  productRedirectTarget,
+} from '@/lib/products'
 
 /* ── Génération statique de toutes les pages produit ─────────── */
 export async function generateStaticParams() {
@@ -31,6 +36,16 @@ export async function generateMetadata(
   const { productSlug } = await params
   const product = SHOP_PRODUCTS.find(p => p.slug === productSlug)
   if (!product) return {}
+
+  /* Produit vendu → noindex, description adaptée */
+  const pMeta = getProductBySlugAny(productSlug)
+  if (pMeta?.status === 'sold') {
+    return {
+      title: `${product.name} — Vendu — Shop ClikClak Lausanne`,
+      description: `Ce produit n'est plus disponible. Découvrez d'autres appareils sur le shop ClikClak à Lausanne.`,
+      robots: { index: false, follow: true },
+    }
+  }
 
   const title       = `${product.name} — Shop ClikClak Lausanne`
   const description = product.shortDescription
@@ -65,10 +80,23 @@ export default async function ProductPage(
   { params }: { params: Promise<{ productSlug: string }> }
 ) {
   const { productSlug } = await params
+
+  /* ── Routing statut ─────────────────────────────────────────── */
+  const pStatus = getProductBySlugAny(productSlug)
+  if (!pStatus)                      notFound()
+  if (pStatus.status === 'draft')    notFound()
+  if (pStatus.status === 'archived') {
+    const target = productRedirectTarget(pStatus)
+    if (target) permanentRedirect(target)
+    notFound()
+  }
+  const isSold = pStatus.status === 'sold'
+
+  /* ── Données affichage (source ShopProduct) ─────────────────── */
   const product = SHOP_PRODUCTS.find(p => p.slug === productSlug)
   if (!product) notFound()
 
-  const avail   = AVAILABILITY_STYLES[product.availability]
+  const avail    = AVAILABILITY_STYLES[product.availability]
   const catLabel = MAIN_CATEGORY_LABELS[product.mainCategory]
   const badge    = getProductBadge(product)
   const isPart   = product.mainCategory === 'pieces-detachees'
@@ -92,10 +120,34 @@ export default async function ProductPage(
           </div>
         </div>
 
+        {/* ══ BANNIÈRE VENDU ════════════════════════════════════════ */}
+        {isSold && (
+          <div
+            className="px-6 md:px-14 lg:px-20 py-4"
+            style={{ background: 'rgba(242,242,242,0.03)', borderBottom: '1px solid rgba(242,242,242,0.1)' }}
+          >
+            <div className="w-full max-w-6xl mx-auto flex flex-wrap items-center gap-3">
+              <span
+                className="text-xs font-light px-3 py-1.5 rounded-lg"
+                style={{ color: 'rgba(242,242,242,0.7)', background: 'rgba(242,242,242,0.06)', border: '1px solid rgba(242,242,242,0.18)' }}
+              >
+                Vendu
+              </span>
+              <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.5)' }}>
+                Ce produit n&apos;est plus disponible.{' '}
+                <Link href="/shop-reparation-smartphone-lausanne" className="underline underline-offset-4" style={{ color: 'rgba(204,255,51,0.7)' }}>
+                  Voir les produits disponibles →
+                </Link>
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ══ PRODUIT ═══════════════════════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-10"
           aria-label={product.name}
+          style={isSold ? { opacity: 0.85 } : undefined}
         >
           <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
 
@@ -269,7 +321,12 @@ export default async function ProductPage(
 
               {/* CTA */}
               <div className="flex flex-wrap gap-3 pt-2">
-                {isProductPurchasable(product) ? (
+                {isSold ? (
+                  /* Produit vendu — pas d'achat, CTA contact uniquement */
+                  <Button href="/contact-clik-clak-lausanne" variant="primary" size="lg">
+                    Demander un modèle similaire
+                  </Button>
+                ) : isProductPurchasable(product) ? (
                   <AddToCartButton productId={product.id} size="lg" />
                 ) : (
                   <Button href="/contact-clik-clak-lausanne" variant="primary" size="lg">

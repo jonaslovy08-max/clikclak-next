@@ -23,9 +23,15 @@ function inferPartType(sub?: string): PartType | null {
   return 'Autre'
 }
 
-function inferStatus(p: ShopProduct): 'draft' | 'active' | 'archived' {
+function inferStatus(p: ShopProduct): 'draft' | 'active' | 'sold' | 'archived' {
   if (p.availability === 'rupture') return 'archived'
+  /* sur-demande : pièces sans prix — actives mais non achetables en ligne */
   return 'active'
+  /*
+    Futur admin : le champ status sera stocké directement en DB.
+    Un bouton "Marquer comme vendu" passera le statut à 'sold'.
+    Ici l'adaptateur disparaîtra lors de la migration Supabase.
+  */
 }
 
 export function adaptShopProduct(p: ShopProduct): Product {
@@ -57,5 +63,11 @@ export function adaptShopProduct(p: ShopProduct): Product {
     partType:      isPartCateg ? inferPartType(p.subCategory) : null,
     compatibleWith: p.compatibleModels ?? null,
     quality:       isPartCateg ? (p.specs?.grade ?? null) : null,
+
+    /* SEO / lifecycle — defaults pour source statique */
+    seoNoIndex: false,
+    redirectTo: null,
+    soldAt:     null,
+    archivedAt: null,
   }
 }

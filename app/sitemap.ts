@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getPublishedPosts } from '@/lib/blog'
+import { getIndexableProducts } from '@/lib/products'
 
 const BASE = 'https://clikclak.ch'
 
@@ -40,6 +41,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     /* ── Shop ───────────────────────────────────────────────── */
     { url: `${BASE}/shop-reparation-smartphone-lausanne/`,     priority: 0.7, changeFrequency: 'weekly'  },
+    /* Fiches produits — status active + seoNoIndex !== true uniquement */
+    ...getIndexableProducts().map(p => ({
+      url:             `${BASE}/shop-reparation-smartphone-lausanne/${p.slug}/`,
+      priority:        0.5 as const,
+      changeFrequency: 'weekly'  as const,
+    })),
 
     /* ── Blog ──────────────────────────────────────────────── */
     { url: `${BASE}/blog/`,                                    priority: 0.6, changeFrequency: 'weekly'  },

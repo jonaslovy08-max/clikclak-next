@@ -197,7 +197,7 @@ export default function ShopPage() {
           aria-label="Catalogue shop"
         >
           <div className="w-full max-w-6xl mx-auto">
-            {/* Tous les produits en-stock — le bouton Acheter est géré par ProductCard */}
+            {/* Produits status active uniquement — sold/draft/archived exclus du listing */}
             <ShopProductBrowser products={SHOP_PRODUCTS.filter(p => p.availability !== 'rupture')} />
           </div>
         </section>
