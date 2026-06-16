@@ -30,7 +30,7 @@ type ContactItem = {
 
 const allItems: ContactItem[] = [
   { label: 'Appeler',  tooltip: 'Appeler',   href: 'tel:+41000000000',          icon: '/assets/ui/icon-phone.svg'          },
-  { label: 'WhatsApp', tooltip: 'WhatsApp',  href: 'https://wa.me/41000000000', icon: '/assets/ui/icon-whatsapp.svg'       },
+  { label: 'WhatsApp', tooltip: 'WhatsApp',  href: 'https://wa.me/41782573242', icon: '/assets/ui/icon-whatsapp.svg'       },
   { label: 'Chatbot',  tooltip: 'Assistant', isChatbot: true,                   icon: '/assets/chatbot/icon_chatbot.svg'   },
 ]
 

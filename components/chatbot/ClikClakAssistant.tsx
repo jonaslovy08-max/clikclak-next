@@ -240,7 +240,7 @@ export default function ClikClakAssistant() {
     setQaOpen(false)
   }, [])
 
-  /* AI chat */
+  /* AI chat — V2 avec guardrails */
   const sendToAI = useCallback(async (msg: string) => {
     const text = msg.trim()
     if (!text || isLoading || msgCount >= MAX_SESSION_MESSAGES) return
@@ -255,18 +255,45 @@ export default function ClikClakAssistant() {
     setScreen('home')
 
     try {
+      /* /api/chatbot — V2 IA avec guardrails */
+      const messages = updated.slice(-8).map(m => ({ role: m.role, content: m.content }))
+      const res = await fetch('/api/chatbot', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ messages }),
+      })
+
+      if (res.ok) {
+        const data = await res.json() as { answer: string; blocked?: boolean }
+        setChatMessages(prev => [...prev, {
+          role:    'assistant',
+          content: data.answer,
+          ...(data.blocked ? {
+            suggestions: [{ label: 'Voir les services', href: '/reparation-smartphone-express' }],
+          } : {}),
+        }])
+        return
+      }
+
+      /* Fallback V1 : /api/chat si /api/chatbot échoue (5xx) */
       const history = updated.slice(-6).map(m => ({ role: m.role, content: m.content }))
-      const res  = await fetch('/api/chat', {
+      const resV1 = await fetch('/api/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ message: text, history: history.slice(0, -1) }),
       })
-      const data = await res.json() as { message: string; suggestions?: AiMessage['suggestions'] }
-      setChatMessages(prev => [...prev, { role: 'assistant', content: data.message, suggestions: data.suggestions }])
-    } catch {
+      const dataV1 = await resV1.json() as { message: string; suggestions?: AiMessage['suggestions'] }
       setChatMessages(prev => [...prev, {
         role:    'assistant',
-        content: 'Erreur réseau. Veuillez réessayer ou contacter ClikClak.',
+        content: dataV1.message,
+        suggestions: dataV1.suggestions,
+      }])
+
+    } catch {
+      /* Réseau inaccessible — message de secours */
+      setChatMessages(prev => [...prev, {
+        role:    'assistant',
+        content: 'Le chatbot IA est momentanément indisponible. Vous pouvez contacter Clik Clak directement.',
         isError: true,
         suggestions: [{ label: 'Contacter ClikClak', href: '/contact-clik-clak-lausanne' }],
       }])

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse }         from 'next/server'
 import Anthropic                             from '@anthropic-ai/sdk'
 import { CHATBOT_SYSTEM_PROMPT }            from '@/lib/chatbot/chatbotSystemPrompt'
 import { CHATBOT_TOOLS, executeTool }       from '@/lib/chatbot/chatbotTools'
+import {
+  isAllowedClikClakTopic,
+  OFF_TOPIC_RESPONSE,
+} from '@/lib/chatbot/guardrails'
 
 /* ── Config ─────────────────────────────────────────────────────── */
 
@@ -51,6 +55,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatResponse>
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
     return NextResponse.json({ message: 'Message trop long (max 1000 caractères).' }, { status: 400 })
+  }
+
+  /* ── Guardrail — identique à /api/chatbot ── */
+  if (!isAllowedClikClakTopic(message)) {
+    return NextResponse.json({
+      message: OFF_TOPIC_RESPONSE,
+      blocked: true,
+      reason:  'off_topic',
+    } as ChatResponse & { blocked: boolean; reason: string })
   }
 
   /* ── 2. Check API key ── */
