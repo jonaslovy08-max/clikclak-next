@@ -37,6 +37,7 @@ function buildAdminEmail(
   const total    = session.amount_total ? (session.amount_total / 100).toFixed(2) : '—'
   const cName    = esc(session.customer_details?.name  ?? '—')
   const cEmail   = esc(session.customer_details?.email ?? '—')
+  const cPhone   = esc(session.customer_details?.phone ?? '—')
   const payment  = esc((session.payment_method_types ?? []).join(', ') || '—')
 
   const rows = items.map(i =>
@@ -55,6 +56,7 @@ function buildAdminEmail(
         <tr><td colspan="3" style="padding:14px 12px 4px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Client</td></tr>
         <tr><td style="padding:6px 12px;color:#888;font-size:13px;width:160px">Nom</td><td colspan="2" style="padding:6px 12px;font-size:13px">${cName}</td></tr>
         <tr><td style="padding:6px 12px;color:#888;font-size:13px">Email</td><td colspan="2" style="padding:6px 12px;font-size:13px">${cEmail}</td></tr>
+        <tr><td style="padding:6px 12px;color:#888;font-size:13px">Téléphone</td><td colspan="2" style="padding:6px 12px;font-size:13px">${cPhone}</td></tr>
         <tr><td style="padding:6px 12px;color:#888;font-size:13px">Paiement</td><td colspan="2" style="padding:6px 12px;font-size:13px">${payment}</td></tr>
       </table>
       <table style="border-collapse:collapse;width:100%;background:rgba(255,255,255,0.04);border-radius:8px">
@@ -112,6 +114,30 @@ function buildClientEmail(
 }
 
 /* ── Handler commande payée ──────────────────────────────────────── */
+
+/*
+  FUTURE — Supabase orders table (à brancher ici quand Supabase sera configuré)
+
+  Schéma recommandé :
+    id                  uuid PRIMARY KEY DEFAULT gen_random_uuid()
+    order_ref           text NOT NULL UNIQUE          -- ex: CC-SHOP-20260616-XY3Z
+    stripe_session_id   text NOT NULL UNIQUE
+    stripe_payment_intent_id text
+    customer_email      text
+    customer_name       text
+    customer_phone      text
+    items               jsonb NOT NULL               -- snapshot [{id, name, qty, price}]
+    total_chf_cents     integer NOT NULL
+    status              text NOT NULL DEFAULT 'paid' -- paid | refunded | cancelled
+    created_at          timestamptz DEFAULT now()
+    updated_at          timestamptz DEFAULT now()
+
+  Insertion à placer dans handlePaidOrder() après vérification de la signature :
+    await supabase.from('orders').insert({ ... })
+
+  Ligne client (auth optionnelle) :
+    customer_id         uuid REFERENCES auth.users(id) -- NULL pour les achats invité
+*/
 
 async function handlePaidOrder(session: Stripe.Checkout.Session): Promise<void> {
   const ref        = session.metadata?.orderReference ?? 'UNKNOWN'

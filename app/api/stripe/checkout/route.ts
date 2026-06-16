@@ -103,9 +103,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'twint'],
-      mode:                 'payment',
-      line_items:           lineItems,
+      payment_method_types:    ['card', 'twint'],
+      mode:                    'payment',
+      line_items:              lineItems,
+      phone_number_collection: { enabled: true },
       /* {CHECKOUT_SESSION_ID} est un template Stripe remplacé automatiquement à la redirection */
       success_url: `${baseUrl}/shop-reparation-smartphone-lausanne/success?session_id={CHECKOUT_SESSION_ID}&ref=${orderRef}`,
       cancel_url:  `${baseUrl}/shop-reparation-smartphone-lausanne/cancel`,
