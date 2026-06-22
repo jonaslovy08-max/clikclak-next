@@ -79,6 +79,7 @@ export function Button({
       <Link
         href={href}
         className={classes}
+        onClick={onClick}
         {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         aria-label={rest['aria-label']}
       >

@@ -48,6 +48,8 @@ import { getClikClakSiteContext }  from '@/lib/chatbot/siteContext'
 import {
   resolveRepairPricing,
   buildPricingResponse,
+  detectBrandTokenFromMessage,
+  detectRepairTokenFromMessage,
 }                                  from '@/lib/chatbot/repairPricing'
 
 export const runtime = 'nodejs'
@@ -330,13 +332,72 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return json({ answer: INJECTION_RESPONSE })
   }
 
-  /* 9c. Filtre hors-sujet */
-  if (!isAllowedClikClakTopic(lastUserMsg.content)) {
+  /* 9c. Filtre hors-sujet.
+     Pour les messages très courts (ex : "Écran", "Et pour le 14 Pro ?"),
+     on accepte si le contexte récent est clairement ClikClak. */
+  const topicOk = isAllowedClikClakTopic(lastUserMsg.content) ||
+    (lastUserMsg.content.length <= 28 && isAllowedClikClakTopic(recentUserTexts))
+  if (!topicOk) {
     return json({ answer: OFF_TOPIC_RESPONSE, blocked: true, reason: 'off_topic' })
   }
 
-  /* 9d. Résolveur tarifaire déterministe — retourne sans appeler Anthropic si trouvé */
-  const pricingMatch = resolveRepairPricing(lastUserMsg.content)
+  /* 9d. Résolveur tarifaire déterministe avec contexte multi-tour.
+     Stratégie :
+       1. Analyser le dernier message seul.
+       2. Si résultat incomplet, relancer avec les derniers messages utilisateur combinés
+          (jusqu'à 5 tours) pour récupérer le modèle ou la réparation mentionnés avant.
+       3. Utiliser le résultat le plus précis.
+     Aucun appel Anthropic si marque + modèle + réparation sont tous résolus. */
+
+  /* Priorité des statuts — plus la valeur est haute, plus le résultat est complet */
+  const STATUS_PRIORITY: Record<string, number> = {
+    found:          5,
+    no_price:       4,
+    repair_needed:  3,
+    model_needed:   3,
+    brand_only:     2,
+    not_found:      1,
+  }
+
+  let pricingMatch = resolveRepairPricing(lastUserMsg.content)
+
+  const recentUserContent = messages
+    .filter(m => m.role === 'user')
+    .slice(-5)
+    .map(m => m.content)
+    .join(' ')
+
+  /* Cas 1 — message sans marque ni numéro de modèle (ex : "Écran", "Batterie") :
+     compléter avec l'historique récent qui contient peut-être le modèle. */
+  const currentHasModelNumber = /\b(iphone|samsung|galaxy|ipad|macbook)?\s*\d{1,2}\b/i.test(lastUserMsg.content)
+
+  if (
+    STATUS_PRIORITY[pricingMatch.status] < STATUS_PRIORITY['found'] &&
+    !currentHasModelNumber &&
+    recentUserContent !== lastUserMsg.content
+  ) {
+    const ctxMatch = resolveRepairPricing(recentUserContent)
+    if ((STATUS_PRIORITY[ctxMatch.status] ?? 0) > (STATUS_PRIORITY[pricingMatch.status] ?? 0)) {
+      pricingMatch = ctxMatch
+    }
+  }
+
+  /* Cas 2 — message avec numéro de modèle mais sans marque (ex : "Et pour le 14 Pro ?") :
+     construire une requête augmentée en préfixant la marque et la réparation du contexte.
+     Cela évite qu'Anthropic réponde avec un prix inventé. */
+  if (currentHasModelNumber && pricingMatch.status === 'not_found') {
+    const ctxBrandToken  = detectBrandTokenFromMessage(recentUserContent)
+    const ctxRepairToken = detectRepairTokenFromMessage(recentUserContent)
+
+    if (ctxBrandToken) {
+      const prefix    = ctxRepairToken ? `${ctxBrandToken} ${ctxRepairToken}` : ctxBrandToken
+      const augmented = `${prefix} ${lastUserMsg.content}`
+      const augMatch  = resolveRepairPricing(augmented)
+      if ((STATUS_PRIORITY[augMatch.status] ?? 0) > (STATUS_PRIORITY[pricingMatch.status] ?? 0)) {
+        pricingMatch = augMatch
+      }
+    }
+  }
 
   if (
     pricingMatch.status === 'found'         ||

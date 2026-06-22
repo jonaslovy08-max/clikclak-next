@@ -134,8 +134,10 @@ function detectRepairType(norm: string): RepairToken | null {
 
 /* ── Détection du modèle ────────────────────────────────────────── */
 
-/* Mots génériques à retirer avant la correspondance partielle */
-const STRIP_WORDS = ['galaxy', 'apple', 'macbook', 'huawei', 'oppo', 'honor']
+/* Mots génériques à retirer avant la correspondance partielle.
+   "iphone" est inclus pour permettre le matching de "14 pro" seul dans une requête
+   comme "et pour le 14 pro ?" → "iphone 14 pro" stripped = "14 pro" → match ✓ */
+const STRIP_WORDS = ['iphone', 'galaxy', 'apple', 'macbook', 'huawei', 'oppo', 'honor']
 
 function modelMatchScore(modelNorm: string, queryNorm: string): number {
   /* Niveau 1 : label complet inclus dans la requête */
@@ -176,6 +178,23 @@ function detectModel(norm: string, brand: RepairBrand): string | null {
 }
 
 /* ── Résolveur principal ────────────────────────────────────────── */
+
+/**
+ * Retourne le token de marque (ex: "iphone") détecté dans un message.
+ * Utilisé par la route pour construire des requêtes augmentées multi-tour.
+ */
+export function detectBrandTokenFromMessage(message: string): string | null {
+  const brand = detectBrand(normalizeText(message))
+  if (!brand) return null
+  return BRAND_TOKENS.find(b => b.brand === brand)?.tokens[0] ?? null
+}
+
+/**
+ * Retourne le premier token de réparation (ex: "ecran") détecté dans un message.
+ */
+export function detectRepairTokenFromMessage(message: string): string | null {
+  return detectRepairType(normalizeText(message))?.tokens[0] ?? null
+}
 
 /**
  * Analyse un message et retourne une correspondance tarifaire déterministe.
@@ -262,7 +281,12 @@ export function resolveRepairPricing(message: string): PricingMatch {
 
 /* ── Formateurs de réponse ──────────────────────────────────────── */
 
-export type ChatbotAction = { label: string; href: string }
+export type ChatbotAction = {
+  label:    string
+  href:     string
+  /** 'button' → CTA secondaire (Contact) | 'link' → lien texte lime (tarifs, réparation) */
+  variant?: 'button' | 'link'
+}
 
 export type PricingResponse = {
   answer:  string
@@ -274,7 +298,9 @@ function fmtPrice(raw: string): string {
   return raw.replace(/^(CHF\s*)(\d+)\.\d+$/, '$1$2.–').replace(/^(CHF\s*)(\d+)$/, '$1$2.–')
 }
 
-const CONTACT_HREF = '/contact-clik-clak-lausanne'
+const CONTACT_HREF  = '/contact-clik-clak-lausanne'
+const BTN: ChatbotAction['variant']  = 'button'
+const LINK: ChatbotAction['variant'] = 'link'
 
 /**
  * Construit le nom d'appareil affiché dans la réponse.
@@ -297,9 +323,9 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
       const actions: ChatbotAction[] = []
 
       if (match.modelHref) {
-        actions.push({ label: 'Voir les détails', href: match.modelHref })
+        actions.push({ label: 'Voir les détails', href: match.modelHref, variant: LINK })
       }
-      actions.push({ label: 'Nous contacter', href: CONTACT_HREF })
+      actions.push({ label: 'Nous contacter', href: CONTACT_HREF, variant: BTN })
 
       if (entries.length === 1) {
         const e = entries[0]
@@ -319,10 +345,10 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
     case 'no_price': {
       const device  = deviceName(match.brand!, match.model!)
       const actions: ChatbotAction[] = [
-        { label: 'Nous contacter', href: CONTACT_HREF },
+        { label: 'Nous contacter', href: CONTACT_HREF, variant: BTN },
       ]
       if (match.modelHref) {
-        actions.unshift({ label: 'Voir la page réparation', href: match.modelHref })
+        actions.unshift({ label: 'Voir la page réparation', href: match.modelHref, variant: LINK })
       }
       return {
         answer: `Je n'ai pas de tarif publié pour cette réparation sur le ${device}. Contactez l'atelier pour obtenir un devis précis.`,
@@ -334,7 +360,7 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
       const brand = match.brand!
       return {
         answer: `Quel est le modèle exact de votre ${brand} ?\n\n(exemple : ${brand} 14, ${brand} 15 Pro…)`,
-        actions: [{ label: `Tarifs ${brand}`, href: match.brandHref! }],
+        actions: [{ label: `Tarifs ${brand}`, href: match.brandHref!, variant: LINK }],
       }
     }
 
@@ -343,8 +369,8 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
       return {
         answer: `Quelle réparation souhaitez-vous effectuer sur votre ${device} ?\n\nÉcran, batterie, connecteur de charge ou autre ?`,
         actions: [
-          { label: 'Voir les tarifs', href: match.modelHref! },
-          { label: 'Nous contacter', href: CONTACT_HREF },
+          { label: 'Voir les tarifs', href: match.modelHref!, variant: LINK },
+          { label: 'Nous contacter', href: CONTACT_HREF, variant: BTN },
         ],
       }
     }
@@ -352,7 +378,7 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
     case 'brand_only': {
       return {
         answer: `Je vais vous aider avec votre ${match.brand!}. Quel modèle avez-vous et quel type de réparation souhaitez-vous ?`,
-        actions: [{ label: `Tarifs ${match.brand!}`, href: match.brandHref! }],
+        actions: [{ label: `Tarifs ${match.brand!}`, href: match.brandHref!, variant: LINK }],
       }
     }
 

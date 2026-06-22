@@ -159,11 +159,15 @@ const FALLBACK_ANSWER =
 
 /**
  * Vérifie que la réponse Claude respecte le périmètre ClikClak.
+ * Supprime les liens Markdown [texte](url) — ils doivent passer par les actions structurées.
  * Retourne FALLBACK_ANSWER si la réponse est absente ou hors périmètre.
  */
 export function sanitizeAssistantAnswer(answer: string): string {
-  const text = answer.trim()
+  let text = answer.trim()
   if (!text) return FALLBACK_ANSWER
+
+  /* Supprimer les liens Markdown [texte](url) → garder uniquement le texte */
+  text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').trim()
 
   const normalized = normalizeText(text)
   if (FORBIDDEN_OUTPUT_PATTERNS.some(p => normalized.includes(normalizeText(p)))) {

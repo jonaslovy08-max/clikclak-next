@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback } fr
 import Link from 'next/link'
 import gsap from 'gsap'
 import { useChatbot } from './ChatbotContext'
+import { Button } from '@/components/ui/Button'
 import {
   searchIphoneModels,
   getIphoneRepairs,
@@ -21,10 +22,17 @@ type GuidedScreen =
   | 'other-brand' | 'identify-model' | 'data-recovery'
   | 'sell-device' | 'depannage' | 'shop' | 'contact'
 
+interface AiSuggestion {
+  label:    string
+  href?:    string
+  /** 'button' → CTA secondaire (Contact) | 'link' → lien texte lime */
+  variant?: 'button' | 'link'
+}
+
 interface AiMessage {
   role:         'user' | 'assistant'
   content:      string
-  suggestions?: { label: string; href?: string }[]
+  suggestions?: AiSuggestion[]
   isError?:     boolean
 }
 
@@ -273,14 +281,14 @@ export default function ClikClakAssistant() {
         const d = data as {
           answer?:   string
           blocked?:  boolean
-          actions?:  { label: string; href: string }[]
+          actions?:  { label: string; href: string; variant?: 'button' | 'link' }[]
         }
         /* Priorité : actions du résolveur tarifaire > suggestions génériques */
         const suggestions: AiMessage['suggestions'] =
           d.actions && d.actions.length > 0
-            ? d.actions.map(a => ({ label: a.label, href: a.href }))
+            ? d.actions.map(a => ({ label: a.label, href: a.href, variant: a.variant }))
             : d.blocked
-              ? [{ label: 'Voir les services', href: '/reparation-smartphone-express' }]
+              ? [{ label: 'Voir les services', href: '/reparation-smartphone-express', variant: 'link' as const }]
               : undefined
 
         setChatMessages(prev => [...prev, {
@@ -321,6 +329,49 @@ export default function ClikClakAssistant() {
       setIsLoading(false)
     }
   }, [isLoading, msgCount, chatMessages])
+
+  /* ── Rendu centralisé des actions/suggestions ──────────────────── */
+
+  /* Valide qu'une URL est interne — refuse toute URL externe */
+  const isInternalUrl = (href: string) => href.startsWith('/')
+
+  /* Style partagé pour les liens texte lime */
+  const linkCls = [
+    'text-[#CCFF33] underline underline-offset-4 text-[13px] font-light leading-snug',
+    'transition-colors hover:text-white',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF33] rounded-sm',
+  ].join(' ')
+
+  const renderSuggestion = useCallback((s: AiSuggestion, key: number) => {
+    /* Action sans href → bouton textuel qui envoie dans le chat */
+    if (!s.href) {
+      return (
+        <button key={key} type="button" onClick={() => sendToAI(s.label)}
+          className="inline-flex items-center px-2.5 py-1.5 text-[12px] font-light rounded-lg border border-white/[0.12] text-foreground/70 hover:border-accent/30 hover:text-accent transition-colors focus-visible:outline-none">
+          {s.label}
+        </button>
+      )
+    }
+
+    /* Refuser silencieusement les URLs externes */
+    if (!isInternalUrl(s.href)) return null
+
+    /* Variante 'button' → CTA secondaire du projet (Contact) */
+    if (s.variant === 'button') {
+      return (
+        <Button key={key} variant="secondary" size="sm" href={s.href} onClick={close}>
+          {s.label}
+        </Button>
+      )
+    }
+
+    /* Variante 'link' (ou défaut) → lien texte lime souligné */
+    return (
+      <Link key={key} href={s.href} onClick={close} className={linkCls}>
+        {s.label}
+      </Link>
+    )
+  }, [sendToAI, close, linkCls])
 
   /* ── Guided screens ── */
   const renderGuidedScreen = () => {
@@ -553,20 +604,8 @@ export default function ClikClakAssistant() {
                   {msg.content}
                 </div>
                 {msg.suggestions && msg.suggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 max-w-[85%]">
-                    {msg.suggestions.map((s, si) =>
-                      s.href ? (
-                        <Link key={si} href={s.href} onClick={close}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] font-light rounded-lg border border-accent/25 text-accent hover:border-accent/50 hover:bg-accent/[0.07] transition-colors focus-visible:outline-none">
-                          {s.label} <span aria-hidden>→</span>
-                        </Link>
-                      ) : (
-                        <button key={si} type="button" onClick={() => sendToAI(s.label)}
-                          className="inline-flex items-center px-2.5 py-1.5 text-[12px] font-light rounded-lg border border-white/[0.12] text-foreground/70 hover:border-accent/30 hover:text-accent transition-colors focus-visible:outline-none">
-                          {s.label}
-                        </button>
-                      )
-                    )}
+                  <div className="flex flex-wrap items-center gap-2 max-w-[90%]">
+                    {msg.suggestions.map((s, si) => renderSuggestion(s, si))}
                   </div>
                 )}
               </div>
