@@ -183,9 +183,27 @@ function generateBuybackRef(): string {
 
 /* ── Email admin ─────────────────────────────────────────────────── */
 function buildAdminEmail(data: ContactPayload, ref?: string): string {
+  /* Label gris (gauche) + valeur blanche (droite) */
+  const TD_LABEL = 'padding:6px 12px;color:#888;font-size:13px;width:175px;white-space:nowrap;vertical-align:top'
+  const TD_VALUE = 'padding:6px 12px;font-size:13px;color:#f2f2f2 !important'
+  const A_LINK   = 'color:#FFFFFF !important;text-decoration:underline;'
+
+  /* Ligne texte simple */
   const row = (label: string, value: string | undefined) =>
     value
-      ? `<tr><td style="padding:6px 12px;color:#888;font-size:13px;width:175px;white-space:nowrap;vertical-align:top">${label}</td><td style="padding:6px 12px;font-size:13px">${esc(value)}</td></tr>`
+      ? `<tr><td style="${TD_LABEL}">${label}</td><td style="${TD_VALUE}">${esc(value)}</td></tr>`
+      : ''
+
+  /* Ligne avec lien mailto: */
+  const rowEmail = (label: string, email: string | undefined) =>
+    email
+      ? `<tr><td style="${TD_LABEL}">${label}</td><td style="${TD_VALUE}"><a href="mailto:${esc(email)}" style="${A_LINK}">${esc(email)}</a></td></tr>`
+      : ''
+
+  /* Ligne avec lien tel: */
+  const rowPhone = (label: string, phone: string | undefined) =>
+    phone
+      ? `<tr><td style="${TD_LABEL}">${label}</td><td style="${TD_VALUE}"><a href="tel:${phone.replace(/[^\d+]/g, '')}" style="${A_LINK}">${esc(phone)}</a></td></tr>`
       : ''
 
   const isBuyback = data.serviceLabel === 'Estimation rachat appareil'
@@ -197,7 +215,7 @@ function buildAdminEmail(data: ContactPayload, ref?: string): string {
   const returnFull = data.sameReturn ? 'Identique à la prise en charge' : addrStr(data.returnStreet, data.returnNumber, data.returnPostal, data.returnCity)
 
   const servicesRow = data.selectedServices?.length
-    ? `<tr><td style="padding:6px 12px;color:#888;font-size:13px;width:175px;white-space:nowrap;vertical-align:top">Services souhaités</td><td style="padding:6px 12px;font-size:13px">${data.selectedServices.map(esc).join(', ')}</td></tr>`
+    ? `<tr><td style="${TD_LABEL}">Services souhaités</td><td style="${TD_VALUE}">${data.selectedServices.map(esc).join(', ')}</td></tr>`
     : ''
 
   const confirmRows = isBuyback ? `
@@ -228,7 +246,7 @@ function buildAdminEmail(data: ContactPayload, ref?: string): string {
   const msgSection = data.message ? `
     <div style="margin:16px 0;padding:16px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid rgba(204,255,51,0.4)">
       <p style="margin:0 0 6px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.08em">Message</p>
-      <p style="margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap">${esc(data.message)}</p>
+      <p style="margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;color:#f2f2f2 !important">${esc(data.message)}</p>
     </div>` : ''
 
   const imgSection = data.imageBase64 ? `
@@ -244,8 +262,8 @@ function buildAdminEmail(data: ContactPayload, ref?: string): string {
         ${row('Prénom', data.firstName)}
         ${row('Nom', data.lastName)}
         ${!data.firstName ? row('Nom', clientName) : ''}
-        ${row('Email', data.email)}
-        ${row('Téléphone', data.phone)}
+        ${rowEmail('Email', data.email)}
+        ${rowPhone('Téléphone', data.phone)}
         ${fullAddr ? row('Adresse', fullAddr) : ''}
         ${pickupFull ? row('Adresse collecte', pickupFull) : ''}
         ${returnFull ? row('Adresse retour', returnFull) : ''}
@@ -296,7 +314,7 @@ function buildClientEmail(data: ContactPayload, ref: string): string {
           ['Paiement souhaité',   data.paymentPref],
           ['Mode de remise',      data.deliveryMode],
         ].filter(([,v]) => v).map(([l,v]) =>
-          `<p style="margin:0 0 6px;font-size:13px"><span style="color:#888">${l} :</span> ${esc(v as string)}</p>`
+          `<p style="margin:0 0 6px;font-size:13px;color:#f2f2f2 !important"><span style="color:#888">${l} :</span> <span style="color:#f2f2f2 !important">${esc(v as string)}</span></p>`
         ).join('')}
       </div>
       <p style="font-size:14px;line-height:1.7;margin:16px 0">
