@@ -270,12 +270,23 @@ export default function ClikClakAssistant() {
       const data = await res.json().catch(() => ({}) as Record<string, unknown>)
 
       if (res.ok) {
+        const d = data as {
+          answer?:   string
+          blocked?:  boolean
+          actions?:  { label: string; href: string }[]
+        }
+        /* Priorité : actions du résolveur tarifaire > suggestions génériques */
+        const suggestions: AiMessage['suggestions'] =
+          d.actions && d.actions.length > 0
+            ? d.actions.map(a => ({ label: a.label, href: a.href }))
+            : d.blocked
+              ? [{ label: 'Voir les services', href: '/reparation-smartphone-express' }]
+              : undefined
+
         setChatMessages(prev => [...prev, {
-          role:    'assistant',
-          content: (data as { answer?: string }).answer ?? "Je n'ai pas pu générer de réponse.",
-          ...((data as { blocked?: boolean }).blocked ? {
-            suggestions: [{ label: 'Voir les services', href: '/reparation-smartphone-express' }],
-          } : {}),
+          role:        'assistant',
+          content:     d.answer ?? "Je n'ai pas pu générer de réponse.",
+          suggestions,
         }])
         return
       }

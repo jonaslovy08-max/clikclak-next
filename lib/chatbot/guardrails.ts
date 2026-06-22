@@ -12,10 +12,13 @@
 /* ── Réponses locales ────────────────────────────────────────────── */
 
 export const OFF_TOPIC_RESPONSE =
-  'Je peux uniquement répondre aux questions liées aux réparations, services, produits et informations Clik Clak. Pour une réparation, un prix, un diagnostic ou une récupération de données, indiquez votre appareil ou votre problème.'
+  'Je suis l\'assistant Clik Clak et je peux vous aider pour les réparations, les tarifs, les services ou les informations pratiques. Quel est votre appareil ou votre question ?'
 
 export const INJECTION_RESPONSE =
-  'Je peux uniquement vous aider concernant les réparations et services proposés par ClikClak.'
+  'Je suis l\'assistant Clik Clak. Je peux vous aider avec les réparations et services proposés.'
+
+export const GREETING_RESPONSE =
+  'Bonjour 👋 Je suis l\'assistant Clik Clak. Je peux vous aider à trouver un tarif de réparation, identifier un problème ou choisir le bon service. Quel est votre appareil ?'
 
 /* ── Normalisation ───────────────────────────────────────────────── */
 
@@ -90,22 +93,26 @@ export function detectInjectionAttempt(input: string): boolean {
 
 export const ALLOWED_KEYWORDS: string[] = [
   'clikclak', 'clik clak',
-  'reparation', 'reparer', 'repare',
-  'prix', 'tarif', 'devis', 'cout',
+  /* Salutations — autorisées pour éviter les faux positifs */
+  'bonjour', 'salut', 'hello', 'bonsoir', 'coucou',
+  /* Réparations */
+  'reparation', 'reparer', 'repare', 'changer', 'remplacer',
+  'prix', 'tarif', 'devis', 'cout', 'combien',
   'iphone', 'samsung', 'huawei', 'oppo', 'ipad', 'macbook',
   'smartphone', 'telephone', 'tablette', 'ordinateur', 'laptop', 'mac',
-  'ecran', 'vitre', 'tactile',
-  'batterie', 'charge', 'connecteur',
-  'diagnostic', 'panne', 'allume', 'chauffe',
+  'ecran', 'vitre', 'tactile', 'affichage',
+  'batterie', 'charge', 'connecteur', 'lightning', 'usb',
+  'camera', 'photo', 'objectif', 'lentille',
+  'diagnostic', 'panne', 'allume', 'chauffe', 'bug',
   'eau', 'oxydation', 'degat',
   'donnees', 'recuperation', 'sauvegarde',
   'rachat', 'reprise', 'vendre', 'revendre',
   'shop', 'boutique', 'produit', 'accessoire', 'piece', 'stock', 'disponibilite',
   'horaire', 'adresse', 'contact', 'whatsapp', 'appel',
   'courrier', 'coursier', 'lausanne',
-  'pixel', 'xiaomi', 'nokia', 'motorola', 'realme', 'honor', 'vivo',
+  'pixel', 'xiaomi', 'nokia', 'motorola', 'realme', 'honor', 'vivo', 'galaxy',
   'transfert', 'depannage', 'depot',
-  'garantie', 'devis', 'facture',
+  'garantie', 'facture',
 ]
 
 /* ── Filtre hors-sujet ───────────────────────────────────────────── */
@@ -134,6 +141,18 @@ const FORBIDDEN_OUTPUT_PATTERNS: string[] = [
   'sans restriction',
   'en tant qu',
 ]
+
+/* ── Détection de salutation ─────────────────────────────────────── */
+
+const GREETING_RE = /^(bonjour|salut|hello|bonsoir|coucou|hi|hey|allo|all[oô])[!?,.\s]*$/i
+
+/**
+ * Vrai si le message est une salutation simple (pas une question intégrée).
+ * Traité avant le filtre hors-sujet pour éviter les faux positifs.
+ */
+export function isGreeting(input: string): boolean {
+  return GREETING_RE.test(normalizeText(input))
+}
 
 const FALLBACK_ANSWER =
   "Je n'ai pas pu générer de réponse. Contactez Clik Clak directement."

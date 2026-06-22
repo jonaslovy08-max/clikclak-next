@@ -37,12 +37,18 @@ import {
 import {
   detectInjectionAttempt,
   isAllowedClikClakTopic,
+  isGreeting,
   sanitizeAssistantAnswer,
   OFF_TOPIC_RESPONSE,
   INJECTION_RESPONSE,
+  GREETING_RESPONSE,
 }                                  from '@/lib/chatbot/guardrails'
 import { CLIKCLAK_SYSTEM_PROMPT }  from '@/lib/chatbot/systemPrompt'
 import { getClikClakSiteContext }  from '@/lib/chatbot/siteContext'
+import {
+  resolveRepairPricing,
+  buildPricingResponse,
+}                                  from '@/lib/chatbot/repairPricing'
 
 export const runtime = 'nodejs'
 
@@ -306,11 +312,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   /* ── Étape 9 : Guardrails ───────────────────────────────────────── */
 
   /* Analyser le dernier message + les derniers messages user combinés */
-  const lastUserMsg      = [...messages].reverse().find(m => m.role === 'user')!
-  const recentUserTexts  = messages.filter(m => m.role === 'user').slice(-3).map(m => m.content).join(' ')
+  const lastUserMsg     = [...messages].reverse().find(m => m.role === 'user')!
+  const recentUserTexts = messages.filter(m => m.role === 'user').slice(-3).map(m => m.content).join(' ')
 
+  /* 9a. Salutations — réponse locale immédiate, pas d'Anthropic */
+  if (isGreeting(lastUserMsg.content)) {
+    return json({ answer: GREETING_RESPONSE })
+  }
+
+  /* 9b. Injection manifeste */
   if (detectInjectionAttempt(lastUserMsg.content) || detectInjectionAttempt(recentUserTexts)) {
-    /* Violation enregistrée de manière déterministe avant retour de la réponse */
     try {
       await registerViolation(identifier)
     } catch (e) {
@@ -319,8 +330,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return json({ answer: INJECTION_RESPONSE })
   }
 
+  /* 9c. Filtre hors-sujet */
   if (!isAllowedClikClakTopic(lastUserMsg.content)) {
     return json({ answer: OFF_TOPIC_RESPONSE, blocked: true, reason: 'off_topic' })
+  }
+
+  /* 9d. Résolveur tarifaire déterministe — retourne sans appeler Anthropic si trouvé */
+  const pricingMatch = resolveRepairPricing(lastUserMsg.content)
+
+  if (
+    pricingMatch.status === 'found'         ||
+    pricingMatch.status === 'no_price'      ||
+    pricingMatch.status === 'model_needed'  ||
+    pricingMatch.status === 'repair_needed' ||
+    pricingMatch.status === 'brand_only'
+  ) {
+    const { answer, actions } = buildPricingResponse(pricingMatch)
+    if (answer) {
+      return json({ answer, actions: actions.length > 0 ? actions : undefined })
+    }
   }
 
   /* ── Étape 10 : Clé API + prompt système ────────────────────────── */
