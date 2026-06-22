@@ -302,6 +302,88 @@ const CONTACT_HREF  = '/contact-clik-clak-lausanne'
 const BTN: ChatbotAction['variant']  = 'button'
 const LINK: ChatbotAction['variant'] = 'link'
 
+/* ── Helpers grammaticaux français ─────────────────────────────── */
+
+const VOWELS = 'aeiouàâäéèêëîïôùûüœæ'
+
+/** Vrai si le mot commence par une voyelle (pour l'élision). */
+function startsWithVowel(s: string): boolean {
+  return VOWELS.includes(s.trim()[0]?.toLowerCase() ?? '')
+}
+
+/**
+ * "de l'iPhone 12"  | "du Samsung Galaxy S24"
+ * Gère l'élision devant voyelle et "du" devant consonne.
+ */
+function deAppareil(device: string): string {
+  return startsWithVowel(device) ? `de l'${device}` : `du ${device}`
+}
+
+/** Informations grammaticales d'un label de réparation. */
+type ReparationInfo = {
+  /** Article de début de phrase ("Le", "La", "L'"). */
+  article: 'Le' | 'La' | "L'"
+  /** Syntagme nominal sans article, ex : "remplacement de l'écran". */
+  phrase:  string
+  /** true si le sujet est masculin (pour l'accord "proposé" vs "proposée"). */
+  masc:    boolean
+}
+
+/**
+ * Retourne la structure grammaticale correcte pour un label de réparation.
+ * Centralise toutes les règles de genre et d'élision.
+ */
+function getReparationInfo(repairLabel: string): ReparationInfo {
+  const n = normalizeText(repairLabel) // lowercase + sans accents
+
+  /* Écran (et variantes "Écran & vitre", "Écran LCD"…) */
+  if (n.includes('ecran')) {
+    return { article: 'Le', phrase: "remplacement de l'écran", masc: true }
+  }
+
+  /* Batterie */
+  if (n.includes('batt')) {
+    return { article: 'Le', phrase: 'remplacement de la batterie', masc: true }
+  }
+
+  /* Connecteur de charge / NFC */
+  if (n.includes('connect') || n.includes('charge') || n.includes('nfc')) {
+    return { article: 'La', phrase: 'réparation du connecteur de charge', masc: false }
+  }
+
+  /* Vitre arrière / châssis / face arrière / dos */
+  if (n.includes('vitre') || n.includes('chassis') || n.includes('dos')) {
+    return { article: 'Le', phrase: 'remplacement de la vitre arrière', masc: true }
+  }
+
+  /* Lentille caméra */
+  if (n.includes('lentille')) {
+    return { article: 'Le', phrase: 'remplacement de la lentille caméra', masc: true }
+  }
+
+  /* Caméra principale / frontale / générique */
+  if (n.includes('camera') || n.includes('camero') || n.includes('photo')) {
+    if (n.includes('principal') || n.includes('arriere')) {
+      return { article: 'La', phrase: 'réparation de la caméra principale', masc: false }
+    }
+    if (n.includes('frontal')) {
+      return { article: 'La', phrase: 'réparation de la caméra frontale', masc: false }
+    }
+    return { article: 'La', phrase: 'réparation de la caméra', masc: false }
+  }
+
+  /* Diagnostic */
+  if (n.includes('diagn')) {
+    return { article: 'Le', phrase: 'diagnostic', masc: true }
+  }
+
+  /* Fallback générique — élision si début par voyelle */
+  if (startsWithVowel(repairLabel)) {
+    return { article: "L'", phrase: repairLabel, masc: true }
+  }
+  return { article: 'La', phrase: `réparation de ${repairLabel.toLowerCase()}`, masc: false }
+}
+
 /**
  * Construit le nom d'appareil affiché dans la réponse.
  * Si le modèle commence déjà par le nom de la marque (ex: "iPhone 14 Pro"),
@@ -319,7 +401,8 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
     case 'found': {
       const entries = match.results!
       const device  = deviceName(match.brand!, match.model!)
-      const repair  = match.repairLabel!.toLowerCase()
+      const rep     = getReparationInfo(match.repairLabel!)
+      const deApp   = deAppareil(device)
       const actions: ChatbotAction[] = []
 
       if (match.modelHref) {
@@ -327,23 +410,29 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
       }
       actions.push({ label: 'Nous contacter', href: CONTACT_HREF, variant: BTN })
 
+      /* Accord du participe passé ("proposé" ou "proposée") */
+      const passe = rep.masc ? 'proposé' : 'proposée'
+
       if (entries.length === 1) {
         const e = entries[0]
         return {
-          answer: `Bien sûr. Le ${repair} du ${device} est proposé à **${fmtPrice(e.price)}**.\n\nConsultez la page ci-dessous pour les détails ou contactez l'atelier.`,
+          answer: `Bien sûr. ${rep.article} ${rep.phrase} ${deApp} est ${passe} à ${fmtPrice(e.price)}.\n\nConsultez la page ci-dessous pour les détails ou contactez l'atelier.`,
           actions,
         }
       }
 
-      const lines = entries.map(e => `**${e.label} : ${fmtPrice(e.price)}**`).join('\n')
+      /* Plusieurs options — liste sans Markdown brut */
+      const lines = entries.map(e => `${e.label} : ${fmtPrice(e.price)}`).join('\n')
       return {
-        answer: `Voici les options disponibles pour le ${repair} du ${device} :\n\n${lines}\n\nContactez l'atelier pour choisir l'option la plus adaptée.`,
+        answer: `Voici les options disponibles pour ${rep.article === "L'" ? "l'" : rep.article.toLowerCase() + ' '}${rep.phrase} ${deApp} :\n\n${lines}\n\nContactez l'atelier pour choisir l'option la plus adaptée.`,
         actions,
       }
     }
 
     case 'no_price': {
       const device  = deviceName(match.brand!, match.model!)
+      const rep     = getReparationInfo(match.repairLabel ?? 'réparation')
+      const deApp   = deAppareil(device)
       const actions: ChatbotAction[] = [
         { label: 'Nous contacter', href: CONTACT_HREF, variant: BTN },
       ]
@@ -351,7 +440,7 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
         actions.unshift({ label: 'Voir la page réparation', href: match.modelHref, variant: LINK })
       }
       return {
-        answer: `Je n'ai pas de tarif publié pour cette réparation sur le ${device}. Contactez l'atelier pour obtenir un devis précis.`,
+        answer: `Je n'ai pas de tarif publié pour ${rep.article === "L'" ? "l'" : rep.article.toLowerCase() + ' '}${rep.phrase} ${deApp}. Contactez l'atelier pour obtenir un devis précis.`,
         actions,
       }
     }
