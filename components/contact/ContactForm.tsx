@@ -297,15 +297,17 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
 
-      {/* ── Honeypot anti-spam (invisible) ── */}
+      {/* Honeypot anti-spam — ne jamais remplir */}
       <div aria-hidden style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
-        <label htmlFor={`${uid}-hp`}>Ne pas remplir</label>
         <input
-          id={`${uid}-hp`}
           type="text"
-          name="_hp"
+          name="org_url"
           tabIndex={-1}
-          autoComplete="off"
+          autoComplete="nope"
+          aria-hidden="true"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-form-type="other"
           value={fields._hp}
           onChange={e => setField('_hp', e.target.value)}
         />

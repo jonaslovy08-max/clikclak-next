@@ -413,8 +413,14 @@ export async function POST(req: NextRequest) {
     returnAddress: sanitize(parsed.returnAddress, 200),
   }
 
-  /* 5. Honeypot — avant Turnstile pour filtrer les bots bon marché */
-  if (data._hp?.trim()) return resp({ ok: true })
+  /* 5. Honeypot — avant Turnstile pour filtrer les bots bon marché.
+     Faux positif connu : Chrome/gestionnaires de mots de passe peuvent remplir
+     automatiquement le champ honeypot avec la même adresse email que le champ
+     email principal. Dans ce cas précis, on ne bloque pas. */
+  const hpVal    = (data._hp    ?? '').trim().toLowerCase()
+  const emailVal = (data.email  ?? '').trim().toLowerCase()
+  const isAutofillFalsePositive = hpVal !== '' && hpVal === emailVal
+  if (hpVal && !isAutofillFalsePositive) return resp({ ok: true })
 
   /* 6. Turnstile — bypass en développement sans clé, obligatoire sinon */
   const isDevBypass = process.env.NODE_ENV !== 'production' && !process.env.TURNSTILE_SECRET_KEY

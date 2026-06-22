@@ -286,9 +286,20 @@ export default function ServiceRequestForm({ serviceType }: Props) {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
 
-      {/* Honeypot */}
+      {/* Honeypot anti-spam — ne jamais remplir */}
       <div aria-hidden style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
-        <input type="text" name="_hp" tabIndex={-1} autoComplete="off" value={hp} onChange={e => setHp(e.target.value)} />
+        <input
+          type="text"
+          name="org_url"
+          tabIndex={-1}
+          autoComplete="nope"
+          aria-hidden="true"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-form-type="other"
+          value={hp}
+          onChange={e => setHp(e.target.value)}
+        />
       </div>
 
       {/* ── A. Identité ── */}
