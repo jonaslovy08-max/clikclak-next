@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getVisitorIdentity }     from '@/lib/chatbot/requestIdentity'
+import { checkContactRateLimit }  from '@/lib/contact/rateLimiter'
 
 /*
   Route API contact — /api/contact (POST)
@@ -12,9 +14,13 @@ import { NextRequest, NextResponse } from 'next/server'
     CONTACT_DEPANNAGE_EMAIL : (optionnel) dépannage → si absent, CONTACT_TO_EMAIL
 
   Sécurité :
+    - Validation Content-Type (415)
+    - Limite taille body 6 Mo (413)
+    - Validation et sanitisation des champs
     - Honeypot obligatoire vide
-    - Validation côté serveur des champs requis
-    - Taille payload ~6 Mo
+    - Turnstile obligatoire en production
+    - Rate limiting Redis (5/h, 20/j) — fail closed → 503
+    - Cache-Control: no-store sur toutes les réponses
     - Référence unique générée côté serveur pour rachat
     - Aucune donnée personnelle loggée en production
 */
@@ -75,6 +81,56 @@ interface ContactPayload {
   returnAddress?: string
   /* Anti-spam */
   turnstileToken?: string
+}
+
+/* ── Helper réponse avec Cache-Control ───────────────────────────── */
+
+function resp(body: Record<string, unknown>, status = 200, extraHeaders?: Record<string, string>): NextResponse {
+  return NextResponse.json(body, {
+    status,
+    headers: { 'Cache-Control': 'no-store', ...extraHeaders },
+  })
+}
+
+/* ── Sanitisation des champs ─────────────────────────────────────── */
+
+const CTRL_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g
+
+function sanitize(value: unknown, maxLen: number): string | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'string') return undefined
+  const s = value.normalize('NFKC').replace(CTRL_CHARS, '').trim()
+  if (!s) return undefined
+  return s.length > maxLen ? s.slice(0, maxLen) : s
+}
+
+/* Limites de longueur par champ */
+const FIELD_MAX: Record<string, number> = {
+  name:         150,
+  firstName:    100,
+  lastName:     100,
+  email:        254,
+  phone:         30,
+  message:     4000,
+  deviceType:   150,
+  brand:        100,
+  model:        200,
+  brandModel:   200,
+  serviceLabel: 100,
+  requestType:  100,
+  deviceCapacity:    50,
+  conditionGeneral: 200,
+  conditionScreen:  200,
+  conditionBattery: 200,
+  powerState:       100,
+  lockState:        100,
+  accessories:      500,
+  paymentPref:      100,
+  deliveryMode:     100,
+  addrStreet:  200, addrNumber:  20, addrPostal:  20, addrCity:  100, addrCountry: 100,
+  pickupStreet:200, pickupNumber:20, pickupPostal:20, pickupCity:100,
+  returnStreet:200, returnNumber:20, returnPostal:20, returnCity:100,
+  imageFilename: 255,
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
@@ -267,58 +323,162 @@ function buildClientEmail(data: ContactPayload, ref: string): string {
 
 /* ── Handler POST ────────────────────────────────────────────────── */
 export async function POST(req: NextRequest) {
-  const contentLength = req.headers.get('content-length')
-  if (contentLength && parseInt(contentLength) > 6_000_000) {
-    return NextResponse.json({ error: 'Payload trop lourd.' }, { status: 413 })
+
+  /* 1. Content-Type */
+  const ct = req.headers.get('content-type') ?? ''
+  if (!ct.includes('application/json')) {
+    return resp({ error: 'Format de requête non pris en charge.' }, 415)
   }
 
-  let data: ContactPayload
-  try { data = await req.json() }
-  catch { return NextResponse.json({ error: 'Données invalides.' }, { status: 400 }) }
+  /* 2. Content-Length — vérification rapide */
+  const cl = req.headers.get('content-length')
+  if (cl && parseInt(cl, 10) > 6_000_000) {
+    return resp({ error: 'Pièce jointe trop volumineuse (6 Mo maximum).' }, 413)
+  }
 
-  /* Honeypot */
-  if (data._hp?.trim()) return NextResponse.json({ ok: true })
+  /* 3. Lecture et vérification de la taille réelle */
+  let rawBody: string
+  try { rawBody = await req.text() }
+  catch { return resp({ error: 'Impossible de lire la requête.' }, 400) }
 
-  /* Turnstile — bypass en développement sans clé, obligatoire sinon */
+  if (Buffer.byteLength(rawBody, 'utf-8') > 6_000_000) {
+    return resp({ error: 'Pièce jointe trop volumineuse (6 Mo maximum).' }, 413)
+  }
+
+  /* 4. Parse JSON */
+  let raw: unknown
+  try { raw = JSON.parse(rawBody) }
+  catch { return resp({ error: 'Données invalides.' }, 400) }
+
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return resp({ error: 'Données invalides.' }, 400)
+  }
+
+  const parsed = raw as Record<string, unknown>
+
+  /* Sanitisation de tous les champs texte */
+  const data: ContactPayload = {
+    name:          sanitize(parsed.name,          FIELD_MAX.name)          ?? '',
+    firstName:     sanitize(parsed.firstName,     FIELD_MAX.firstName),
+    lastName:      sanitize(parsed.lastName,      FIELD_MAX.lastName),
+    email:         sanitize(parsed.email,         FIELD_MAX.email)         ?? '',
+    phone:         sanitize(parsed.phone,         FIELD_MAX.phone),
+    deviceType:    sanitize(parsed.deviceType,    FIELD_MAX.deviceType),
+    brand:         sanitize(parsed.brand,         FIELD_MAX.brand),
+    model:         sanitize(parsed.model,         FIELD_MAX.model),
+    message:       sanitize(parsed.message,       FIELD_MAX.message)       ?? '',
+    consent:       parsed.consent === true,
+    _hp:           typeof parsed._hp === 'string' ? parsed._hp : '',
+    requestType:   sanitize(parsed.requestType,   FIELD_MAX.requestType),
+    serviceLabel:  sanitize(parsed.serviceLabel,  FIELD_MAX.serviceLabel),
+    brandModel:    sanitize(parsed.brandModel,    FIELD_MAX.brandModel),
+    deviceCapacity:    sanitize(parsed.deviceCapacity,    FIELD_MAX.deviceCapacity),
+    conditionGeneral:  sanitize(parsed.conditionGeneral,  FIELD_MAX.conditionGeneral),
+    conditionScreen:   sanitize(parsed.conditionScreen,   FIELD_MAX.conditionScreen),
+    conditionBattery:  sanitize(parsed.conditionBattery,  FIELD_MAX.conditionBattery),
+    powerState:    sanitize(parsed.powerState,    FIELD_MAX.powerState),
+    lockState:     sanitize(parsed.lockState,     FIELD_MAX.lockState),
+    accessories:   sanitize(parsed.accessories,   FIELD_MAX.accessories),
+    paymentPref:   sanitize(parsed.paymentPref,   FIELD_MAX.paymentPref),
+    deliveryMode:  sanitize(parsed.deliveryMode,  FIELD_MAX.deliveryMode),
+    addrStreet:    sanitize(parsed.addrStreet,    FIELD_MAX.addrStreet),
+    addrNumber:    sanitize(parsed.addrNumber,    FIELD_MAX.addrNumber),
+    addrPostal:    sanitize(parsed.addrPostal,    FIELD_MAX.addrPostal),
+    addrCity:      sanitize(parsed.addrCity,      FIELD_MAX.addrCity),
+    addrCountry:   sanitize(parsed.addrCountry,   FIELD_MAX.addrCountry),
+    pickupStreet:  sanitize(parsed.pickupStreet,  FIELD_MAX.pickupStreet),
+    pickupNumber:  sanitize(parsed.pickupNumber,  FIELD_MAX.pickupNumber),
+    pickupPostal:  sanitize(parsed.pickupPostal,  FIELD_MAX.pickupPostal),
+    pickupCity:    sanitize(parsed.pickupCity,    FIELD_MAX.pickupCity),
+    returnStreet:  sanitize(parsed.returnStreet,  FIELD_MAX.returnStreet),
+    returnNumber:  sanitize(parsed.returnNumber,  FIELD_MAX.returnNumber),
+    returnPostal:  sanitize(parsed.returnPostal,  FIELD_MAX.returnPostal),
+    returnCity:    sanitize(parsed.returnCity,    FIELD_MAX.returnCity),
+    sameReturn:    parsed.sameReturn === true,
+    within50km:    parsed.within50km === true,
+    turnstileToken: typeof parsed.turnstileToken === 'string' ? parsed.turnstileToken.trim() : undefined,
+    imageBase64:   typeof parsed.imageBase64 === 'string' ? parsed.imageBase64 : undefined,
+    imageFilename: sanitize(parsed.imageFilename, FIELD_MAX.imageFilename),
+    imageOriginalSize:   typeof parsed.imageOriginalSize === 'number' ? parsed.imageOriginalSize : undefined,
+    imageCompressedSize: typeof parsed.imageCompressedSize === 'number' ? parsed.imageCompressedSize : undefined,
+    selectedServices: Array.isArray(parsed.selectedServices)
+      ? (parsed.selectedServices as unknown[])
+          .filter((s): s is string => typeof s === 'string')
+          .map(s => s.normalize('NFKC').replace(CTRL_CHARS, '').trim().slice(0, 100))
+          .filter(Boolean)
+          .slice(0, 20)
+      : undefined,
+    address:       sanitize(parsed.address,       200),
+    pickupAddress: sanitize(parsed.pickupAddress, 200),
+    returnAddress: sanitize(parsed.returnAddress, 200),
+  }
+
+  /* 5. Honeypot — avant Turnstile pour filtrer les bots bon marché */
+  if (data._hp?.trim()) return resp({ ok: true })
+
+  /* 6. Turnstile — bypass en développement sans clé, obligatoire sinon */
   const isDevBypass = process.env.NODE_ENV !== 'production' && !process.env.TURNSTILE_SECRET_KEY
   if (!isDevBypass) {
     const tsToken = data.turnstileToken?.trim()
     if (!tsToken) {
-      return NextResponse.json({ error: 'Validation anti-spam manquante.' }, { status: 422 })
+      return resp({ error: 'Validation anti-spam manquante.' }, 422)
     }
     const tsOk = await verifyTurnstile(tsToken)
     if (!tsOk) {
-      return NextResponse.json({ error: 'Validation anti-spam échouée. Veuillez réessayer.' }, { status: 422 })
+      return resp({ error: 'Validation anti-spam échouée. Veuillez réessayer.' }, 422)
     }
   }
 
-  /* Validation de base */
+  /* 7. Validation de base */
   const name    = (data.firstName && data.lastName)
-    ? `${data.firstName.trim()} ${data.lastName.trim()}`
-    : data.name?.trim()
-  const email   = data.email?.trim()
-  const message = data.message?.trim()
+    ? `${data.firstName} ${data.lastName}`
+    : data.name
+  const email   = data.email
+  const message = data.message || undefined
 
   if (!name || !email || !data.consent) {
-    return NextResponse.json({ error: 'Champs requis manquants.' }, { status: 422 })
+    return resp({ error: 'Champs requis manquants.' }, 422)
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: 'Email invalide.' }, { status: 422 })
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    return resp({ error: 'Email invalide.' }, 422)
   }
 
-  /* Validations spécifiques */
+  /* 8. Rate limiting Redis */
+  const identifier = getVisitorIdentity(req)
+  if (!identifier) {
+    console.error('[contact/route] CHATBOT_RATE_LIMIT_SALT absent — rate limit désactivé')
+    return resp({ error: 'Service temporairement indisponible.' }, 503)
+  }
+
+  let rlResult
+  try {
+    rlResult = await checkContactRateLimit(identifier)
+  } catch {
+    console.error('[contact/route] Redis indisponible')
+    return resp({ error: 'Service temporairement indisponible. Réessayez dans quelques instants.' }, 503)
+  }
+
+  if (!rlResult.success) {
+    return resp(
+      { error: 'Trop de messages ont été envoyés. Réessayez dans quelques minutes.' },
+      429,
+      { 'Retry-After': String(rlResult.retryAfter) },
+    )
+  }
+
+  /* 9. Validations spécifiques */
   if (data.serviceLabel) {
     if (Array.isArray(data.selectedServices) && data.selectedServices.length === 0)
-      return NextResponse.json({ error: 'Veuillez sélectionner au moins un service.' }, { status: 422 })
+      return resp({ error: 'Veuillez sélectionner au moins un service.' }, 422)
     if (data.selectedServices?.includes('Autre') && !message)
-      return NextResponse.json({ error: 'Veuillez décrire votre demande lorsque vous choisissez "Autre".' }, { status: 422 })
+      return resp({ error: 'Veuillez décrire votre demande lorsque vous choisissez "Autre".' }, 422)
     if (data.serviceLabel === 'Service de coursier' && !data.within50km)
-      return NextResponse.json({ error: 'Merci de confirmer que l\'adresse se situe dans le périmètre de livraison.' }, { status: 422 })
+      return resp({ error: 'Merci de confirmer que l\'adresse se situe dans le périmètre de livraison.' }, 422)
     if (data.serviceLabel === 'Estimation rachat appareil' && (!data.paymentPref || !data.deliveryMode))
-      return NextResponse.json({ error: 'Veuillez indiquer votre préférence de paiement et le mode de remise.' }, { status: 422 })
+      return resp({ error: 'Veuillez indiquer votre préférence de paiement et le mode de remise.' }, 422)
   }
   if (!data.serviceLabel && !message)
-    return NextResponse.json({ error: 'Champs requis manquants.' }, { status: 422 })
+    return resp({ error: 'Champs requis manquants.' }, 422)
 
   /* Référence rachat */
   const isBuyback = data.serviceLabel === 'Estimation rachat appareil'
@@ -330,7 +490,7 @@ export async function POST(req: NextRequest) {
 
   /* Mode dev */
   if (!toEmail || !fromEmail || !apiKey) {
-    return NextResponse.json({
+    return resp({
       ok:        true,
       devMode:   true,
       reference: ref ?? null,
@@ -338,7 +498,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  /* Envoi email admin */
+  /* 10. Envoi email admin */
   const mergedData = { ...data, name: name ?? '', email, message: message ?? '' }
 
   try {
@@ -360,14 +520,14 @@ export async function POST(req: NextRequest) {
 
     if (!adminRes.ok) {
       console.error('[contact/route] admin email error:', adminRes.status)
-      return NextResponse.json({ error: 'Envoi impossible. Réessayez ou contactez-nous directement.' }, { status: 502 })
+      return resp({ error: 'Envoi impossible. Réessayez ou contactez-nous directement.' }, 502)
     }
   } catch (err) {
     console.error('[contact/route] admin email fetch error:', err)
-    return NextResponse.json({ error: 'Erreur réseau. Réessayez ou contactez-nous directement.' }, { status: 502 })
+    return resp({ error: 'Erreur réseau. Réessayez ou contactez-nous directement.' }, 502)
   }
 
-  /* Envoi email client (rachat uniquement, non-bloquant) */
+  /* Email client (rachat uniquement, non-bloquant) */
   if (isBuyback && ref) {
     fetch('https://api.resend.com/emails', {
       method:  'POST',
@@ -383,5 +543,5 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  return NextResponse.json({ ok: true, reference: ref ?? null })
+  return resp({ ok: true, reference: ref ?? null })
 }

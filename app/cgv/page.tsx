@@ -424,6 +424,29 @@ export default function CgvPage() {
 
               </Article>
 
+              <Article n="20" title="Assistant ClikClak automatisé">
+                <p>
+                  Le site propose un assistant automatisé utilisant l'intelligence artificielle. Il
+                  est conçu pour répondre aux questions générales liées aux réparations, tarifs,
+                  services et informations pratiques de CLIK CLAK SàRL.
+                </p>
+                <p>
+                  L'assistant fournit une aide indicative. Ses réponses ne constituent pas un
+                  diagnostic définitif, une offre de réparation contractuelle, ni un engagement de
+                  prix, de délai, de stock ou de garantie.
+                </p>
+                <p>
+                  Les prix, délais, disponibilités et garanties communiqués par l'assistant doivent
+                  être confirmés directement auprès de CLIK CLAK SàRL avant toute commande ou remise
+                  d'appareil.
+                </p>
+                <p>
+                  Toute réponse de l'assistant est automatisée. Elle ne constitue pas un engagement
+                  contractuel et ne saurait engager la responsabilité de CLIK CLAK SàRL pour des
+                  informations inexactes, incomplètes ou non vérifiées.
+                </p>
+              </Article>
+
             </div>
           </div>
         </section>

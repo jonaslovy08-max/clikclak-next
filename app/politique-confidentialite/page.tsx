@@ -263,7 +263,63 @@ export default function PolitiqueConfidentialitePage() {
                 </p>
               </Article>
 
-              <Article n="15" title="Contact">
+              <Article n="15" title="Assistant ClikClak et traitement IA">
+                <p>
+                  Le site propose un assistant automatisé («&nbsp;ClikClak Bot&nbsp;») destiné à
+                  répondre aux questions liées aux réparations, services et produits de CLIK CLAK SàRL.
+                </p>
+                <p>
+                  Cet assistant utilise l'API Anthropic. Les messages saisis dans la fenêtre de chat
+                  sont transmis à Anthropic afin de produire une réponse. L'utilisateur ne doit pas
+                  transmettre via cet assistant de données sensibles, de mots de passe, de codes PIN,
+                  de données bancaires ou de tout autre information à caractère confidentiel.
+                </p>
+                <p>
+                  Anthropic agit en qualité de prestataire de traitement dans le cadre de son API
+                  commerciale. Selon la politique d'Anthropic, les contenus transmis via l'API ne sont
+                  pas utilisés par défaut pour entraîner les modèles, sauf participation explicite à un
+                  programme prévu à cet effet. Pour toute information sur les pratiques d'Anthropic en
+                  matière de données, l'utilisateur peut consulter la politique de confidentialité
+                  d'Anthropic directement.
+                </p>
+                <p>
+                  CLIK CLAK SàRL utilise Upstash Redis pour prévenir les abus et limiter l'utilisation
+                  excessive de l'assistant. Aucune adresse IP brute n'est transmise à Redis. Un
+                  identifiant technique pseudonymisé (hashé de manière irréversible) est calculé à
+                  partir de données techniques de connexion et utilisé comme clé Redis. L'instance Redis
+                  utilisée est actuellement hébergée dans une région européenne.
+                </p>
+                <p>
+                  Les compteurs techniques de limitation sont conservés jusqu'à 24&nbsp;heures au maximum.
+                  En cas d'abus répété détecté, un blocage temporaire peut être appliqué et peut durer
+                  jusqu'à une&nbsp;heure. Les conversations complètes ne sont pas enregistrées dans Redis
+                  par CLIK CLAK SàRL.
+                </p>
+                <p>
+                  L'assistant ne constitue pas un engagement contractuel. Toute information fournie par
+                  l'assistant doit être confirmée directement auprès de CLIK CLAK SàRL pour être
+                  opposable.
+                </p>
+              </Article>
+
+              <Article n="16" title="Stockage local et données techniques du site">
+                <p>
+                  Le site utilise le stockage local du navigateur (<em>localStorage</em>) pour les
+                  usages suivants&nbsp;:
+                </p>
+                <ul>
+                  <li>mémorisation du choix de consentement aux cookies (clé de préférence, sans date d'expiration fixe) ;</li>
+                  <li>persistance temporaire du contenu du panier (uniquement si la boutique est active, clé <em>clikclak-cart-v1</em>) ;</li>
+                  <li>aucun identifiant personnel, aucun email, aucun numéro de téléphone n'est stocké dans localStorage.</li>
+                </ul>
+                <p>
+                  Ces données restent sur l'appareil de l'utilisateur et ne sont pas transmises à CLIK
+                  CLAK SàRL ni à des tiers. Elles peuvent être supprimées à tout moment depuis les
+                  paramètres du navigateur.
+                </p>
+              </Article>
+
+              <Article n="17" title="Contact">
                 <p>
                   Pour toute question relative à la protection des données, le client peut contacter
                   CLIK CLAK SàRL via les coordonnées indiquées sur le site.

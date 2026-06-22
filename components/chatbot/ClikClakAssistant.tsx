@@ -506,9 +506,14 @@ export default function ClikClakAssistant() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/chatbot/icon-chatbot-chatbox.svg" alt="" aria-hidden
             width={36} height={36} style={{ display: 'block', flexShrink: 0 }} />
-          <span className="text-sm font-light leading-tight" style={{ color: 'rgba(242,242,242,0.9)' }}>
-            ClikClak Bot
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-light leading-tight" style={{ color: 'rgba(242,242,242,0.9)' }}>
+              ClikClak Bot
+            </span>
+            <span className="text-[10px] font-light leading-none" style={{ color: 'rgba(242,242,242,0.35)' }}>
+              Assistant automatisé
+            </span>
+          </div>
         </div>
         <button type="button" onClick={close} aria-label="Fermer le chatbot"
           className="inline-flex items-center justify-center p-1 shrink-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
