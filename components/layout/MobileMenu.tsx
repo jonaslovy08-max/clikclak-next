@@ -142,7 +142,7 @@ const PATH_C = 'M 700 600 L 300 600 C 100 600 100 200 400 150 A 400 380 0 1 1 20
 
 /* ── Composant principal ── */
 
-export default function MobileMenu({ links }: { links: NavLink[] }) {
+export default function MobileMenu({ links, shopEnabled = false }: { links: NavLink[]; shopEnabled?: boolean }) {
   const pathname      = usePathname()
   const activeSection = getActiveSection(pathname)
   const { totalItems } = useCart()
@@ -369,8 +369,8 @@ export default function MobileMenu({ links }: { links: NavLink[] }) {
             )
           })}
 
-          {/* Ligne Panier — visible uniquement si le panier contient des produits */}
-          {cartCount > 0 && (
+          {/* Ligne Panier — visible uniquement si shop actif et panier non vide */}
+          {shopEnabled && cartCount > 0 && (
             <Link
               href="/shop-reparation-smartphone-lausanne/panier"
               onClick={closeMenu}

@@ -51,6 +51,7 @@ export interface Product {
 
   /* ── Visuels ─────────────────────────────────────────────── */
   images:       string[]
+  model?:       string | null
 
   /* ── Descriptions ─────────────────────────────────────────── */
   description?:   string | null

@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import MobileMenu from './MobileMenu'
 import DesktopNav from './DesktopNav'
+import { SHOP_ENABLED } from '@/lib/config/features'
 
 export type NavSubLink = { label: string; href: string }
 
@@ -63,7 +64,7 @@ export default function Header() {
             priority
           />
         </Link>
-        <MobileMenu links={allLinks} />
+        <MobileMenu links={allLinks} shopEnabled={SHOP_ENABLED} />
       </div>
 
       {/* ── Desktop ────────────────────────────────────────────────── */}
@@ -83,7 +84,7 @@ export default function Header() {
         </Link>
 
         {/* Nav centrale + liens droite — client component pour la barre indicatrice */}
-        <DesktopNav navLinks={navLinks} rightLinks={rightLinks} />
+        <DesktopNav navLinks={navLinks} rightLinks={rightLinks} shopEnabled={SHOP_ENABLED} />
       </div>
 
     </header>

@@ -63,9 +63,11 @@ function initDropdownAnim(
 export default function DesktopNav({
   navLinks,
   rightLinks,
+  shopEnabled = false,
 }: {
-  navLinks:   NavLink[]
-  rightLinks: NavLink[]
+  navLinks:    NavLink[]
+  rightLinks:  NavLink[]
+  shopEnabled?: boolean
 }) {
   const pathname = usePathname()
   const navRef   = useRef<HTMLElement>(null)
@@ -374,8 +376,8 @@ export default function DesktopNav({
                 {link.label}
               </Link>
 
-              {/* Icône panier à côté de Shop */}
-              {isShop && (
+              {/* Icône panier à côté de Shop — masquée si shop désactivé */}
+              {shopEnabled && isShop && (
                 <Link
                   href="/shop-reparation-smartphone-lausanne/panier"
                   aria-label={

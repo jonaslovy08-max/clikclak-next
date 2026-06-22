@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { getPublishedPosts } from '@/lib/blog'
 import { getIndexableProducts } from '@/lib/products'
+import { SHOP_ENABLED } from '@/lib/config/features'
 
 const BASE = 'https://clikclak.ch'
 
@@ -39,14 +40,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/services/transfert-donnees/`,              priority: 0.5, changeFrequency: 'monthly' },
     { url: `${BASE}/services/rachat-de-votre-smartphone/`,     priority: 0.6, changeFrequency: 'monthly' },
 
-    /* ── Shop ───────────────────────────────────────────────── */
-    { url: `${BASE}/shop-reparation-smartphone-lausanne/`,     priority: 0.7, changeFrequency: 'weekly'  },
-    /* Fiches produits — status active + seoNoIndex !== true uniquement */
-    ...getIndexableProducts().map(p => ({
-      url:             `${BASE}/shop-reparation-smartphone-lausanne/${p.slug}/`,
-      priority:        0.5 as const,
-      changeFrequency: 'weekly'  as const,
-    })),
+    /* ── Shop (exclu si boutique désactivée) ───────────────── */
+    ...(SHOP_ENABLED ? [
+      { url: `${BASE}/shop-reparation-smartphone-lausanne/`, priority: 0.7 as const, changeFrequency: 'weekly' as const },
+      ...getIndexableProducts().map(p => ({
+        url:             `${BASE}/shop-reparation-smartphone-lausanne/${p.slug}/`,
+        priority:        0.5 as const,
+        changeFrequency: 'weekly' as const,
+      })),
+    ] : []),
 
     /* ── Blog ──────────────────────────────────────────────── */
     { url: `${BASE}/blog/`,                                    priority: 0.6, changeFrequency: 'weekly'  },

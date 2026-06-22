@@ -50,6 +50,7 @@ export function adaptShopProduct(p: ShopProduct): Product {
     priceChfCents: typeof p.price === 'number' ? Math.round(p.price * 100) : null,
     stock:        typeof p.stock === 'number' ? p.stock : (p.availability === 'en-stock' ? 1 : 0),
     images:       p.images,
+    model:        p.model ?? null,
     description:  p.description ?? null,
     conditionNote: p.comment ?? null,
 

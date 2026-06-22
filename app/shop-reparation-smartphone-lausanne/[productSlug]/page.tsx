@@ -20,13 +20,14 @@ import {
 } from '@/data/shopProducts'
 import {
   getProductBySlugAny,
-  productShouldRedirect,
   productRedirectTarget,
 } from '@/lib/products'
-import { getProductImages, getProductMainImage } from '@/lib/products/images'
+import { getProductImages } from '@/lib/products/images'
+import { SHOP_ENABLED } from '@/lib/config/features'
 
 /* ── Génération statique de toutes les pages produit ─────────── */
 export async function generateStaticParams() {
+  if (!SHOP_ENABLED) return []
   return SHOP_PRODUCTS.map(p => ({ productSlug: p.slug }))
 }
 
@@ -34,6 +35,13 @@ export async function generateStaticParams() {
 export async function generateMetadata(
   { params }: { params: Promise<{ productSlug: string }> }
 ): Promise<Metadata> {
+  if (!SHOP_ENABLED) {
+    return {
+      title: 'Boutique indisponible | ClikClak',
+      robots: { index: false, follow: false },
+    }
+  }
+
   const { productSlug } = await params
   const product = SHOP_PRODUCTS.find(p => p.slug === productSlug)
   if (!product) return {}
@@ -80,6 +88,9 @@ export async function generateMetadata(
 export default async function ProductPage(
   { params }: { params: Promise<{ productSlug: string }> }
 ) {
+  /* Contrôle shop désactivé — avant toute lecture de données */
+  if (!SHOP_ENABLED) notFound()
+
   const { productSlug } = await params
 
   /* ── Routing statut ─────────────────────────────────────────── */

@@ -7,6 +7,7 @@ import {
   getProductBadge,
 } from '@/data/shopProducts'
 import { getProductMainImage } from '@/lib/products/images'
+import { SHOP_ENABLED } from '@/lib/config/features'
 
 /*
   Affiche jusqu'à 3 produits réels "occasion-neuf".
@@ -21,6 +22,7 @@ const PRODUCTS = SHOP_PRODUCTS.filter(
 ).slice(0, 3)
 
 export default function RecentShopProducts() {
+  if (!SHOP_ENABLED) return null
   if (PRODUCTS.length === 0) return null
 
   return (

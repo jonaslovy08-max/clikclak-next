@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { getProductById, productIsPurchasable } from '@/lib/products'
+import { SHOP_ENABLED } from '@/lib/config/features'
 
 /*
   POST /api/stripe/checkout
@@ -33,6 +34,13 @@ function generateOrderRef(): string {
 }
 
 export async function POST(req: NextRequest) {
+  if (!SHOP_ENABLED) {
+    return NextResponse.json(
+      { error: 'La boutique est temporairement indisponible.' },
+      { status: 503 }
+    )
+  }
+
   const stripe = getStripe()
 
   if (!stripe) {

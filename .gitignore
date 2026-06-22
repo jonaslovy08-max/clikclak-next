@@ -37,3 +37,7 @@ next-env.d.ts
 # database
 *.db
 *.sqlite
+
+# Product image import sources and generated reports
+imports/product-images/
+reports/

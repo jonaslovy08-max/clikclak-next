@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 
 export const metadata: Metadata = {
   title: 'Paiement annulé — Shop ClikClak',
-  robots: { index: false },
+  robots: { index: false, follow: false },
 }
 
 export default function CancelPage() {

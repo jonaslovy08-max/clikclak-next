@@ -7,7 +7,7 @@ import CartClearer from '@/components/shop/CartClearer'
 
 export const metadata: Metadata = {
   title: 'Paiement reçu — Shop ClikClak',
-  robots: { index: false },
+  robots: { index: false, follow: false },
 }
 
 /*

@@ -13,6 +13,7 @@ import {
   type ModelResult,
 } from '@/lib/chatbot/searchRepairPrices'
 import { SHOP_PRODUCTS } from '@/data/shopProducts'
+import { CHATBOT_LIMITS } from '@/lib/chatbot/config'
 
 /* ── Types ── */
 type GuidedScreen =
@@ -28,7 +29,7 @@ interface AiMessage {
 }
 
 /* ── Constants ── */
-const MAX_SESSION_MESSAGES = 20
+const MAX_SESSION_MESSAGES = CHATBOT_LIMITS.maxQuestionsPerConversation
 
 const WELCOME_MSG: AiMessage = {
   role:    'assistant',
@@ -240,7 +241,7 @@ export default function ClikClakAssistant() {
     setQaOpen(false)
   }, [])
 
-  /* AI chat — V2 avec guardrails */
+  /* AI chat — V2 uniquement, sans fallback V1 */
   const sendToAI = useCallback(async (msg: string) => {
     const text = msg.trim()
     if (!text || isLoading || msgCount >= MAX_SESSION_MESSAGES) return
@@ -255,42 +256,50 @@ export default function ClikClakAssistant() {
     setScreen('home')
 
     try {
-      /* /api/chatbot — V2 IA avec guardrails */
-      const messages = updated.slice(-8).map(m => ({ role: m.role, content: m.content }))
+      const messages = updated
+        .slice(-CHATBOT_LIMITS.maxHistoryMessages)
+        .map(m => ({ role: m.role, content: m.content }))
+
       const res = await fetch('/api/chatbot', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ messages }),
       })
 
+      /* Lecture JSON tolérante — évite les crashes si le body est vide */
+      const data = await res.json().catch(() => ({}) as Record<string, unknown>)
+
       if (res.ok) {
-        const data = await res.json() as { answer: string; blocked?: boolean }
         setChatMessages(prev => [...prev, {
           role:    'assistant',
-          content: data.answer,
-          ...(data.blocked ? {
+          content: (data as { answer?: string }).answer ?? "Je n'ai pas pu générer de réponse.",
+          ...((data as { blocked?: boolean }).blocked ? {
             suggestions: [{ label: 'Voir les services', href: '/reparation-smartphone-express' }],
           } : {}),
         }])
         return
       }
 
-      /* Fallback V1 : /api/chat si /api/chatbot échoue (5xx) */
-      const history = updated.slice(-6).map(m => ({ role: m.role, content: m.content }))
-      const resV1 = await fetch('/api/chat', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ message: text, history: history.slice(0, -1) }),
-      })
-      const dataV1 = await resV1.json() as { message: string; suggestions?: AiMessage['suggestions'] }
-      setChatMessages(prev => [...prev, {
-        role:    'assistant',
-        content: dataV1.message,
-        suggestions: dataV1.suggestions,
-      }])
+      /* Gestion des statuts d'erreur serveur */
+      let content: string
+      let suggestions: AiMessage['suggestions']
+
+      if (res.status === 429) {
+        content = 'Vous avez envoyé trop de messages. Réessayez dans quelques minutes.'
+      } else if (res.status === 503) {
+        content = 'Le chatbot est momentanément indisponible. Vous pouvez contacter ClikClak directement.'
+        suggestions = [{ label: 'Contacter ClikClak', href: '/contact-clik-clak-lausanne' }]
+      } else if (res.status === 413) {
+        content = 'Votre message est trop long. Raccourcissez-le et réessayez.'
+      } else {
+        /* 400, 415 ou autre */
+        content = "Votre message n'a pas pu être traité. Reformulez votre question."
+      }
+
+      setChatMessages(prev => [...prev, { role: 'assistant', content, isError: true, suggestions }])
 
     } catch {
-      /* Réseau inaccessible — message de secours */
+      /* Réseau inaccessible */
       setChatMessages(prev => [...prev, {
         role:    'assistant',
         content: 'Le chatbot IA est momentanément indisponible. Vous pouvez contacter Clik Clak directement.',
@@ -555,25 +564,45 @@ export default function ClikClakAssistant() {
       <div className="shrink-0 px-3 pt-3 pb-2" style={{ borderTop: '1px solid rgba(242,242,242,0.08)' }}>
         {msgCount >= MAX_SESSION_MESSAGES ? (
           <div className="flex flex-col gap-2 pb-1">
-            <p className="text-[12px] font-light text-foreground/45">Nombre de messages maximum atteint.</p>
+            <p className="text-[12px] font-light text-foreground/55 leading-relaxed">
+              Vous avez atteint la limite de cette conversation. Pour poursuivre, contactez directement ClikClak.
+            </p>
             <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Contacter ClikClak</NavLink>
           </div>
         ) : (
-          <form onSubmit={e => { e.preventDefault(); if (inputValue.trim()) sendToAI(inputValue) }}
-            className="flex items-stretch gap-2">
-            <input ref={inputRef} type="text" value={inputValue} onChange={e => setInputValue(e.target.value)}
-              placeholder="Posez votre question : prix, panne, modèle, shop…"
-              disabled={isLoading}
-              style={{ fontSize: 16, background: '#f2f2f2', color: '#191919' }}
-              className="flex-1 px-3 py-2 font-light rounded-lg border border-[rgba(25,25,25,0.15)] placeholder:text-black/40 focus:outline-none focus:border-[rgba(25,25,25,0.4)] disabled:opacity-50" />
-            <button type="submit" disabled={isLoading || !inputValue.trim()} aria-label="Envoyer"
-              className="flex items-center justify-center px-3 rounded-lg transition-colors focus-visible:outline-none shrink-0"
-              style={{ background: '#ccff33', border: 'none' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/chatbot/icon-send-chatbot.svg" alt="" aria-hidden
-                width={18} height={18} style={{ display: 'block' }} />
-            </button>
-          </form>
+          <div className="flex flex-col gap-1">
+            <form onSubmit={e => { e.preventDefault(); if (inputValue.trim() && !isLoading) sendToAI(inputValue) }}
+              className="flex items-stretch gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={e => setInputValue(e.target.value)}
+                placeholder="Posez votre question : prix, panne, modèle, shop…"
+                maxLength={CHATBOT_LIMITS.maxInputCharacters}
+                disabled={isLoading}
+                style={{ fontSize: 16, background: '#f2f2f2', color: '#191919' }}
+                className="flex-1 px-3 py-2 font-light rounded-lg border border-[rgba(25,25,25,0.15)] placeholder:text-black/40 focus:outline-none focus:border-[rgba(25,25,25,0.4)] disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !inputValue.trim()}
+                aria-label="Envoyer"
+                className="flex items-center justify-center px-3 rounded-lg transition-colors focus-visible:outline-none shrink-0 disabled:opacity-40"
+                style={{ background: '#ccff33', border: 'none' }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/assets/chatbot/icon-send-chatbot.svg" alt="" aria-hidden
+                  width={18} height={18} style={{ display: 'block' }} />
+              </button>
+            </form>
+            {/* Compteur restant — affiché quand ≤ 4 questions restantes */}
+            {MAX_SESSION_MESSAGES - msgCount <= 4 && MAX_SESSION_MESSAGES - msgCount > 0 && (
+              <p className="text-[11px] font-light text-foreground/35 text-right pr-1">
+                {MAX_SESSION_MESSAGES - msgCount} question{MAX_SESSION_MESSAGES - msgCount > 1 ? 's' : ''} restante{MAX_SESSION_MESSAGES - msgCount > 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
         )}
       </div>
 
