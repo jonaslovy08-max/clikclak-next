@@ -41,3 +41,6 @@ next-env.d.ts
 # Product image import sources and generated reports
 imports/product-images/
 reports/
+
+# Rapports de migration générés automatiquement (ne pas versionner)
+migration-reports/

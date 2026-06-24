@@ -551,9 +551,45 @@ CREATE POLICY "admin_read_slug_history" ON public.model_slug_history
 -- Insertion gérée par les Server Actions (SUPABASE_SECRET_KEY).
 
 -- =============================================================================
+-- Privilèges objet — Section 14
+-- =============================================================================
+-- En Supabase, les rôles service_role et authenticated ont besoin de
+-- privilèges TABLE explicites même si service_role bypasse le RLS.
+-- (Par défaut, seul le rôle "postgres" owner possède les droits sur ses tables.)
+-- =============================================================================
+
+-- service_role : accès complet (bypasse RLS + scripts de migration)
+GRANT ALL ON public.brands              TO service_role;
+GRANT ALL ON public.device_categories   TO service_role;
+GRANT ALL ON public.device_families     TO service_role;
+GRANT ALL ON public.device_models       TO service_role;
+GRANT ALL ON public.repair_types        TO service_role;
+GRANT ALL ON public.repair_offers       TO service_role;
+GRANT ALL ON public.admin_profiles      TO service_role;
+GRANT ALL ON public.admin_activity_logs TO service_role;
+GRANT ALL ON public.model_slug_history  TO service_role;
+
+-- authenticated : toutes les opérations DML (les policies RLS limitent l'accès réel)
+GRANT ALL ON public.brands              TO authenticated;
+GRANT ALL ON public.device_categories   TO authenticated;
+GRANT ALL ON public.device_families     TO authenticated;
+GRANT ALL ON public.device_models       TO authenticated;
+GRANT ALL ON public.repair_types        TO authenticated;
+GRANT ALL ON public.repair_offers       TO authenticated;
+GRANT ALL ON public.admin_profiles      TO authenticated;
+GRANT ALL ON public.admin_activity_logs TO authenticated;
+GRANT ALL ON public.model_slug_history  TO authenticated;
+
+-- Séquences (uuid_generate_v4 gère les PK uuid, mais par sécurité pour les séquences futures)
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+
+-- =============================================================================
 -- Fin de la migration 001
 -- =============================================================================
 -- Vérifications post-migration recommandées :
 --   SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
 --   SELECT polname, tablename FROM pg_policies WHERE schemaname = 'public';
+--   SELECT grantee, table_name, privilege_type FROM information_schema.role_table_grants
+--     WHERE table_schema = 'public' ORDER BY table_name, grantee;
 -- =============================================================================
