@@ -688,3 +688,106 @@ export async function getOffersByModelId(
     }
   })
 }
+
+/* ── Wizard de création — familles avec id ───────────────── */
+
+export interface FamilyWithId {
+  id:           string
+  brand_key:    string
+  internal_key: string
+  name:         string
+}
+
+export async function getFamiliesWithId(
+  client: SupabaseClient,
+): Promise<FamilyWithId[]> {
+  const { data, error } = await client
+    .from('device_families')
+    .select('id, internal_key, name, brands!inner(internal_key)')
+    .order('sort_order', { ascending: true })
+
+  if (error) { console.error('[queries] getFamiliesWithId:', error.message); return [] }
+
+  return (data ?? []).map(f => {
+    const b = (Array.isArray(f.brands) ? f.brands[0] : f.brands) as { internal_key: string } | null
+    return {
+      id:           f.id as string,
+      brand_key:    b?.internal_key ?? '',
+      internal_key: f.internal_key as string,
+      name:         f.name as string,
+    }
+  })
+}
+
+/* ── Catégories ──────────────────────────────────────────── */
+
+export interface CategoryOption {
+  id:           string
+  internal_key: string
+  name:         string
+}
+
+export async function getCategories(client: SupabaseClient): Promise<CategoryOption[]> {
+  const { data } = await client
+    .from('device_categories')
+    .select('id, internal_key, name')
+    .order('sort_order', { ascending: true })
+  return (data ?? []).map(c => ({
+    id:           c.id as string,
+    internal_key: c.internal_key as string,
+    name:         c.name as string,
+  }))
+}
+
+/* ── Éditeur de tarifs — modèle + offres avec updated_at ─── */
+
+export type OfferForTarifs = OfferDetail
+
+export async function getModelWithOffers(
+  client: SupabaseClient,
+  slug: string,
+): Promise<{ model: ModelContext; offers: OfferForTarifs[] } | null> {
+  const model = await getModelBySlug(client, slug)
+  if (!model) return null
+  const offers = await getOffersByModelId(client, model.id, model)
+  return { model, offers }
+}
+
+/* ── Types de réparation manquants pour un modèle ───────── */
+
+export interface MissingRepairType {
+  id:           string
+  internal_key: string
+  name:         string
+  category:     string
+}
+
+export async function getMissingRepairTypes(
+  client: SupabaseClient,
+  modelId: string,
+): Promise<MissingRepairType[]> {
+  // All active repair types not already in this model's offers
+  const { data: existing } = await client
+    .from('repair_offers')
+    .select('repair_type_id')
+    .eq('device_model_id', modelId)
+
+  const existingTypeIds = new Set((existing ?? []).map(o => o.repair_type_id as string))
+
+  const { data, error } = await client
+    .from('repair_types')
+    .select('id, internal_key, name, category')
+    .eq('status', 'active')
+    .order('sort_order', { ascending: true })
+
+  if (error) { console.error('[queries] getMissingRepairTypes:', error.message); return [] }
+
+  return (data ?? [])
+    .filter(t => !existingTypeIds.has(t.id as string))
+    .map(t => ({
+      id:           t.id as string,
+      internal_key: t.internal_key as string,
+      name:         t.name as string,
+      category:     t.category as string,
+    }))
+}

@@ -167,7 +167,7 @@ export default async function ReparationsPage({
       <div className="space-y-6">
 
         {/* ── En-tête ───────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-rubik font-bold text-foreground">Réparations</h1>
             {modelCtx ? (
@@ -182,30 +182,66 @@ export default async function ReparationsPage({
             )}
           </div>
 
-          {isAdmin && modelCtx && (
-            <Link
-              href={createHref}
-              className="
-                flex items-center gap-2 h-9 px-4 rounded-btn shrink-0
-                bg-accent text-primary-foreground
-                font-rubik font-semibold text-sm
-                hover:bg-accent/90 transition-colors duration-220
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60
-              "
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              Ajouter
-            </Link>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Ajouter un modèle — toujours visible */}
+            {isAdmin && (
+              <Link
+                href="/admin/modeles/nouveau"
+                className="
+                  flex items-center gap-1.5 h-9 px-4 rounded-btn
+                  border border-white/15 text-foreground/60
+                  font-rubik text-sm
+                  hover:text-foreground hover:bg-white/5 hover:border-white/25
+                  transition-colors duration-220
+                "
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+                  <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                Ajouter un modèle
+              </Link>
+            )}
 
-          {!isAdmin && (
-            <span className="flex items-center gap-2 px-3 py-1.5 rounded-btn text-xs font-rubik text-amber-400 bg-amber-400/8 border border-amber-400/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden />
-              Lecture seule
-            </span>
-          )}
+            {/* Actions du modèle sélectionné (admin) */}
+            {isAdmin && modelCtx && (
+              <>
+                <Link
+                  href={`/admin/modeles/${modelCtx.slug}/tarifs`}
+                  className="
+                    flex items-center gap-1.5 h-9 px-4 rounded-btn shrink-0
+                    bg-accent text-primary-foreground
+                    font-rubik font-semibold text-sm
+                    hover:bg-accent/90 transition-colors duration-220
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60
+                  "
+                >
+                  Modifier les prix
+                </Link>
+                <Link
+                  href={createHref}
+                  className="
+                    flex items-center gap-1.5 h-9 px-4 rounded-btn
+                    border border-white/15 text-foreground/60
+                    font-rubik text-sm
+                    hover:text-foreground hover:bg-white/5 hover:border-white/25
+                    transition-colors duration-220
+                  "
+                >
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+                    <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  Ajouter une réparation
+                </Link>
+              </>
+            )}
+
+            {!isAdmin && (
+              <span className="flex items-center gap-2 px-3 py-1.5 rounded-btn text-xs font-rubik text-amber-400 bg-amber-400/8 border border-amber-400/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden />
+                Lecture seule
+              </span>
+            )}
+          </div>
         </div>
 
         {/* ── Sélecteur en cascade ──────────────────────── */}
