@@ -56,7 +56,7 @@ export default async function NouveauModelePage() {
       </div>
 
       <NewModelWizard
-        brands={brands.map(b => ({ internal_key: b.internal_key, name: b.name }))}
+        brands={brands.map(b => ({ id: b.id, internal_key: b.internal_key, name: b.name }))}
         families={families}
         categories={categoriesRaw}
         types={types}

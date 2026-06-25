@@ -69,3 +69,17 @@ export const archiveModelSchema = z.object({
   model_id:            z.string().uuid(),
   expected_updated_at: z.string().min(1),
 })
+
+/* ── Schéma d'une nouvelle famille ───────────────────────── */
+
+export const newFamilySchema = z.object({
+  brand_id:      z.string().uuid('Marque invalide.'),
+  name:          z.string().min(1, 'Nom de famille obligatoire.').max(200),
+  internal_key:  z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'Format : lettres minuscules, chiffres et tirets.'),
+  short_label:   z.string().min(1, 'Libellé court obligatoire.').max(100),
+  button_prefix: z.string().nullable().optional(),
+  status:        z.enum(['active', 'inactive']).default('active'),
+  sort_order:    z.coerce.number().int().min(0).default(0),
+})
+
+export type NewFamilyInput = z.input<typeof newFamilySchema>

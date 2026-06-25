@@ -1,7 +1,9 @@
 'use server'
 /*
-  Création d'un nouveau modèle avec ses offres initiales.
-  Lecture des offres d'un modèle existant pour la fonctionnalité "copier depuis".
+  Actions serveur pour la création d'un nouveau modèle.
+  Deux chemins :
+    - familyMode='existing' → admin_create_device_model_with_offers (RPC 004)
+    - familyMode='new'      → admin_create_family_and_model_with_offers (RPC 005)
 */
 
 import { redirect }                   from 'next/navigation'
@@ -15,7 +17,6 @@ export interface ModelCreateResult {
   success:      boolean
   message:      string
   modelSlug?:   string
-  brandKey?:    string
   fieldErrors?: Record<string, string[]>
 }
 
@@ -24,15 +25,13 @@ export interface ModelCreateResult {
 export async function getModelOffersForCopyAction(
   modelSlug: string,
 ): Promise<OfferForTarifs[] | null> {
-  const profile = await requireAdminProfile()
-  if (!profile) return null
-
+  await requireAdminProfile()
   const supabase = await createSupabaseServerClient()
   const result   = await getModelWithOffers(supabase, modelSlug)
   return result?.offers ?? null
 }
 
-/* ── Créer un modèle avec ses offres ────────────────────── */
+/* ── Interfaces de saisie ────────────────────────────────── */
 
 interface OfferInput {
   repair_type_id:  string
@@ -44,32 +43,68 @@ interface OfferInput {
   sort_order:      number
 }
 
+interface NewFamilyInput {
+  brand_id:      string
+  name:          string
+  internal_key:  string
+  short_label:   string
+  button_prefix: string | null
+  status:        string
+  sort_order:    number
+}
+
+interface ModelInput {
+  family_id:    string
+  category_id:  string
+  internal_key: string
+  name:         string
+  slug:         string
+  status:       string
+  sort_order:   number
+  family_mode:  'existing' | 'new'
+  new_family?:  NewFamilyInput
+}
+
+/* ── Utilitaire d'analyse d'erreur RPC ──────────────────── */
+
+function parseRpcError(msg: string): { message: string; fieldErrors?: Record<string, string[]> } {
+  if (msg.startsWith('auth_required:'))  return { message: 'Authentification requise.' }
+  if (msg.startsWith('forbidden:'))      return { message: 'Rôle admin requis.' }
+
+  const conflictMatch = msg.match(/^conflict:([^:]+): (.+)$/)
+  if (conflictMatch) {
+    const field = conflictMatch[1].trim()
+    const text  = conflictMatch[2].trim()
+    return { message: text, fieldErrors: { [field]: [text] } }
+  }
+
+  const validationMatch = msg.match(/^validation:([^:]+): (.+)$/)
+  if (validationMatch) {
+    const field = validationMatch[1].trim()
+    const text  = validationMatch[2].trim()
+    return { message: text, fieldErrors: { [field]: [text] } }
+  }
+
+  console.error('[modeles/nouveau/actions]', msg)
+  return { message: 'Erreur lors de la création. Vérifiez les données.' }
+}
+
+/* ── Création du modèle ──────────────────────────────────── */
+
 export async function createDeviceModelAction(
-  modelData: {
-    family_id:    string
-    category_id:  string
-    internal_key: string
-    name:         string
-    slug:         string
-    status:       string
-    sort_order:   number
-  },
+  modelData:  ModelInput,
   offersData: OfferInput[],
-): Promise<ModelCreateResult> {
+): Promise<never> {
   const profile = await requireAdminProfile()
   if (profile.role !== 'admin') {
-    return { success: false, message: 'Rôle admin requis.' }
+    throw new Error('Rôle admin requis.')
   }
 
   // Convertir CHF → centimes
   const offersJson = offersData.map(o => {
     let priceCents: number | null = null
     if (o.pricing_mode === 'fixed') {
-      try {
-        priceCents = parsePriceCHF(o.price_chf ?? '')
-      } catch {
-        priceCents = null
-      }
+      try { priceCents = parsePriceCHF(o.price_chf ?? '') } catch { priceCents = null }
     }
     return {
       repair_type_id: o.repair_type_id,
@@ -83,44 +118,76 @@ export async function createDeviceModelAction(
     }
   })
 
-  const supabase = await createSupabaseServerClient()
+  const supabase  = await createSupabaseServerClient()
+  let brandKey    = ''
+  let modelSlug   = modelData.slug
 
-  // Récupérer brand_key depuis la famille pour la redirection
-  const { data: familyData } = await supabase
-    .from('device_families')
-    .select('id, brands!inner(internal_key)')
-    .eq('id', modelData.family_id)
-    .single()
+  if (modelData.family_mode === 'existing') {
+    // Récupérer brand_key pour la redirection
+    const { data: famData } = await supabase
+      .from('device_families')
+      .select('brands!inner(internal_key)')
+      .eq('id', modelData.family_id)
+      .single()
+    const fam   = famData as { brands: unknown } | null
+    const brand = (Array.isArray((fam?.brands as unknown[])) ? (fam?.brands as unknown[])[0] : fam?.brands) as { internal_key: string } | null
+    brandKey = brand?.internal_key ?? ''
 
-  const fam   = familyData as { id: string; brands: unknown } | null
-  const brand = (Array.isArray((fam?.brands as unknown[])) ? (fam?.brands as unknown[])[0] : fam?.brands) as { internal_key: string } | null
-  const brandKey = brand?.internal_key ?? ''
+    const { data: rpcResult, error } = await supabase.rpc('admin_create_device_model_with_offers', {
+      p_family_id:    modelData.family_id,
+      p_category_id:  modelData.category_id,
+      p_internal_key: modelData.internal_key,
+      p_name:         modelData.name,
+      p_slug:         modelData.slug,
+      p_legacy_slug:  modelData.slug,
+      p_status:       modelData.status,
+      p_sort_order:   modelData.sort_order,
+      p_offers:       JSON.stringify(offersJson),
+    })
 
-  const { data: rpcResult, error } = await supabase.rpc('admin_create_device_model_with_offers', {
-    p_family_id:    modelData.family_id,
-    p_category_id:  modelData.category_id,
-    p_internal_key: modelData.internal_key,
-    p_name:         modelData.name,
-    p_slug:         modelData.slug,
-    p_legacy_slug:  modelData.slug,
-    p_status:       modelData.status,
-    p_sort_order:   modelData.sort_order,
-    p_offers:       JSON.stringify(offersJson),
-  })
+    if (error) {
+      const parsed = parseRpcError(error.message)
+      throw new Error(parsed.message)
+    }
+    modelSlug = (rpcResult as { model_slug?: string } | null)?.model_slug ?? modelData.slug
 
-  if (error) {
-    // Analyser l'erreur
-    const msg = error.message
-    if (msg.includes('conflict:slug:'))         return { success: false, message: msg.replace('conflict:slug:', '').trim(), fieldErrors: { slug: [msg.replace('conflict:slug:', '').trim()] } }
-    if (msg.includes('conflict:internal_key:')) return { success: false, message: msg.replace('conflict:internal_key:', '').trim(), fieldErrors: { internal_key: [msg.replace('conflict:internal_key:', '').trim()] } }
-    if (msg.startsWith('forbidden:'))           return { success: false, message: 'Rôle admin requis.' }
-    if (msg.startsWith('validation:'))          return { success: false, message: msg.replace(/^validation:[^:]*:/, '').trim() }
-    console.error('[modeles/nouveau/actions] createDeviceModel:', msg)
-    return { success: false, message: 'Erreur lors de la création. Vérifiez les données.' }
+  } else {
+    // Nouvelle famille → nouvelle RPC
+    const nf = modelData.new_family
+    if (!nf) throw new Error('Données de nouvelle famille manquantes.')
+
+    brandKey = '' // sera récupéré depuis la marque après création
+    const { data: brandData } = await supabase
+      .from('brands')
+      .select('internal_key')
+      .eq('id', nf.brand_id)
+      .single()
+    brandKey = (brandData as { internal_key?: string } | null)?.internal_key ?? ''
+
+    const { data: rpcResult, error } = await supabase.rpc('admin_create_family_and_model_with_offers', {
+      p_brand_id:              nf.brand_id,
+      p_family_name:           nf.name,
+      p_family_internal_key:   nf.internal_key,
+      p_family_short_label:    nf.short_label,
+      p_family_button_prefix:  nf.button_prefix,
+      p_family_status:         nf.status,
+      p_family_sort_order:     nf.sort_order,
+      p_category_id:           modelData.category_id,
+      p_model_internal_key:    modelData.internal_key,
+      p_model_name:            modelData.name,
+      p_model_slug:            modelData.slug,
+      p_model_legacy_slug:     modelData.slug,
+      p_model_status:          modelData.status,
+      p_model_sort_order:      modelData.sort_order,
+      p_offers:                JSON.stringify(offersJson),
+    })
+
+    if (error) {
+      const parsed = parseRpcError(error.message)
+      throw new Error(parsed.message)
+    }
+    modelSlug = (rpcResult as { model_slug?: string } | null)?.model_slug ?? modelData.slug
   }
 
-  const result = rpcResult as { model_slug?: string; model_id?: string } | null
-  const newSlug = result?.model_slug ?? modelData.slug
-
-  redirect(`/admin/reparations?brand=${brandKey}&model=${newSlug}`)
+  redirect(`/admin/reparations?brand=${brandKey}&model=${modelSlug}`)
 }
