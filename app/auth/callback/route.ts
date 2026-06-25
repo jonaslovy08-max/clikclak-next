@@ -5,19 +5,21 @@
   Échange le `code` contre une session et redirige vers le chemin demandé.
 
   Sécurité :
-  - `next` est limité à une liste de chemins autorisés (pas de redirection externe)
+  - L'origine est reconstruite depuis les headers du proxy (pas request.nextUrl.origin)
+  - `next` est limité à une liste fermée de chemins autorisés
   - Les erreurs redirigent vers /admin/forgot-password?error=invalid_link
   - Le code PKCE est à usage unique — ne jamais réessayer
 */
 
-import { createServerClient }  from '@supabase/ssr'
+import { createServerClient }            from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { getPublicOrigin }               from '@/lib/auth/publicOrigin'
 
-/* Chemins autorisés pour le paramètre `next` */
+/* Chemins autorisés pour le paramètre `next` — liste fermée */
 const ALLOWED_NEXT_PATHS = ['/admin/reset-password'] as const
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const { searchParams, origin } = request.nextUrl
+  const { searchParams } = request.nextUrl
 
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/admin/reset-password'
@@ -27,9 +29,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     ? next
     : '/admin/reset-password'
 
-  const errorRedirect = NextResponse.redirect(
-    `${origin}/admin/forgot-password?error=invalid_link`,
-  )
+  /* Construire l'origine publique depuis les headers du proxy.
+     NE PAS utiliser request.nextUrl.origin qui retourne l'adresse
+     interne (http://localhost:3000) derrière un reverse proxy. */
+  let publicOrigin: string
+  try {
+    publicOrigin = getPublicOrigin(request.headers)
+  } catch {
+    /* Hôte non reconnu — répondre avec 400 plutôt que rediriger vers une
+       adresse inconnue. Ce cas ne devrait pas se produire en production. */
+    return new NextResponse('Bad Request: unrecognized host', { status: 400 })
+  }
+
+  const errorUrl   = new URL('/admin/forgot-password?error=invalid_link', publicOrigin)
+  const successUrl = new URL(safePath, publicOrigin)
+
+  const errorRedirect = NextResponse.redirect(errorUrl)
 
   if (!code) {
     return errorRedirect
@@ -44,7 +59,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   /* La réponse de succès est créée avant l'échange du code
      pour que setAll() puisse y écrire les cookies de session. */
-  const successRedirect = NextResponse.redirect(`${origin}${safePath}`)
+  const successRedirect = NextResponse.redirect(successUrl)
 
   const supabase = createServerClient(url, pubKey, {
     cookies: {
