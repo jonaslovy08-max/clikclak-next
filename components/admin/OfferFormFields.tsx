@@ -234,7 +234,7 @@ export function OfferFormFields({ state, pending, defaults = {} }: OfferFormFiel
             className={selectClass}
           >
             <option value="active">Actif</option>
-            <option value="inactive">Inactif</option>
+            <option value="inactive">Brouillon</option>
             <option value="archived">Archivé</option>
           </select>
           <FieldError errors={errors} field="status" />

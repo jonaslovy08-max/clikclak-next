@@ -1,4 +1,5 @@
 'use server'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /*
   Gérer les tarifs d'un modèle : mise à jour groupée + archivage.
   Toutes les mutations passent par les RPC sécurisées.
@@ -145,4 +146,74 @@ export async function archiveModelAction(
   revalidatePath('/admin/reparations', 'layout')
 
   return { success: true, message: 'Modèle archivé.' }
+}
+
+/* ── Suppression définitive d'un modèle ─────────────────── */
+
+export async function deleteModelAction(
+  modelId:           string,
+  expectedUpdatedAt: string,
+  confirmationName:  string,
+  modelName:         string,
+  deleteEmptyFamily: boolean,
+): Promise<TarifsActionResult> {
+  const profile = await requireAdminProfile()
+  if (profile.role !== 'admin') {
+    return { success: false, message: 'Rôle admin requis.' }
+  }
+
+  if (confirmationName !== modelName) {
+    return { success: false, message: 'Le nom saisi ne correspond pas.' }
+  }
+
+  const supabase = await createSupabaseServerClient()
+  const { error } = await supabase.rpc('admin_delete_device_model', {
+    p_model_id:            modelId,
+    p_expected_updated_at: expectedUpdatedAt,
+    p_confirmation_name:   confirmationName,
+    p_delete_empty_family: deleteEmptyFamily,
+  })
+
+  if (error) {
+    const p = parseRpcError(error.message)
+    return { success: false, ...p }
+  }
+
+  revalidatePath('/admin/modeles', 'layout')
+  revalidatePath('/admin/reparations', 'layout')
+
+  return { success: true, message: 'Modèle supprimé définitivement.' }
+}
+
+/* ── Suppression définitive d'une réparation ─────────────── */
+
+export async function deleteOfferAction(
+  offerId:           string,
+  expectedUpdatedAt: string,
+  confirmation:      string,
+): Promise<TarifsActionResult> {
+  const profile = await requireAdminProfile()
+  if (profile.role !== 'admin') {
+    return { success: false, message: 'Rôle admin requis.' }
+  }
+
+  if (confirmation !== 'SUPPRIMER') {
+    return { success: false, message: 'Saisissez exactement SUPPRIMER pour confirmer.' }
+  }
+
+  const supabase = await createSupabaseServerClient()
+  const { error } = await supabase.rpc('admin_delete_repair_offer', {
+    p_offer_id:            offerId,
+    p_expected_updated_at: expectedUpdatedAt,
+    p_confirmation:        confirmation,
+  })
+
+  if (error) {
+    const p = parseRpcError(error.message)
+    return { success: false, ...p }
+  }
+
+  revalidatePath('/admin/reparations', 'layout')
+
+  return { success: true, message: 'Réparation supprimée définitivement.' }
 }

@@ -15,7 +15,8 @@ import {
   getAllTypesForSelect,
   getSelectorModels,
 } from '@/lib/admin/queries'
-import { NewModelWizard } from './NewModelWizard'
+import { NewModelWizard }            from './NewModelWizard'
+import { UnpublishedChangesNotice } from '@/components/admin/UnpublishedChangesNotice'
 
 export const metadata: Metadata = { title: 'Nouveau modèle' }
 
@@ -54,6 +55,8 @@ export default async function NouveauModelePage() {
           Créez un nouveau modèle et ses réparations initiales en 3 étapes.
         </p>
       </div>
+
+      <UnpublishedChangesNotice />
 
       <NewModelWizard
         brands={brands.map(b => ({ id: b.id, internal_key: b.internal_key, name: b.name }))}

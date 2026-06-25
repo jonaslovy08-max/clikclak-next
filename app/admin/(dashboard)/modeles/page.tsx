@@ -17,9 +17,9 @@ export const metadata: Metadata = { title: 'Modèles' }
 const PAGE_SIZE = 50
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  active:   { label: 'Actif',   color: 'text-green-400 bg-green-400/10 border-green-400/20' },
-  inactive: { label: 'Inactif', color: 'text-amber-400 bg-amber-400/10 border-amber-400/20' },
-  archived: { label: 'Archivé', color: 'text-foreground/30 bg-white/5 border-white/10' },
+  active:   { label: 'Actif',     color: 'text-green-400 bg-green-400/10 border-green-400/20' },
+  inactive: { label: 'Brouillon', color: 'text-sky-400 bg-sky-400/10 border-sky-400/20' },
+  archived: { label: 'Archivé',  color: 'text-foreground/30 bg-white/5 border-white/10' },
 }
 
 export default async function ModelesPage({
@@ -79,11 +79,12 @@ export default async function ModelesPage({
           },
           {
             name:    'status',
-            label:   'Statut',
+            label:   'Actifs et brouillons',
             options: [
-              { value: 'active',   label: 'Actif' },
-              { value: 'inactive', label: 'Inactif' },
-              { value: 'archived', label: 'Archivé' },
+              { value: 'active',   label: 'Actifs seulement' },
+              { value: 'inactive', label: 'Brouillons seulement' },
+              { value: 'archived', label: 'Archivés' },
+              { value: 'all',      label: 'Tous' },
             ],
           },
         ]}

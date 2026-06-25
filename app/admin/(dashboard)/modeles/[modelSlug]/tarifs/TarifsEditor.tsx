@@ -178,7 +178,7 @@ function ModelOfferRow({ row, onUpdate, isPending }: ModelOfferRowProps) {
           aria-label={`Statut — ${row.repairTypeName}`}
         >
           <option value="active">Actif</option>
-          <option value="inactive">Inactif</option>
+          <option value="inactive">Brouillon</option>
           <option value="archived">Archivé</option>
         </select>
 
@@ -418,17 +418,6 @@ export function TarifsEditor({ model, initialOffers, missingTypes, repairTypeIdM
 
   return (
     <div className="space-y-8 pb-32">
-
-      {/* Avertissement site public */}
-      <div className="flex items-start gap-3 p-4 rounded-card bg-amber-400/5 border border-amber-400/15">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 mt-0.5" aria-hidden>
-          <path d="M8 1L15 14H1L8 1z" stroke="#fbbf24" strokeWidth="1.2" strokeLinejoin="round" />
-          <path d="M8 6v4M8 12h.01" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-        <p className="text-xs font-rubik text-foreground/45">
-          Les modifications sont enregistrées dans Supabase. Elles ne seront visibles sur le site public qu&apos;après l&apos;activation de la synchronisation Supabase.
-        </p>
-      </div>
 
       {globalError && (
         <div className="p-4 rounded-card bg-red-400/8 border border-red-400/20">

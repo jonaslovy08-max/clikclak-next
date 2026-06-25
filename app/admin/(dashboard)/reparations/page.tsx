@@ -26,6 +26,7 @@ import { RepairModelSelector }  from '@/components/admin/RepairModelSelector'
 import { OfferEditModal }       from '@/components/admin/OfferEditModal'
 import { OfferCreateModal }     from '@/components/admin/OfferCreateModal'
 import { ArchiveConfirmDialog } from '@/components/admin/ArchiveConfirmDialog'
+import { DeleteOfferDialog }    from '@/components/admin/DeleteOfferDialog'
 
 export const metadata: Metadata = { title: 'Réparations' }
 
@@ -59,7 +60,7 @@ const STATUS_COLOR: Record<string, string> = {
   archived: 'text-foreground/30 bg-white/5 border-white/10',
 }
 const STATUS_LABEL: Record<string, string> = {
-  active: 'Actif', inactive: 'Inactif', archived: 'Archivé',
+  active: 'Actif', inactive: 'Brouillon', archived: 'Archivé',
 }
 
 const AVAIL_COLOR: Record<string, string> = {
@@ -73,7 +74,15 @@ const AVAIL_LABEL: Record<string, string> = {
 
 /* ── Composant menu "..." pour archivage ─────────────────── */
 
-function MoreMenuLink({ archiveHref }: { archiveHref: string }) {
+function MoreMenuLink({
+  archiveHref,
+  deleteHref,
+  canDelete,
+}: {
+  archiveHref: string
+  deleteHref:  string
+  canDelete:   boolean
+}) {
   return (
     <div className="relative group">
       <button
@@ -85,19 +94,28 @@ function MoreMenuLink({ archiveHref }: { archiveHref: string }) {
       </button>
       <div className="
         absolute right-0 top-full mt-1 z-20
-        min-w-[110px] rounded-btn
+        min-w-[130px] rounded-btn
         bg-[#1e1e1e] border border-white/12
         shadow-xl
         invisible group-hover:visible
         opacity-0 group-hover:opacity-100
         transition-all duration-150
+        py-1
       ">
         <a
           href={archiveHref}
-          className="block px-4 py-2.5 text-sm font-rubik text-red-400 hover:bg-red-400/8 rounded-btn transition-colors"
+          className="block px-4 py-2.5 text-sm font-rubik text-foreground/60 hover:text-foreground hover:bg-white/5 transition-colors"
         >
           Archiver
         </a>
+        {canDelete && (
+          <a
+            href={deleteHref}
+            className="block px-4 py-2.5 text-sm font-rubik text-red-400/70 hover:text-red-400 hover:bg-red-400/8 transition-colors"
+          >
+            Supprimer
+          </a>
+        )}
       </div>
     </div>
   )
@@ -149,6 +167,10 @@ export default async function ReparationsPage({
   }
   if (isAdmin && params.mode === 'archive' && params.offer) {
     archiveOffer = await getOfferById(supabase, params.offer)
+  }
+  let deleteOffer = null
+  if (isAdmin && params.mode === 'delete-offer' && params.offer) {
+    deleteOffer = await getOfferById(supabase, params.offer)
   }
   if (isAdmin && params.mode === 'create') {
     ;[createModels, createTypes] = await Promise.all([
@@ -311,6 +333,8 @@ export default async function ReparationsPage({
                       {offers.map(o => {
                         const editHref    = isAdmin ? buildModalHref(params, 'edit', o.id) : '#'
                         const archiveHref = isAdmin ? buildModalHref(params, 'archive', o.id) : '#'
+                        const deleteHref  = isAdmin ? buildModalHref(params, 'delete-offer', o.id) : '#'
+                        const canDeleteOffer = isAdmin && o.origin === 'admin'   // public_synced_at vérifié côté RPC
                         return (
                           <tr key={o.id} className="hover:bg-white/[0.02] transition-colors">
                             <td className="px-5 py-4">
@@ -351,7 +375,11 @@ export default async function ReparationsPage({
                                     Modifier
                                   </Link>
                                   {o.status !== 'archived' && (
-                                    <MoreMenuLink archiveHref={archiveHref} />
+                                    <MoreMenuLink
+                                      archiveHref={archiveHref}
+                                      deleteHref={deleteHref}
+                                      canDelete={canDeleteOffer && o.status !== 'active'}
+                                    />
                                   )}
                                 </div>
                               </td>
@@ -432,6 +460,10 @@ export default async function ReparationsPage({
           updatedAt={archiveOffer.updated_at}
           closeHref={closeHref}
         />
+      )}
+
+      {isAdmin && params.mode === 'delete-offer' && deleteOffer && (
+        <DeleteOfferDialog offer={deleteOffer} closeHref={closeHref} />
       )}
     </>
   )

@@ -19,7 +19,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   active:   { label: 'Actif',   color: 'text-green-400 bg-green-400/10 border-green-400/20' },
-  inactive: { label: 'Inactif', color: 'text-amber-400 bg-amber-400/10 border-amber-400/20' },
+  inactive: { label: 'Brouillon', color: 'text-sky-400 bg-sky-400/10 border-sky-400/20' },
   archived: { label: 'Archivé', color: 'text-foreground/30 bg-white/5 border-white/10' },
 }
 
@@ -63,7 +63,7 @@ export default async function TypesPage({
             label:   'Statut',
             options: [
               { value: 'active',   label: 'Actif' },
-              { value: 'inactive', label: 'Inactif' },
+              { value: 'inactive', label: 'Brouillon' },
               { value: 'archived', label: 'Archivé' },
             ],
           },

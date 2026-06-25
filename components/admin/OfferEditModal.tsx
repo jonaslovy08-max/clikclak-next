@@ -253,7 +253,7 @@ export function OfferEditModal({ offer, closeHref }: Props) {
                 <select id="adv_status" name="status" defaultValue={offer.status}
                   disabled={pending} className={`${inputClass} cursor-pointer`}>
                   <option value="active">Actif</option>
-                  <option value="inactive">Inactif</option>
+                  <option value="inactive">Brouillon</option>
                   <option value="archived">Archivé</option>
                 </select>
               </div>

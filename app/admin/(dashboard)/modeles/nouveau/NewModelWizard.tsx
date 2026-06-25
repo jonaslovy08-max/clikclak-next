@@ -158,7 +158,7 @@ function OfferPriceRow({ offer, onUpdate }: OfferPriceRowProps) {
         className={`${inputSm} w-full cursor-pointer`}
         aria-label={`Statut ${offer.repairTypeName}`}
       >
-        <option value="inactive">Inactif</option>
+        <option value="inactive">Brouillon</option>
         <option value="active">Actif</option>
       </select>
     </div>
@@ -395,11 +395,6 @@ export function NewModelWizard({ brands, families, categories, types, allModels 
         <div className="space-y-5">
           <h2 className="text-lg font-rubik font-bold text-foreground">Informations du modèle</h2>
 
-          <div className="p-4 rounded-card bg-amber-400/5 border border-amber-400/15">
-            <p className="text-xs font-rubik text-foreground/45">
-              Le modèle sera créé dans Supabase. Il ne sera visible sur le site public qu&apos;après activation de la synchronisation Supabase.
-            </p>
-          </div>
 
           {/* Marque + Catégorie */}
           <div className="grid grid-cols-2 gap-4">
@@ -500,7 +495,7 @@ export function NewModelWizard({ brands, families, categories, types, allModels 
                         onChange={e => setS1(p => ({ ...p, newFamily: { ...p.newFamily, status: e.target.value } }))}
                         className={`${inputClass} cursor-pointer`}>
                         <option value="active">Actif</option>
-                        <option value="inactive">Inactif</option>
+                        <option value="inactive">Brouillon</option>
                       </select>
                     </div>
                   </div>
@@ -545,9 +540,19 @@ export function NewModelWizard({ brands, families, categories, types, allModels 
             <div>
               <label className={labelClass}>Statut initial</label>
               <select value={s1.status} onChange={e => setS1(p => ({ ...p, status: e.target.value }))} className={`${inputClass} cursor-pointer`}>
-                <option value="inactive">Inactif (recommandé)</option>
-                <option value="active">Actif</option>
+                <option value="inactive">Brouillon — recommandé</option>
+                <option value="active">Actif — modèle prêt</option>
               </select>
+              {s1.status === 'inactive' && (
+                <p className="mt-1.5 text-xs font-rubik text-foreground/40">
+                  Le modèle est enregistré dans l&apos;administration, mais reste masqué des listes actives. Utilisez ce statut pendant la préparation des réparations et des prix.
+                </p>
+              )}
+              {s1.status === 'active' && (
+                <p className="mt-1.5 text-xs font-rubik text-foreground/40">
+                  Le modèle est prêt à être utilisé dans l&apos;administration. Il deviendra publiable lorsque la synchronisation du site public sera activée.
+                </p>
+              )}
             </div>
             <div>
               <label className={labelClass}>Ordre</label>
@@ -648,7 +653,7 @@ export function NewModelWizard({ brands, families, categories, types, allModels 
               <span>Slug : <code className="text-foreground/70">{s1.slug}</code></span>
               <span>Clé : <code className="text-foreground/70">{s1.internalKey}</code></span>
               <span>Catégorie : {categories.find(c => c.id === s1.categoryId)?.name ?? '—'}</span>
-              <span>Statut : {s1.status}</span>
+              <span>Statut : {s1.status === 'inactive' ? 'Brouillon' : s1.status === 'active' ? 'Actif' : 'Archivé'}</span>
             </div>
           </div>
 
@@ -669,12 +674,6 @@ export function NewModelWizard({ brands, families, categories, types, allModels 
                 ))}
               </div>
             )}
-          </div>
-
-          <div className="p-4 rounded-card bg-amber-400/5 border border-amber-400/15">
-            <p className="text-xs font-rubik text-foreground/45">
-              Les données seront enregistrées dans Supabase. Elles ne seront visibles sur le site public qu&apos;après activation de la synchronisation Supabase.
-            </p>
           </div>
 
           <div className="flex justify-between">

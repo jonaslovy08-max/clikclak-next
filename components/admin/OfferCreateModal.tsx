@@ -237,7 +237,7 @@ export function OfferCreateModal({ models, types, prefilledModel, closeHref }: P
                 <select name="status" defaultValue="active" disabled={pending}
                   className={`${inputClass} cursor-pointer`}>
                   <option value="active">Actif</option>
-                  <option value="inactive">Inactif</option>
+                  <option value="inactive">Brouillon</option>
                 </select>
               </div>
               <div>

@@ -175,7 +175,14 @@ export async function getModels(
     .range(from, to)
     .order('sort_order', { ascending: true })
 
-  if (filters.status) q = q.eq('status', filters.status)
+  // Par défaut : actifs + brouillons (pas d'archivés) — 'all' pour tout voir
+  if (filters.status === 'all') {
+    /* pas de filtre — tout afficher */
+  } else if (filters.status) {
+    q = q.eq('status', filters.status)
+  } else {
+    q = q.neq('status', 'archived')
+  }
   if (filters.search) q = q.ilike('name', `%${filters.search}%`)
   if (filters.brand)  q = q.eq('device_families.brands.internal_key', filters.brand)
 
@@ -278,7 +285,7 @@ export async function getOffers(
   let q = client
     .from('repair_offers')
     .select(`
-      id, variant_key, variant_name, subtitle,
+      id, origin, variant_key, variant_name, subtitle,
       pricing_mode, price_cents, currency,
       availability, public_note, internal_note,
       duration_minutes, warranty_months,
@@ -327,6 +334,7 @@ export async function getOffers(
 
     return {
       id:                  o.id as string,
+      origin:              (o as Record<string, unknown>).origin as string ?? 'import',
       variant_key:         o.variant_key as string,
       variant_name:        (o as Record<string, unknown>).variant_name as string | null,
       subtitle:            o.subtitle as string | null,
@@ -386,7 +394,7 @@ export async function getOfferById(
   const { data, error } = await client
     .from('repair_offers')
     .select(`
-      id, variant_key, variant_name, subtitle,
+      id, origin, variant_key, variant_name, subtitle,
       pricing_mode, price_cents, currency,
       availability, public_note, internal_note,
       status, sort_order, updated_at,
@@ -425,6 +433,7 @@ export async function getOfferById(
 
   return {
     id:                 data.id as string,
+    origin:             (data as Record<string, unknown>).origin as string ?? 'import',
     variant_key:        data.variant_key as string,
     variant_name:       (data as { variant_name?: string | null }).variant_name ?? null,
     subtitle:           data.subtitle as string | null,
@@ -531,6 +540,7 @@ export interface SelectorModel {
   internal_key: string
   name:         string
   slug:         string
+  status:       string   // 'active' | 'inactive' | 'archived'
 }
 
 export async function getSelectorFamilies(
@@ -559,12 +569,13 @@ export async function getSelectorModels(
   const { data, error } = await client
     .from('device_models')
     .select(`
-      internal_key, name, slug,
+      internal_key, name, slug, status,
       device_families!inner(
         internal_key,
         brands!inner(internal_key)
       )
     `)
+    .neq('status', 'archived')   // les archivés n'apparaissent pas dans le sélecteur
     .order('sort_order', { ascending: true })
 
   if (error) { console.error('[queries] getSelectorModels:', error.message); return [] }
@@ -581,6 +592,7 @@ export async function getSelectorModels(
       internal_key: m.internal_key as string,
       name:         m.name as string,
       slug:         m.slug as string,
+      status:       m.status as string,
     }
   })
 }
@@ -588,14 +600,18 @@ export async function getSelectorModels(
 /* ── Contexte d'un modèle (header + requêtes d'offres) ───── */
 
 export interface ModelContext {
-  id:           string
-  internal_key: string
-  name:         string
-  slug:         string
-  family_key:   string
-  family_name:  string
-  brand_key:    string
-  brand_name:   string
+  id:               string
+  internal_key:     string
+  name:             string
+  slug:             string
+  status:           string
+  origin:           string          // 'import' | 'admin'
+  public_synced_at: string | null
+  updated_at:       string
+  family_key:       string
+  family_name:      string
+  brand_key:        string
+  brand_name:       string
 }
 
 export async function getModelBySlug(
@@ -605,7 +621,7 @@ export async function getModelBySlug(
   const { data, error } = await client
     .from('device_models')
     .select(`
-      id, internal_key, name, slug,
+      id, internal_key, name, slug, status, origin, public_synced_at, updated_at,
       device_families!inner(
         internal_key, name,
         brands!inner(internal_key, name)
@@ -622,15 +638,20 @@ export async function getModelBySlug(
   const br = fam ? (Array.isArray(fam.brands) ? (fam.brands as unknown[])[0] : fam.brands) : null
   const brand = br as { internal_key: string; name: string } | null
 
+  const row = data as Record<string, unknown>
   return {
-    id:           data.id as string,
-    internal_key: data.internal_key as string,
-    name:         data.name as string,
-    slug:         data.slug as string,
-    family_key:   fam?.internal_key ?? '',
-    family_name:  fam?.name ?? '',
-    brand_key:    brand?.internal_key ?? '',
-    brand_name:   brand?.name ?? '',
+    id:               data.id as string,
+    internal_key:     data.internal_key as string,
+    name:             data.name as string,
+    slug:             data.slug as string,
+    status:           data.status as string,
+    origin:           (row.origin as string | undefined) ?? 'import',
+    public_synced_at: (row.public_synced_at as string | null) ?? null,
+    updated_at:       (row.updated_at as string | undefined) ?? '',
+    family_key:       fam?.internal_key ?? '',
+    family_name:      fam?.name ?? '',
+    brand_key:        brand?.internal_key ?? '',
+    brand_name:       brand?.name ?? '',
   }
 }
 
@@ -644,7 +665,7 @@ export async function getOffersByModelId(
   const { data, error } = await client
     .from('repair_offers')
     .select(`
-      id, variant_key, variant_name, subtitle,
+      id, origin, variant_key, variant_name, subtitle,
       pricing_mode, price_cents, currency, availability,
       public_note, internal_note, duration_minutes, warranty_months,
       status, sort_order, updated_at,
@@ -662,6 +683,7 @@ export async function getOffersByModelId(
     const row = o as Record<string, unknown>
     return {
       id:                  o.id as string,
+      origin:              row.origin as string ?? 'import',
       variant_key:         o.variant_key as string,
       variant_name:        row.variant_name as string | null,
       subtitle:            o.subtitle as string | null,

@@ -166,6 +166,11 @@ export function RepairModelSelector({
                       ].join(' ')}
                     >
                       {m.name}
+                      {m.status === 'inactive' && !isActive && (
+                        <span className="ml-1.5 text-[9px] font-rubik font-normal text-sky-400/60 uppercase tracking-wide">
+                          Brouillon
+                        </span>
+                      )}
                     </button>
                   )
                 })}

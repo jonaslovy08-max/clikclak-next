@@ -15,7 +15,9 @@ import {
   getMissingRepairTypes,
   getAllTypesForSelect,
 } from '@/lib/admin/queries'
-import { TarifsEditor } from './TarifsEditor'
+import { TarifsEditor }             from './TarifsEditor'
+import { UnpublishedChangesNotice } from '@/components/admin/UnpublishedChangesNotice'
+import { DeleteModelSection }       from '@/components/admin/DeleteModelSection'
 
 export async function generateMetadata({
   params,
@@ -84,11 +86,31 @@ export default async function TarifsPage({
 
       {/* En-tête modèle */}
       <div>
-        <h1 className="text-2xl font-rubik font-bold text-foreground">{model.name}</h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-2xl font-rubik font-bold text-foreground">{model.name}</h1>
+          {model.status === 'inactive' && (
+            <span className="px-2 py-0.5 rounded-badge text-xs font-rubik font-medium border text-sky-400 bg-sky-400/10 border-sky-400/20">
+              Brouillon
+            </span>
+          )}
+          {model.status === 'archived' && (
+            <span className="px-2 py-0.5 rounded-badge text-xs font-rubik font-medium border text-foreground/30 bg-white/5 border-white/10">
+              Archivé
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-sm font-rubik text-foreground/40">
           {model.brand_name} · {model.family_name}
         </p>
+        {model.status === 'inactive' && (
+          <p className="mt-1 text-xs font-rubik text-foreground/35">
+            Ce modèle est encore en préparation. Vous pouvez modifier ses tarifs avant de l&apos;activer.
+          </p>
+        )}
       </div>
+
+      {/* Avertissement publication */}
+      <UnpublishedChangesNotice />
 
       {/* Éditeur */}
       <TarifsEditor
@@ -97,6 +119,20 @@ export default async function TarifsPage({
         missingTypes={missingTypes}
         repairTypeIdMap={repairTypeIdMap}
       />
+
+      {/* Zone de danger — visible uniquement pour les modèles admin */}
+      {profile.role === 'admin' && (
+        <div className="pt-6 border-t border-white/8 space-y-3">
+          <p className="text-xs font-rubik font-semibold text-foreground/25 uppercase tracking-wide">Zone de danger</p>
+          <DeleteModelSection
+            model={model}
+            offerCount={offers.length}
+            updatedAt={model.updated_at}
+            canDeleteFamily={false}
+            familyName={model.family_name}
+          />
+        </div>
+      )}
     </div>
   )
 }

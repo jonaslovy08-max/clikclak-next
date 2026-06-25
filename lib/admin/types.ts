@@ -82,6 +82,7 @@ export interface RepairTypeRow {
 
 export interface OfferRow {
   id:                  string
+  origin:              string   // 'import' | 'admin'
   variant_key:         string
   variant_name:        string | null
   subtitle:            string | null
