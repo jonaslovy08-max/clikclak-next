@@ -516,3 +516,175 @@ export async function getAllTypesForSelect(
     category:     t.category as string,
   }))
 }
+
+/* ── Sélecteurs en cascade (Brand → Family → Model) ─────── */
+
+export interface SelectorFamily {
+  brand_key:    string   // brand.internal_key
+  internal_key: string
+  name:         string
+}
+
+export interface SelectorModel {
+  brand_key:    string   // brand.internal_key
+  family_key:   string   // family.internal_key
+  internal_key: string
+  name:         string
+  slug:         string
+}
+
+export async function getSelectorFamilies(
+  client: SupabaseClient,
+): Promise<SelectorFamily[]> {
+  const { data, error } = await client
+    .from('device_families')
+    .select('internal_key, name, brands!inner(internal_key)')
+    .order('sort_order', { ascending: true })
+
+  if (error) { console.error('[queries] getSelectorFamilies:', error.message); return [] }
+
+  return (data ?? []).map(f => {
+    const b = (Array.isArray(f.brands) ? f.brands[0] : f.brands) as { internal_key: string } | null
+    return {
+      brand_key:    b?.internal_key ?? '',
+      internal_key: f.internal_key as string,
+      name:         f.name as string,
+    }
+  })
+}
+
+export async function getSelectorModels(
+  client: SupabaseClient,
+): Promise<SelectorModel[]> {
+  const { data, error } = await client
+    .from('device_models')
+    .select(`
+      internal_key, name, slug,
+      device_families!inner(
+        internal_key,
+        brands!inner(internal_key)
+      )
+    `)
+    .order('sort_order', { ascending: true })
+
+  if (error) { console.error('[queries] getSelectorModels:', error.message); return [] }
+
+  return (data ?? []).map(m => {
+    const fam = (Array.isArray(m.device_families) ? m.device_families[0] : m.device_families) as {
+      internal_key: string; brands: unknown
+    } | null
+    const br = fam ? (Array.isArray(fam.brands) ? (fam.brands as unknown[])[0] : fam.brands) : null
+    const brand = br as { internal_key: string } | null
+    return {
+      brand_key:    brand?.internal_key ?? '',
+      family_key:   fam?.internal_key ?? '',
+      internal_key: m.internal_key as string,
+      name:         m.name as string,
+      slug:         m.slug as string,
+    }
+  })
+}
+
+/* ── Contexte d'un modèle (header + requêtes d'offres) ───── */
+
+export interface ModelContext {
+  id:           string
+  internal_key: string
+  name:         string
+  slug:         string
+  family_key:   string
+  family_name:  string
+  brand_key:    string
+  brand_name:   string
+}
+
+export async function getModelBySlug(
+  client: SupabaseClient,
+  slug: string,
+): Promise<ModelContext | null> {
+  const { data, error } = await client
+    .from('device_models')
+    .select(`
+      id, internal_key, name, slug,
+      device_families!inner(
+        internal_key, name,
+        brands!inner(internal_key, name)
+      )
+    `)
+    .eq('slug', slug)
+    .single()
+
+  if (error || !data) return null
+
+  const fam = (Array.isArray(data.device_families) ? data.device_families[0] : data.device_families) as {
+    internal_key: string; name: string; brands: unknown
+  } | null
+  const br = fam ? (Array.isArray(fam.brands) ? (fam.brands as unknown[])[0] : fam.brands) : null
+  const brand = br as { internal_key: string; name: string } | null
+
+  return {
+    id:           data.id as string,
+    internal_key: data.internal_key as string,
+    name:         data.name as string,
+    slug:         data.slug as string,
+    family_key:   fam?.internal_key ?? '',
+    family_name:  fam?.name ?? '',
+    brand_key:    brand?.internal_key ?? '',
+    brand_name:   brand?.name ?? '',
+  }
+}
+
+/* ── Offres d'un modèle (pas de pagination — max ~15/modèle) */
+
+export async function getOffersByModelId(
+  client: SupabaseClient,
+  modelId: string,
+  ctx: Pick<ModelContext, 'internal_key' | 'name' | 'slug' | 'family_name' | 'brand_name' | 'brand_key'>,
+): Promise<OfferDetail[]> {
+  const { data, error } = await client
+    .from('repair_offers')
+    .select(`
+      id, variant_key, variant_name, subtitle,
+      pricing_mode, price_cents, currency, availability,
+      public_note, internal_note, duration_minutes, warranty_months,
+      status, sort_order, updated_at,
+      repair_types!inner(id, internal_key, name, category)
+    `)
+    .eq('device_model_id', modelId)
+    .order('sort_order', { ascending: true })
+
+  if (error) { console.error('[queries] getOffersByModelId:', error.message); return [] }
+
+  return (data ?? []).map(o => {
+    const tr = (Array.isArray(o.repair_types) ? o.repair_types[0] : o.repair_types) as {
+      id: string; internal_key: string; name: string; category: string
+    } | null
+    const row = o as Record<string, unknown>
+    return {
+      id:                  o.id as string,
+      variant_key:         o.variant_key as string,
+      variant_name:        row.variant_name as string | null,
+      subtitle:            o.subtitle as string | null,
+      pricing_mode:        o.pricing_mode as string,
+      price_cents:         o.price_cents as number | null,
+      currency:            o.currency as string,
+      availability:        o.availability as string,
+      public_note:         o.public_note as string | null,
+      internal_note:       row.internal_note as string | null,
+      duration_minutes:    row.duration_minutes as number | null,
+      warranty_months:     row.warranty_months as number | null,
+      status:              o.status as string,
+      sort_order:          o.sort_order as number,
+      updated_at:          row.updated_at as string,
+      model_name:          ctx.name,
+      model_internal_key:  ctx.internal_key,
+      model_slug:          ctx.slug,
+      family_name:         ctx.family_name,
+      brand_name:          ctx.brand_name,
+      brand_internal_key:  ctx.brand_key,
+      type_name:           tr?.name ?? '',
+      type_internal_key:   tr?.internal_key ?? '',
+      type_category:       tr?.category ?? '',
+    }
+  })
+}
