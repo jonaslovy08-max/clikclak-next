@@ -2,145 +2,176 @@
 /*
   components/admin/RepairModelSelector.tsx
 
-  Sélecteur en cascade Brand → Family → Model.
-  Filtrage client-side sur le dataset complet (7 marques, 50 familles, 212 modèles).
-  Met à jour les URL params sur chaque sélection.
+  Nouveau parcours : Marque → boutons modèles groupés par famille.
+  Le menu déroulant "famille" est supprimé.
+
+  Après sélection d'une marque, tous ses modèles s'affichent immédiatement
+  sous forme de boutons, regroupés par famille (section header).
+  Une recherche filtre les boutons en temps réel.
+  Le modèle actif est mis en évidence avec l'accent lime.
 */
 
 import { useRouter }    from 'next/navigation'
-import { useMemo }      from 'react'
+import { useMemo, useState } from 'react'
 import type { SelectorFamily, SelectorModel } from '@/lib/admin/queries'
 
 interface BrandOption { internal_key: string; name: string }
 
 interface Props {
-  brands:       BrandOption[]
-  allFamilies:  SelectorFamily[]
-  allModels:    SelectorModel[]
+  brands:        BrandOption[]
+  allFamilies:   SelectorFamily[]
+  allModels:     SelectorModel[]
   initialBrand:  string
-  initialFamily: string
-  initialModel:  string   // slug
+  initialModel:  string   // slug du modèle actif
   baseUrl:       string
 }
 
-const selectClass = `
-  h-9 px-3 pr-8 rounded-btn
-  bg-white/5 border border-white/12
-  text-foreground text-sm font-rubik
-  focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50
-  transition-colors duration-220 cursor-pointer
-  disabled:opacity-40 disabled:cursor-default
-`
-
 export function RepairModelSelector({
   brands, allFamilies, allModels,
-  initialBrand, initialFamily, initialModel,
+  initialBrand, initialModel,
   baseUrl,
 }: Props) {
   const router = useRouter()
+  const [search, setSearch] = useState('')
 
-  const families = useMemo(
-    () => allFamilies.filter(f => f.brand_key === initialBrand),
-    [allFamilies, initialBrand],
+  /* Modèles de la marque sélectionnée */
+  const brandModels = useMemo(
+    () => allModels.filter(m => m.brand_key === initialBrand),
+    [allModels, initialBrand],
   )
 
-  const models = useMemo(
-    () => allModels.filter(m => m.brand_key === initialBrand && m.family_key === initialFamily),
-    [allModels, initialBrand, initialFamily],
-  )
+  /* Filtre par recherche */
+  const filteredModels = useMemo(() => {
+    if (!search.trim()) return brandModels
+    const q = search.toLowerCase()
+    return brandModels.filter(m => m.name.toLowerCase().includes(q))
+  }, [brandModels, search])
 
-  function go(params: Record<string, string>) {
-    const q = new URLSearchParams(params)
+  /* Groupement par famille — dans l'ordre de sort_order des familles */
+  const groups = useMemo(() => {
+    const brandFamilies = allFamilies.filter(f => f.brand_key === initialBrand)
+    return brandFamilies
+      .map(f => ({
+        family: f,
+        models: filteredModels.filter(m => m.family_key === f.internal_key),
+      }))
+      .filter(g => g.models.length > 0)
+  }, [allFamilies, filteredModels, initialBrand])
+
+  function onBrand(brand: string) {
+    if (!brand) { router.push(baseUrl); return }
+    router.push(`${baseUrl}?brand=${brand}`)
+  }
+
+  function onModel(slug: string, brandKey: string) {
+    const q = new URLSearchParams({ brand: brandKey, model: slug })
     router.push(`${baseUrl}?${q.toString()}`)
   }
 
-  function onBrand(brand: string) {
-    go(brand ? { brand } : {})
-  }
-
-  function onFamily(family: string) {
-    go(family ? { brand: initialBrand, family } : { brand: initialBrand })
-  }
-
-  function onModel(slug: string) {
-    if (!slug) { go({ brand: initialBrand, family: initialFamily }); return }
-    const m = allModels.find(m => m.slug === slug)
-    if (m) {
-      go({ brand: m.brand_key, family: m.family_key, model: slug })
-    }
-  }
-
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* Marque */}
-      <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-rubik font-semibold text-foreground/30 uppercase tracking-wider">
-          Marque
-        </label>
-        <select
-          value={initialBrand}
-          onChange={e => onBrand(e.target.value)}
-          className={selectClass}
-          aria-label="Sélectionner une marque"
-        >
-          <option value="">Toutes les marques</option>
-          {brands.map(b => (
-            <option key={b.internal_key} value={b.internal_key}>{b.name}</option>
-          ))}
-        </select>
-      </div>
+    <div className="space-y-4">
 
-      {/* Flèche */}
-      {initialBrand && (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-4 text-foreground/25 shrink-0" aria-hidden>
-          <path d="M4 8h8M9 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-
-      {/* Famille */}
-      {initialBrand && (
+      {/* ── Sélecteur de marque ────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-rubik font-semibold text-foreground/30 uppercase tracking-wider">
-            Famille
+            Marque
           </label>
           <select
-            value={initialFamily}
-            onChange={e => onFamily(e.target.value)}
-            className={selectClass}
-            aria-label="Sélectionner une famille"
+            value={initialBrand}
+            onChange={e => onBrand(e.target.value)}
+            className="
+              h-9 px-3 pr-8 rounded-btn
+              bg-white/5 border border-white/12
+              text-foreground text-sm font-rubik
+              focus:outline-none focus:ring-2 focus:ring-accent/50
+              transition-colors duration-220 cursor-pointer
+            "
+            aria-label="Sélectionner une marque"
           >
-            <option value="">Toutes les familles</option>
-            {families.map(f => (
-              <option key={f.internal_key} value={f.internal_key}>{f.name}</option>
+            <option value="">Toutes les marques</option>
+            {brands.map(b => (
+              <option key={b.internal_key} value={b.internal_key}>{b.name}</option>
             ))}
           </select>
         </div>
+
+        {/* Recherche rapide */}
+        {initialBrand && (
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-rubik font-semibold text-foreground/30 uppercase tracking-wider">
+              Recherche
+            </label>
+            <input
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Filtrer les modèles…"
+              className="
+                h-9 px-3 rounded-btn
+                bg-white/5 border border-white/12
+                text-foreground text-sm font-rubik
+                placeholder:text-foreground/25
+                focus:outline-none focus:ring-2 focus:ring-accent/50
+                transition-colors duration-220
+              "
+              aria-label="Filtrer les modèles"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── État initial ──────────────────────────────────── */}
+      {!initialBrand && (
+        <p className="text-sm font-rubik text-foreground/25 py-4">
+          Choisissez une marque pour afficher ses modèles.
+        </p>
       )}
 
-      {/* Flèche */}
-      {initialFamily && (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-4 text-foreground/25 shrink-0" aria-hidden>
-          <path d="M4 8h8M9 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+      {/* ── Grille de modèles groupés par famille ─────────── */}
+      {initialBrand && groups.length === 0 && (
+        <p className="text-sm font-rubik text-foreground/25 py-4">
+          {search.trim()
+            ? `Aucun résultat pour « ${search} ».`
+            : 'Aucun modèle disponible pour cette marque.'}
+        </p>
       )}
 
-      {/* Modèle */}
-      {initialFamily && (
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-rubik font-semibold text-foreground/30 uppercase tracking-wider">
-            Modèle
-          </label>
-          <select
-            value={initialModel}
-            onChange={e => onModel(e.target.value)}
-            className={selectClass}
-            aria-label="Sélectionner un modèle"
-          >
-            <option value="">— Choisir —</option>
-            {models.map(m => (
-              <option key={m.slug} value={m.slug}>{m.name}</option>
-            ))}
-          </select>
+      {initialBrand && groups.length > 0 && (
+        <div className="space-y-5">
+          {groups.map(({ family, models }) => (
+            <div key={family.internal_key}>
+              {/* En-tête de famille */}
+              <p className="text-[10px] font-rubik font-semibold text-foreground/30 uppercase tracking-wider mb-2">
+                {family.name}
+              </p>
+
+              {/* Boutons de modèles */}
+              <div className="flex flex-wrap gap-2">
+                {models.map(m => {
+                  const isActive = m.slug === initialModel
+                  return (
+                    <button
+                      key={m.slug}
+                      type="button"
+                      onClick={() => onModel(m.slug, m.brand_key)}
+                      aria-pressed={isActive}
+                      className={[
+                        'px-3 py-1.5 rounded-btn text-sm font-rubik font-medium',
+                        'border transition-colors duration-220',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
+                        isActive
+                          ? 'bg-accent text-primary-foreground border-accent'
+                          : 'bg-white/5 text-foreground/70 border-white/10 hover:text-foreground hover:border-accent/50 hover:bg-accent/8',
+                      ].join(' ')}
+                    >
+                      {m.name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

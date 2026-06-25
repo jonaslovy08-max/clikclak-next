@@ -1,9 +1,9 @@
 /*
   app/admin/(dashboard)/reparations/page.tsx → /admin/reparations
 
-  Parcours : Marque → Famille → Modèle → Réparations
+  Parcours : Marque → (boutons modèles groupés par famille) → Réparations
 
-  URL : /admin/reparations?brand=iphone&family=iphone-16&model=iphone-16-pro
+  URL : /admin/reparations?brand=iphone&model=iphone-16-pro
   Modales : &mode=edit|create|archive  &offer=<uuid>
 */
 
@@ -115,9 +115,8 @@ export default async function ReparationsPage({
   const profile  = await requireAdminProfile()
   const isAdmin  = profile.role === 'admin'
 
-  const selectedBrand  = params.brand  ?? ''
-  const selectedFamily = params.family ?? ''
-  const selectedModel  = params.model  ?? ''  // slug
+  const selectedBrand  = params.brand ?? ''
+  const selectedModel  = params.model ?? ''   // slug
   const closeHref      = buildCloseHref(params)
 
   /* ── Données pour le sélecteur (léger, filtré client-side) */
@@ -216,7 +215,6 @@ export default async function ReparationsPage({
             allFamilies={allFamilies}
             allModels={allModels}
             initialBrand={selectedBrand}
-            initialFamily={selectedFamily}
             initialModel={selectedModel}
             baseUrl="/admin/reparations"
           />
