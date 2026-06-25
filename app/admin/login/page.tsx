@@ -3,14 +3,31 @@
   app/admin/login/page.tsx
 
   Page de connexion admin.
-  Client Component — gère l'état du formulaire et l'action serveur.
-  Ne révèle jamais si un email existe, si le compte est désactivé, etc.
+  - Affiche un bandeau de succès si ?password_updated=1
+  - Lien « Mot de passe oublié ? » vers /admin/forgot-password
 */
 
+import { Suspense }       from 'react'
 import { useActionState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link               from 'next/link'
 import { signIn, type SignInState } from './actions'
 
 const initialState: SignInState = {}
+
+/* Bandeau de succès après réinitialisation — isolé en Suspense pour useSearchParams */
+function PasswordUpdatedBanner() {
+  const params = useSearchParams()
+  if (params.get('password_updated') !== '1') return null
+  return (
+    <div className="mb-6 p-4 rounded-card bg-green-500/8 border border-green-500/20">
+      <p className="text-sm font-rubik text-green-400 font-medium">Mot de passe mis à jour</p>
+      <p className="text-sm font-rubik text-foreground/60 mt-0.5">
+        Votre mot de passe a été mis à jour. Vous pouvez vous connecter.
+      </p>
+    </div>
+  )
+}
 
 export default function AdminLoginPage() {
   const [state, action, pending] = useActionState<SignInState, FormData>(signIn, initialState)
@@ -33,6 +50,11 @@ export default function AdminLoginPage() {
             Interface d&apos;administration — accès restreint
           </p>
         </div>
+
+        {/* Bandeau mot de passe mis à jour */}
+        <Suspense fallback={null}>
+          <PasswordUpdatedBanner />
+        </Suspense>
 
         {/* Formulaire */}
         <form action={action} className="space-y-4">
@@ -65,12 +87,21 @@ export default function AdminLoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label
-              htmlFor="password"
-              className="block text-sm font-rubik font-medium text-foreground/70"
-            >
-              Mot de passe
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="password"
+                className="block text-sm font-rubik font-medium text-foreground/70"
+              >
+                Mot de passe
+              </label>
+              <Link
+                href="/admin/forgot-password"
+                className="text-xs font-rubik text-foreground/35 hover:text-foreground/60 transition-colors"
+                tabIndex={-1}
+              >
+                Mot de passe oublié&nbsp;?
+              </Link>
+            </div>
             <input
               id="password"
               name="password"

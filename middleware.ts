@@ -4,13 +4,21 @@
   Rafraîchit la session Supabase SSR et protège les routes /admin.
   La vérification du rôle admin est effectuée dans le layout serveur.
 
-  Protection :
-  - /admin/* sans session → redirect /admin/login
-  - /admin/login avec session valide → redirect /admin
+  Routes publiques (sans session) :
+  - /admin/login
+  - /admin/forgot-password
+
+  /auth/callback est hors du matcher (/admin/:path*), pas de protection ici.
+
+  /admin/reset-password est accessible avec la session de récupération
+  créée par /auth/callback après échange du code PKCE.
 */
 
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+
+/* Chemins /admin accessibles sans session authentifiée */
+const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password']
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   let supabaseResponse = NextResponse.next({ request })
@@ -41,9 +49,10 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+  const isPublicAdminPath = ADMIN_PUBLIC_PATHS.some(p => pathname.startsWith(p))
 
   // Route protégée sans session → login
-  if (!user && pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+  if (!user && pathname.startsWith('/admin') && !isPublicAdminPath) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/admin/login'
     return NextResponse.redirect(loginUrl)
