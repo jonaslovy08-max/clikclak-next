@@ -83,12 +83,16 @@ export interface RepairTypeRow {
 export interface OfferRow {
   id:                  string
   variant_key:         string
+  variant_name:        string | null
   subtitle:            string | null
   pricing_mode:        string
   price_cents:         number | null
   currency:            string
   availability:        string
   public_note:         string | null
+  internal_note:       string | null
+  duration_minutes?:   number | null
+  warranty_months?:    number | null
   status:              string
   sort_order:          number
   model_name:          string

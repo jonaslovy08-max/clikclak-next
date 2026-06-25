@@ -278,8 +278,11 @@ export async function getOffers(
   let q = client
     .from('repair_offers')
     .select(`
-      id, variant_key, subtitle, pricing_mode, price_cents, currency,
-      availability, public_note, status, sort_order,
+      id, variant_key, variant_name, subtitle,
+      pricing_mode, price_cents, currency,
+      availability, public_note, internal_note,
+      duration_minutes, warranty_months,
+      status, sort_order,
       device_models!inner(
         internal_key, name, slug,
         device_families!inner(
@@ -323,25 +326,29 @@ export async function getOffers(
     } | null
 
     return {
-      id:                 o.id as string,
-      variant_key:        o.variant_key as string,
-      subtitle:           o.subtitle as string | null,
-      pricing_mode:       o.pricing_mode as string,
-      price_cents:        o.price_cents as number | null,
-      currency:           o.currency as string,
-      availability:       o.availability as string,
-      public_note:        o.public_note as string | null,
-      status:             o.status as string,
-      sort_order:         o.sort_order as number,
-      model_name:         modelRaw?.name ?? '',
-      model_internal_key: modelRaw?.internal_key ?? '',
-      model_slug:         modelRaw?.slug ?? '',
-      family_name:        fam?.name ?? '',
-      brand_name:         brand?.name ?? '',
-      brand_internal_key: brand?.internal_key ?? '',
-      type_name:          typeRaw?.name ?? '',
-      type_internal_key:  typeRaw?.internal_key ?? '',
-      type_category:      typeRaw?.category ?? '',
+      id:                  o.id as string,
+      variant_key:         o.variant_key as string,
+      variant_name:        (o as Record<string, unknown>).variant_name as string | null,
+      subtitle:            o.subtitle as string | null,
+      pricing_mode:        o.pricing_mode as string,
+      price_cents:         o.price_cents as number | null,
+      currency:            o.currency as string,
+      availability:        o.availability as string,
+      public_note:         o.public_note as string | null,
+      internal_note:       (o as Record<string, unknown>).internal_note as string | null,
+      duration_minutes:    (o as Record<string, unknown>).duration_minutes as number | null,
+      warranty_months:     (o as Record<string, unknown>).warranty_months as number | null,
+      status:              o.status as string,
+      sort_order:          o.sort_order as number,
+      model_name:          modelRaw?.name ?? '',
+      model_internal_key:  modelRaw?.internal_key ?? '',
+      model_slug:          modelRaw?.slug ?? '',
+      family_name:         fam?.name ?? '',
+      brand_name:          brand?.name ?? '',
+      brand_internal_key:  brand?.internal_key ?? '',
+      type_name:           typeRaw?.name ?? '',
+      type_internal_key:   typeRaw?.internal_key ?? '',
+      type_category:       typeRaw?.category ?? '',
     }
   })
 
@@ -364,4 +371,148 @@ export async function getRepairTypeNames(client: SupabaseClient): Promise<{ inte
     .select('internal_key, name')
     .order('sort_order', { ascending: true })
   return data ?? []
+}
+
+/* ── Offre unique (pour le formulaire d'édition) ─────────── */
+
+export interface OfferDetail extends OfferRow {
+  updated_at: string
+}
+
+export async function getOfferById(
+  client: SupabaseClient,
+  id: string,
+): Promise<OfferDetail | null> {
+  const { data, error } = await client
+    .from('repair_offers')
+    .select(`
+      id, variant_key, variant_name, subtitle,
+      pricing_mode, price_cents, currency,
+      availability, public_note, internal_note,
+      status, sort_order, updated_at,
+      device_models!inner(
+        id, internal_key, name, slug,
+        device_families!inner(
+          internal_key, name,
+          brands!inner(internal_key, name)
+        )
+      ),
+      repair_types!inner(id, internal_key, name, category)
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error || !data) {
+    console.error('[admin/queries] getOfferById:', error?.message)
+    return null
+  }
+
+  const modelRaw = (Array.isArray(data.device_models) ? data.device_models[0] : data.device_models) as {
+    id: string; internal_key: string; name: string; slug: string;
+    device_families: unknown
+  } | null
+  const famRaw   = modelRaw
+    ? (Array.isArray((modelRaw as { device_families: unknown }).device_families)
+        ? ((modelRaw as { device_families: unknown[] }).device_families)[0]
+        : (modelRaw as { device_families: unknown }).device_families)
+    : null
+  const fam      = famRaw as { internal_key: string; name: string; brands: unknown } | null
+  const brandRaw = fam ? (Array.isArray(fam.brands) ? (fam.brands as unknown[])[0] : fam.brands) : null
+  const brand    = brandRaw as { internal_key: string; name: string } | null
+  const typeRaw  = (Array.isArray(data.repair_types) ? data.repair_types[0] : data.repair_types) as {
+    id: string; internal_key: string; name: string; category: string
+  } | null
+
+  return {
+    id:                 data.id as string,
+    variant_key:        data.variant_key as string,
+    variant_name:       (data as { variant_name?: string | null }).variant_name ?? null,
+    subtitle:           data.subtitle as string | null,
+    pricing_mode:       data.pricing_mode as string,
+    price_cents:        data.price_cents as number | null,
+    currency:           data.currency as string,
+    availability:       data.availability as string,
+    public_note:        data.public_note as string | null,
+    internal_note:      (data as { internal_note?: string | null }).internal_note ?? null,
+    status:             data.status as string,
+    sort_order:         data.sort_order as number,
+    updated_at:         data.updated_at as string,
+    model_name:         modelRaw?.name ?? '',
+    model_internal_key: modelRaw?.internal_key ?? '',
+    model_slug:         modelRaw?.slug ?? '',
+    family_name:        fam?.name ?? '',
+    brand_name:         brand?.name ?? '',
+    brand_internal_key: brand?.internal_key ?? '',
+    type_name:          typeRaw?.name ?? '',
+    type_internal_key:  typeRaw?.internal_key ?? '',
+    type_category:      typeRaw?.category ?? '',
+  }
+}
+
+/* ── Listes pour les formulaires ────────────────────────── */
+
+export interface ModelSelectOption {
+  id:          string
+  internal_key: string
+  name:         string
+  brand_name:   string
+  brand_key:    string
+}
+
+export async function getAllModelsForSelect(
+  client: SupabaseClient,
+): Promise<ModelSelectOption[]> {
+  const { data, error } = await client
+    .from('device_models')
+    .select(`
+      id, internal_key, name,
+      device_families!inner(
+        brands!inner(internal_key, name)
+      )
+    `)
+    .eq('status', 'active')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('[admin/queries] getAllModelsForSelect:', error.message)
+    return []
+  }
+
+  return (data ?? []).map((m) => {
+    const famRaw  = (Array.isArray(m.device_families) ? m.device_families[0] : m.device_families) as {
+      brands: unknown
+    } | null
+    const brandRaw = famRaw ? (Array.isArray(famRaw.brands) ? (famRaw.brands as unknown[])[0] : famRaw.brands) : null
+    const brand    = brandRaw as { internal_key: string; name: string } | null
+    return {
+      id:           m.id as string,
+      internal_key: m.internal_key as string,
+      name:         m.name as string,
+      brand_name:   brand?.name ?? '',
+      brand_key:    brand?.internal_key ?? '',
+    }
+  })
+}
+
+export interface TypeSelectOption {
+  id:          string
+  internal_key: string
+  name:         string
+  category:     string
+}
+
+export async function getAllTypesForSelect(
+  client: SupabaseClient,
+): Promise<TypeSelectOption[]> {
+  const { data } = await client
+    .from('repair_types')
+    .select('id, internal_key, name, category')
+    .eq('status', 'active')
+    .order('sort_order', { ascending: true })
+  return (data ?? []).map(t => ({
+    id:           t.id as string,
+    internal_key: t.internal_key as string,
+    name:         t.name as string,
+    category:     t.category as string,
+  }))
 }
