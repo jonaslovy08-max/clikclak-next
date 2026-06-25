@@ -100,13 +100,15 @@ export function AdminSidebar({ profile }: Props) {
         ))}
       </nav>
 
-      {/* Badge lecture seule */}
-      <div className="px-4 mb-4">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-btn bg-white/4 border border-white/8">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden />
-          <span className="text-xs font-rubik text-foreground/40">Mode lecture seule</span>
+      {/* Badge lecture seule — editor uniquement */}
+      {profile.role === 'editor' && (
+        <div className="px-4 mb-4">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-btn bg-white/4 border border-white/8">
+            <span className="w-1.5 h-1.5 rounded-full bg-foreground/25 shrink-0" aria-hidden />
+            <span className="text-xs font-rubik text-foreground/40">Lecture seule</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Profil + déconnexion */}
       <div className="px-2 border-t border-white/8 pt-4 space-y-1">

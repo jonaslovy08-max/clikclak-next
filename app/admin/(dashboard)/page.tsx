@@ -6,12 +6,14 @@
 
 import type { Metadata } from 'next'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { getDashboardStats } from '@/lib/admin/queries'
-import { StatCard } from '@/components/admin/StatCard'
+import { requireAdminProfile }        from '@/lib/admin/auth'
+import { getDashboardStats }          from '@/lib/admin/queries'
+import { StatCard }                   from '@/components/admin/StatCard'
 
 export const metadata: Metadata = { title: 'Tableau de bord' }
 
 export default async function AdminDashboardPage() {
+  const profile  = await requireAdminProfile()
   const supabase = await createSupabaseServerClient()
   const stats    = await getDashboardStats(supabase)
 
@@ -30,22 +32,22 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      {/* Alerte lecture seule */}
-      <div className="flex items-start gap-3 p-4 rounded-card bg-amber-400/5 border border-amber-400/20">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden className="shrink-0 mt-0.5">
-          <path d="M9 2L16 15H2L9 2z" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round" />
-          <path d="M9 7v4M9 13h.01" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-        <div>
-          <p className="text-sm font-rubik font-medium text-amber-300">
-            Mode lecture seule — Phase 2A
-          </p>
-          <p className="text-xs font-rubik text-foreground/40 mt-0.5">
-            Aucune modification des données n&apos;est possible dans cette phase.
-            Les prix affichés proviennent directement de Supabase.
-          </p>
+      {/* Bandeau lecture seule — editor uniquement */}
+      {profile.role === 'editor' && (
+        <div className="flex items-start gap-3 p-4 rounded-card bg-white/[0.04] border border-white/10">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 mt-0.5 text-foreground/35">
+            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 3v5m0 2h.01" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          <div>
+            <p className="text-sm font-rubik font-medium text-foreground/70">
+              Accès en lecture seule
+            </p>
+            <p className="text-xs font-rubik text-foreground/40 mt-0.5">
+              Votre compte peut consulter les données, mais ne peut pas les modifier.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Catalogue */}
       <section aria-labelledby="catalogue-heading">
