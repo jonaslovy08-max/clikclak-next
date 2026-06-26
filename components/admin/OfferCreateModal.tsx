@@ -12,7 +12,7 @@ import { OfferModal }      from './OfferModal'
 import {
   createRepairOfferAction,
   type AdminActionResult,
-} from '@/app/admin/(dashboard)/reparations/actions'
+} from '@/app/(fr)/admin/(dashboard)/reparations/actions'
 import type { ModelSelectOption, TypeSelectOption } from '@/lib/admin/queries'
 
 const initialState: AdminActionResult = { success: false, message: '' }

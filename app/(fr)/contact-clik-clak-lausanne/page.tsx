@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     'Contactez ClikClak à Lausanne pour une réparation smartphone, iPhone, Samsung, iPad, MacBook, récupération de données ou diagnostic. Envoyez votre demande avec photo de l\'appareil.',
   alternates: {
     canonical: `${SITE_URL}/contact-clik-clak-lausanne/`,
+    languages: {
+      'fr-CH':    `${SITE_URL}/contact-clik-clak-lausanne/`,
+      'en-CH':    `${SITE_URL}/en/contact/`,
+      'x-default': `${SITE_URL}/contact-clik-clak-lausanne/`,
+    },
   },
   openGraph: {
     title: 'Contact ClikClak Lausanne | Réparation smartphone, iPad, MacBook',

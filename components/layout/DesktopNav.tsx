@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { getActiveSection, getSectionNavHref } from '@/lib/navUtils'
 import { useCart } from '@/components/shop/CartContext'
 import type { NavLink } from '@/components/layout/Header'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 
 /*
   DesktopNav — barre indicatrice lime + deux dropdowns GSAP (Réparation + Services).
@@ -64,10 +65,12 @@ export default function DesktopNav({
   navLinks,
   rightLinks,
   shopEnabled = false,
+  locale      = 'fr',
 }: {
   navLinks:    NavLink[]
   rightLinks:  NavLink[]
   shopEnabled?: boolean
+  locale?:     'fr' | 'en'
 }) {
   const pathname = usePathname()
   const navRef   = useRef<HTMLElement>(null)
@@ -415,6 +418,9 @@ export default function DesktopNav({
             </div>
           )
         })}
+
+        {/* Sélecteur de langue — FR | EN */}
+        <LanguageSwitcher locale={locale} className="ml-2" />
       </div>
     </>
   )

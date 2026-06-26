@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "home":         "Accueil",
+    "repair":       "Réparation",
+    "services":     "Services",
+    "contact":      "Contact",
+    "shop":         "Shop",
+    "smartphone":   "Smartphone",
+    "tablet":       "Tablette",
+    "computer":     "Ordinateur",
+    "home_repair":  "Dépannage",
+    "all_repairs":  "Voir tous…",
+    "data_recovery": "Récupération de données",
+    "buyback":      "Rachat d'appareils",
+    "home_service": "Dépannage 7/7",
+    "courier":      "Service de coursier",
+    "water_damage": "Dégâts d'eau",
+    "lang_switcher": "Changer de langue",
+    "lang_fr":      "FR",
+    "lang_en":      "EN"
+  },
+  "footer": {
+    "tagline":      "Réparation smartphone à Lausanne",
+    "address":      "Rue du Petit-Chêne 9b, 1003 Lausanne",
+    "hours":        "Lun–Sam 10h–18h30",
+    "rights":       "Tous droits réservés"
+  },
+  "common": {
+    "contact_us":   "Nous contacter",
+    "get_quote":    "Demander un devis",
+    "learn_more":   "En savoir plus",
+    "request_repair": "Demander une réparation",
+    "from_price":   "Dès",
+    "chf":          "CHF",
+    "warranty":     "Garantie",
+    "years":        "ans",
+    "minutes":      "min",
+    "loading":      "Chargement…",
+    "send":         "Envoyer",
+    "close":        "Fermer"
+  },
+  "seo": {
+    "site_name":    "Clik Clak Repair",
+    "locale":       "fr_CH"
+  }
+}

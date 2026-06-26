@@ -10,7 +10,7 @@ import { useActionState } from 'react'
 import {
   archiveRepairOfferAction,
   type AdminActionResult,
-} from '@/app/admin/(dashboard)/reparations/actions'
+} from '@/app/(fr)/admin/(dashboard)/reparations/actions'
 import { OfferModal } from './OfferModal'
 
 const initialState: AdminActionResult = { success: false, message: '' }
