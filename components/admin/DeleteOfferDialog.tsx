@@ -12,7 +12,7 @@ import { OfferModal }     from './OfferModal'
 import {
   deleteOfferAction,
   type TarifsActionResult,
-} from '@/app/admin/(dashboard)/modeles/[modelSlug]/tarifs/actions'
+} from '@/app/(fr)/admin/(dashboard)/modeles/[modelSlug]/tarifs/actions'
 import type { OfferDetail } from '@/lib/admin/queries'
 
 const initialState: TarifsActionResult = { success: false, message: '' }

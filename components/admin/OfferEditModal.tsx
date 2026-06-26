@@ -16,7 +16,7 @@ import { OfferModal }    from './OfferModal'
 import {
   updateRepairOfferAction,
   type AdminActionResult,
-} from '@/app/admin/(dashboard)/reparations/actions'
+} from '@/app/(fr)/admin/(dashboard)/reparations/actions'
 import type { OfferDetail } from '@/lib/admin/queries'
 
 const initialState: AdminActionResult = { success: false, message: '' }

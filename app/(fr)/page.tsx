@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     'Votre smartphone est tombé, écran cassé ? Clik Clak Repair à Lausanne le répare, garantie 2 ans sur les pièces originales dès 29 CHF.',
   alternates: {
     canonical: `${SITE_URL}/`,
+    languages: {
+      'fr-CH':    `${SITE_URL}/`,
+      'en-CH':    `${SITE_URL}/en/`,
+      'x-default': `${SITE_URL}/`,
+    },
   },
   openGraph: {
     title: 'Réparation smartphone Lausanne, réparation iPhone, Samsung',

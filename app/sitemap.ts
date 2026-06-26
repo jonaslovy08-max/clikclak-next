@@ -5,6 +5,19 @@ import { SHOP_ENABLED } from '@/lib/config/features'
 
 const BASE = 'https://clikclak.ch'
 
+/* ── Pages anglaises disponibles dans la Phase 1 ─────────────────────
+   Uniquement les pages effectivement traduites.
+   À enrichir au fur et à mesure des traductions.
+─────────────────────────────────────────────────────────────────── */
+const EN_PAGES = [
+  { url: `${BASE}/en/`,                                     priority: 1.0 as const, changeFrequency: 'weekly'  as const },
+  { url: `${BASE}/en/contact/`,                             priority: 0.6 as const, changeFrequency: 'monthly' as const },
+  { url: `${BASE}/en/services/smartphone-repair/`,          priority: 0.8 as const, changeFrequency: 'weekly'  as const },
+  { url: `${BASE}/en/services/iphone-repair/`,              priority: 0.9 as const, changeFrequency: 'weekly'  as const },
+  { url: `${BASE}/en/services/samsung-repair/`,             priority: 0.8 as const, changeFrequency: 'weekly'  as const },
+  { url: `${BASE}/en/services/sell-your-device/`,           priority: 0.5 as const, changeFrequency: 'monthly' as const },
+]
+
 /*
   Sitemap ClikClak — règles d'inclusion :
     ✓ pages finales avec contenu réel
@@ -62,6 +75,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     /* ── Pages institutionnelles ────────────────────────────── */
     { url: `${BASE}/contact-clik-clak-lausanne/`,              priority: 0.6, changeFrequency: 'monthly' },
     { url: `${BASE}/clik-clak-repair-lausanne/`,               priority: 0.5, changeFrequency: 'monthly' },
+
+    /* ── Pages anglaises (Phase 1) ─────────────────────────────── */
+    ...EN_PAGES,
 
     /*
       Exclusions intentionnelles :

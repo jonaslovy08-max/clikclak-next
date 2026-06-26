@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Découvrez la réparation iPhone rapide et efficace à Lausanne. La plupart des réparations s'effectuent en environ 20 minutes.",
   alternates: {
     canonical: `${SITE_URL}/services/reparation-iphone/`,
+    languages: {
+      'fr-CH':    `${SITE_URL}/services/reparation-iphone/`,
+      'en-CH':    `${SITE_URL}/en/services/iphone-repair/`,
+      'x-default': `${SITE_URL}/services/reparation-iphone/`,
+    },
   },
   openGraph: {
     title: 'Réparation iPhone rapide à Lausanne — Clik Clak Repair',

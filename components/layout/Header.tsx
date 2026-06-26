@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import MobileMenu from './MobileMenu'
 import DesktopNav from './DesktopNav'
+import LanguageSwitcher from './LanguageSwitcher'
 import { SHOP_ENABLED } from '@/lib/config/features'
 
 export type NavSubLink = { label: string; href: string }
@@ -14,7 +15,7 @@ export type NavLink = {
   subLinks?:   NavSubLink[]
 }
 
-const navLinks: NavLink[] = [
+const navLinksFr: NavLink[] = [
   { label: 'Accueil',    href: '/' },
   {
     label:       'Réparation',
@@ -42,20 +43,55 @@ const navLinks: NavLink[] = [
   },
 ]
 
-const rightLinks: NavLink[] = [
+const navLinksEn: NavLink[] = [
+  { label: 'Home',    href: '/en' },
+  {
+    label:       'Repair',
+    href:        '/en/services/smartphone-repair',
+    hasDropdown: true,
+    subLinks: [
+      { label: 'Smartphone',  href: '/en/services/smartphone-repair' },
+      { label: 'iPhone',      href: '/en/services/iphone-repair'     },
+      { label: 'Samsung',     href: '/en/services/samsung-repair'    },
+    ],
+  },
+  {
+    label:       'Services',
+    href:        '/en',
+    hasDropdown: true,
+    subLinks: [
+      { label: 'Data recovery',     href: '/services/recuperation-donnees'          },
+      { label: 'Sell your device',  href: '/en/services/sell-your-device'            },
+    ],
+  },
+]
+
+const rightLinksFr: NavLink[] = [
   { label: 'Contact', href: '/contact-clik-clak-lausanne' },
   { label: 'Shop',    href: '/shop-reparation-smartphone-lausanne', accent: true },
 ]
 
-const allLinks = [...navLinks, ...rightLinks]
+const rightLinksEn: NavLink[] = [
+  { label: 'Contact', href: '/en/contact' },
+  { label: 'Shop',    href: '/shop-reparation-smartphone-lausanne', accent: true },
+]
 
-export default function Header() {
+interface HeaderProps {
+  /** Locale courante — détermine les labels de navigation et le sélecteur FR | EN */
+  locale?: 'fr' | 'en'
+}
+
+export default function Header({ locale = 'fr' }: HeaderProps) {
+  const navLinks   = locale === 'en' ? navLinksEn   : navLinksFr
+  const rightLinks = locale === 'en' ? rightLinksEn : rightLinksFr
+  const allLinks   = [...navLinks, ...rightLinks]
+
   return (
     <header className="relative z-50 w-full shrink-0">
 
       {/* ── Mobile ─────────────────────────────────────────────────── */}
       <div className="flex md:hidden items-center justify-between px-4 py-2">
-        <Link href="/" aria-label="ClikClak Repair — Accueil">
+        <Link href={locale === 'en' ? '/en' : '/'} aria-label="ClikClak Repair — Home">
           <Image
             src="/assets/logo/clikclak-logo-horizontal.svg"
             alt="ClikClak Repair"
@@ -64,16 +100,17 @@ export default function Header() {
             priority
           />
         </Link>
-        <MobileMenu links={allLinks} shopEnabled={SHOP_ENABLED} />
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher locale={locale} />
+          <MobileMenu links={allLinks} shopEnabled={SHOP_ENABLED} locale={locale} />
+        </div>
       </div>
 
       {/* ── Desktop ────────────────────────────────────────────────── */}
-      {/* grid-cols-[auto_1fr_auto] : logo | nav centré | liens droite */}
-      {/* items-start : aligne le haut du logo avec le haut du texte de navigation */}
       <div className="hidden md:grid grid-cols-[auto_1fr_auto] items-start gap-6 px-8 lg:px-12 pt-8 pb-4">
 
         {/* Logo vertical */}
-        <Link href="/" aria-label="ClikClak Repair — Accueil">
+        <Link href={locale === 'en' ? '/en' : '/'} aria-label="ClikClak Repair — Home">
           <Image
             src="/assets/logo/clikclak-logo.svg"
             alt="ClikClak Repair"
@@ -83,8 +120,14 @@ export default function Header() {
           />
         </Link>
 
-        {/* Nav centrale + liens droite — client component pour la barre indicatrice */}
-        <DesktopNav navLinks={navLinks} rightLinks={rightLinks} shopEnabled={SHOP_ENABLED} />
+        {/* Nav centrale + liens droite + sélecteur de langue */}
+        <DesktopNav
+          navLinks={navLinks}
+          rightLinks={rightLinks}
+          shopEnabled={SHOP_ENABLED}
+          locale={locale}
+        />
+
       </div>
 
     </header>

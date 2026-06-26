@@ -1,5 +1,4 @@
 'use server'
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /*
   Gérer les tarifs d'un modèle : mise à jour groupée + archivage.
   Toutes les mutations passent par les RPC sécurisées.

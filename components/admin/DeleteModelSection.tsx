@@ -12,7 +12,7 @@ import { useRouter }               from 'next/navigation'
 import {
   deleteModelAction,
   type TarifsActionResult,
-} from '@/app/admin/(dashboard)/modeles/[modelSlug]/tarifs/actions'
+} from '@/app/(fr)/admin/(dashboard)/modeles/[modelSlug]/tarifs/actions'
 import type { ModelContext } from '@/lib/admin/queries'
 
 interface Props {
