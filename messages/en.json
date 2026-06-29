@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "home":         "Home",
+    "repair":       "Repair",
+    "services":     "Services",
+    "contact":      "Contact",
+    "shop":         "Shop",
+    "smartphone":   "Smartphone",
+    "tablet":       "Tablet",
+    "computer":     "Computer",
+    "home_repair":  "Home repair",
+    "all_repairs":  "See all…",
+    "data_recovery": "Data recovery",
+    "buyback":      "Sell your device",
+    "home_service": "On-site service 7/7",
+    "courier":      "Courier service",
+    "water_damage": "Water damage",
+    "lang_switcher": "Change language",
+    "lang_fr":      "FR",
+    "lang_en":      "EN"
+  },
+  "footer": {
+    "tagline":      "Smartphone repair in Lausanne",
+    "address":      "Rue du Petit-Chêne 9b, 1003 Lausanne",
+    "hours":        "Mon–Sat 10am–6:30pm",
+    "rights":       "All rights reserved"
+  },
+  "common": {
+    "contact_us":   "Contact us",
+    "get_quote":    "Get a quote",
+    "learn_more":   "Learn more",
+    "request_repair": "Request a repair",
+    "from_price":   "From",
+    "chf":          "CHF",
+    "warranty":     "Warranty",
+    "years":        "years",
+    "minutes":      "min",
+    "loading":      "Loading…",
+    "send":         "Send",
+    "close":        "Close"
+  },
+  "seo": {
+    "site_name":    "Clik Clak Repair",
+    "locale":       "en_CH"
+  },
+  "home": {
+    "title":        "Smartphone Repair in Lausanne — Clik Clak Repair",
+    "description":  "Screen cracked? Clik Clak Repair in Lausanne fixes your smartphone, iPhone, Samsung, MacBook. 2-year warranty on original parts from CHF 29.",
+    "h1":           "Smartphone repair in Lausanne",
+    "select_brand": "Select your ",
+    "select_brand_accent": "brand",
+    "service_repair": "Repair",
+    "service_data":   "Data recovery",
+    "service_buyback": "Sell your device",
+    "cta_contact":  "Get a quote"
+  },
+  "contact": {
+    "title":        "Contact ClikClak Lausanne | Smartphone, iPad, MacBook Repair",
+    "description":  "Contact ClikClak in Lausanne for smartphone, iPhone, Samsung, iPad, MacBook repair, data recovery or diagnostic. Send your request with a photo.",
+    "h1":           "Contact us",
+    "h1_accent":    "Contact",
+    "subtitle":     "Get a quote, ask a question or book a repair.",
+    "faq_title":    "Frequently asked questions",
+    "send":         "Send message",
+    "sending":      "Sending…"
+  },
+  "iphone_repair": {
+    "title":        "iPhone Repair Lausanne — Clik Clak Repair",
+    "description":  "Cracked screen, dead battery? Clik Clak Repair in Lausanne fixes your iPhone. Original parts, 2-year warranty, express service from CHF 29.",
+    "h1":           "iPhone Repair",
+    "h1_prefix":    "",
+    "h1_accent":    "iPhone Repair",
+    "subtitle":     "Select your model for instant pricing.",
+    "select_model": "Select a model",
+    "your_model":   "Your model",
+    "search_placeholder": "Search my iPhone…"
+  },
+  "samsung_repair": {
+    "title":        "Samsung Repair Lausanne — Clik Clak Repair",
+    "description":  "Screen, battery, charging port — Clik Clak Repair in Lausanne fixes your Samsung Galaxy. Original parts, 2-year warranty.",
+    "h1":           "Samsung Repair",
+    "h1_prefix":    "Repair",
+    "h1_accent":    "Samsung",
+    "subtitle":     "Select your Galaxy model to get pricing."
+  },
+  "smartphone_repair": {
+    "title":        "Express Smartphone Repair Lausanne — Clik Clak Repair",
+    "description":  "Express smartphone repair at the best price in Lausanne. On-call service 7 days a week. Natel repair in Lausanne.",
+    "h1":           "Smartphone Repair",
+    "h1_prefix":    "Select your ",
+    "h1_accent":    "brand",
+    "subtitle":     "Choose your brand and get instant pricing."
+  },
+  "sell_device": {
+    "title":        "Sell Your Smartphone — Clik Clak Repair Lausanne",
+    "description":  "Sell your iPhone, Samsung or other smartphone to Clik Clak Repair in Lausanne. Instant quote, immediate payment.",
+    "h1":           "Sell your smartphone",
+    "h1_accent":    "smartphone",
+    "subtitle":     "Get an instant quote and quick payment."
+  }
+}

@@ -1,0 +1,61 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { sonyXperiaBrandData } from '@/data/sonyXperiaRepairs'
+import RepairModelPage from '@/components/repair/RepairModelPage'
+import { SITE_URL } from '@/lib/seo'
+
+const BASE_HREF_EN = '/en/services/sony-xperia-repair'
+const BASE_HREF_FR = '/services/reparation-sony-xperia'
+
+const allModels = sonyXperiaBrandData.families.flatMap(f => f.models)
+
+export function generateStaticParams() {
+  return allModels.map(m => ({ modelSlug: m.id }))
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ modelSlug: string }>
+}): Promise<Metadata> {
+  const { modelSlug } = await params
+  const model = allModels.find(m => m.id === modelSlug)
+  if (!model) return {}
+  return {
+    title:       `${model.label} Repair Lausanne | Screen, Battery | ClikClak`,
+    description: `Check ${model.label} repair prices in Lausanne: screen, battery, charging port and diagnostic at ClikClak.`,
+    alternates: {
+      canonical: `${SITE_URL}${BASE_HREF_EN}/${modelSlug}/`,
+      languages: {
+        'fr-CH':     `${SITE_URL}${BASE_HREF_FR}/${modelSlug}/`,
+        'en-CH':     `${SITE_URL}${BASE_HREF_EN}/${modelSlug}/`,
+        'x-default': `${SITE_URL}${BASE_HREF_FR}/${modelSlug}/`,
+      },
+    },
+    openGraph: {
+      title:       `${model.label} Repair Lausanne — ClikClak`,
+      description: `${model.label} repair prices in Lausanne. Screen, battery and more. Quality parts, warranty included.`,
+      url:         `${SITE_URL}${BASE_HREF_EN}/${modelSlug}/`,
+      locale:      'en_CH',
+      type:        'website',
+    },
+  }
+}
+
+export default async function EnSonyModelPage({
+  params,
+}: {
+  params: Promise<{ modelSlug: string }>
+}) {
+  const { modelSlug } = await params
+  if (!allModels.find(m => m.id === modelSlug)) notFound()
+  return (
+    <RepairModelPage
+      data={sonyXperiaBrandData}
+      modelId={modelSlug}
+      deviceType="smartphone"
+      baseHref={BASE_HREF_EN}
+      locale="en"
+    />
+  )
+}

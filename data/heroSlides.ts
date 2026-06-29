@@ -8,6 +8,45 @@ export type HeroSlide = {
   ctaSecondary: { label: string; href: string }
 }
 
+export const heroSlidesEn: HeroSlide[] = [
+  {
+    image:    '/assets/hero/01_hero_slide_rep_smartphone.webp',
+    imageAlt: 'Clik Clak Repair technician repairing a smartphone in Lausanne',
+    isH1:     true,
+    title:    'Smartphone Repair Lausanne',
+    desc:     'Screen, battery or charging port: your data stays intact in almost all cases. ClikClak repairs your smartphone in Lausanne with precision.',
+    ctaPrimary:   { label: 'Repair now!', href: '#selection-service' },
+    ctaSecondary: { label: 'Contact',     href: '#contact' },
+  },
+  {
+    image:    '/assets/hero/02_hero_slide_ordinateur.webp',
+    imageAlt: 'Computer repair — Clik Clak Repair Lausanne',
+    isH1:     false,
+    title:    'Computer Repair Lausanne',
+    desc:     "Slow startup, dead keyboard or failing battery — a broken computer doesn't mean lost files. Clear diagnosis, tailored solution.",
+    ctaPrimary:   { label: 'Repair now!', href: '#selection-service' },
+    ctaSecondary: { label: 'Learn more',  href: '/en/repair' },
+  },
+  {
+    image:    '/assets/hero/03_hero_slide_tablette.webp',
+    imageAlt: 'Tablet repair — Clik Clak Repair Lausanne',
+    isH1:     false,
+    title:    'Tablet Repair Lausanne',
+    desc:     "Your tablet deserves to be repaired, not replaced. Cracked screen, worn battery or touch failure: your photos, apps and documents stay safe.",
+    ctaPrimary:   { label: 'Repair now!', href: '#selection-service' },
+    ctaSecondary: { label: 'Contact',     href: '#contact' },
+  },
+  {
+    image:    '/assets/hero/04_hero_slide_recup-donnees.webp',
+    imageAlt: 'Data recovery — Clik Clak Repair Lausanne',
+    isH1:     false,
+    title:    'Data Recovery Lausanne',
+    desc:     "Even when a device won't turn on, your data isn't necessarily lost. Smartphone, computer or damaged media — we analyse the possibilities before any decision.",
+    ctaPrimary:   { label: 'Recover data', href: '/en/services/data-recovery' },
+    ctaSecondary: { label: 'Contact',      href: '#contact' },
+  },
+]
+
 export const heroSlides: HeroSlide[] = [
   {
     image:    '/assets/hero/01_hero_slide_rep_smartphone.webp',

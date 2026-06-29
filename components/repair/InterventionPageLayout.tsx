@@ -1,5 +1,5 @@
 /*
-  InterventionPageLayout — structure commune aux 5 pages d'intervention.
+  InterventionPageLayout — structure commune aux pages d'intervention.
   Server Component.
 
   Pages utilisatrices :
@@ -8,6 +8,7 @@
     /services/connecteur-de-charge
     /reparation-degat-eau-lausanne
     /services/diagnostic
+    + équivalents EN
 */
 
 import type React from 'react'
@@ -23,24 +24,32 @@ import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 interface HeroImage { src: string; mobileSrc?: string; alt: string }
 
 interface Props {
-  pill:               string      /* label du bouton/pill en haut de page */
-  h1:                 string      /* H1 de la page */
-  intro:              string      /* texte d'introduction */
-  interventionItems:  string[]    /* ce que comprend l'intervention */
-  faqItems:           FaqItem[]   /* FAQ spécifique */
-  note?:              string      /* note d'avertissement (dégât d'eau, etc.) */
-  heroImage?:         HeroImage   /* image optionnelle dans le hero */
-  bottomSlot?:        React.ReactNode  /* section optionnelle avant le footer */
+  pill:               string
+  h1:                 string
+  intro:              string
+  interventionItems:  string[]
+  faqItems:           FaqItem[]
+  note?:              string
+  heroImage?:         HeroImage
+  bottomSlot?:        React.ReactNode
+  locale?:            'fr' | 'en'
 }
 
-const PROCESS_STEPS = [
+const PROCESS_STEPS_FR = [
   { num: '01', title: 'Diagnostic ou confirmation', text: 'Nous vérifions l\'origine de la panne avant toute intervention.' },
   { num: '02', title: 'Devis selon modèle', text: 'Le tarif est communiqué selon votre modèle et la disponibilité des pièces.' },
   { num: '03', title: 'Intervention', text: 'La réparation est réalisée avec les précautions nécessaires.' },
   { num: '04', title: 'Test et restitution', text: 'L\'appareil est testé avant restitution.' },
 ]
 
-const REASSURANCE = [
+const PROCESS_STEPS_EN = [
+  { num: '01', title: 'Diagnostic / confirmation', text: 'We verify the cause of the issue before any intervention.' },
+  { num: '02', title: 'Quote by model', text: 'The price is communicated based on your model and parts availability.' },
+  { num: '03', title: 'Repair', text: 'The repair is carried out with the necessary care.' },
+  { num: '04', title: 'Testing & return', text: 'The device is tested before handover.' },
+]
+
+const REASSURANCE_FR = [
   'Diagnostic clair avant intervention',
   'Réparation locale à Lausanne',
   'Garantie selon type de pièce',
@@ -48,12 +57,63 @@ const REASSURANCE = [
   'Pièces selon disponibilité',
 ]
 
+const REASSURANCE_EN = [
+  'Clear diagnostic before intervention',
+  'Local repair in Lausanne',
+  'Warranty depending on part type',
+  'Data should be backed up before intervention',
+  'Parts subject to availability',
+]
+
+const STRINGS = {
+  fr: {
+    interventionTitle: 'Ce que comprend',
+    interventionAccent: 'l\'intervention',
+    processTitle: 'Comment se passe',
+    processAccent: 'la réparation ?',
+    processAriaLabel: 'Comment se passe la réparation',
+    whyTitle: 'Pourquoi choisir',
+    whyAccent: 'ClikClak ?',
+    whyAriaLabel: 'Nos engagements',
+    faqTitle: 'Questions',
+    faqAccent: 'fréquentes',
+    faqAriaLabel: 'Questions fréquentes',
+    ctaTitle: 'Besoin d\'une',
+    ctaAccent: 'réparation ?',
+    ctaDesc: 'Identifiez votre modèle pour consulter le tarif adapté ou contactez-nous directement.',
+    ctaAriaLabel: 'Demander une réparation',
+    interventionAriaLabel: 'Ce que comprend l\'intervention',
+  },
+  en: {
+    interventionTitle: 'What the repair',
+    interventionAccent: 'includes',
+    processTitle: 'How the repair',
+    processAccent: 'works',
+    processAriaLabel: 'How the repair works',
+    whyTitle: 'Why choose',
+    whyAccent: 'ClikClak?',
+    whyAriaLabel: 'Our commitments',
+    faqTitle: 'Frequently asked',
+    faqAccent: 'questions',
+    faqAriaLabel: 'Frequently asked questions',
+    ctaTitle: 'Need a',
+    ctaAccent: 'repair?',
+    ctaDesc: 'Identify your model to check the right price, or contact us directly.',
+    ctaAriaLabel: 'Request a repair',
+    interventionAriaLabel: 'What the repair includes',
+  },
+} as const
+
 export default function InterventionPageLayout({
-  pill, h1, intro, interventionItems, faqItems, note, heroImage, bottomSlot,
+  pill, h1, intro, interventionItems, faqItems, note, heroImage, bottomSlot, locale = 'fr',
 }: Props) {
+  const T = STRINGS[locale]
+  const PROCESS_STEPS = locale === 'en' ? PROCESS_STEPS_EN : PROCESS_STEPS_FR
+  const REASSURANCE   = locale === 'en' ? REASSURANCE_EN   : REASSURANCE_FR
+
   return (
     <>
-      <Header />
+      <Header locale={locale} />
 
       <main>
 
@@ -77,12 +137,15 @@ export default function InterventionPageLayout({
               </div>
 
               <h1 className="text-[2rem] md:text-[2.75rem] font-light leading-tight">
-                {h1.includes('à Lausanne')
-                  ? <>
-                      {h1.replace(' à Lausanne', '')}{' '}
-                      <span className="text-accent">à Lausanne</span>
-                    </>
-                  : h1
+                {locale === 'en'
+                  ? (h1.includes(' in Lausanne')
+                      ? <>{h1.replace(' in Lausanne', '')} <span className="text-accent">in Lausanne</span></>
+                      : h1
+                    )
+                  : (h1.includes('à Lausanne')
+                      ? <>{h1.replace(' à Lausanne', '')} <span className="text-accent">à Lausanne</span></>
+                      : h1
+                    )
                 }
               </h1>
 
@@ -106,7 +169,7 @@ export default function InterventionPageLayout({
               </p>
 
               <div className="flex flex-wrap items-center gap-4">
-                <ContactPopover />
+                <ContactPopover locale={locale} />
               </div>
             </div>
 
@@ -128,13 +191,13 @@ export default function InterventionPageLayout({
         {/* ══ CE QUE COMPREND L'INTERVENTION ════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label="Ce que comprend l'intervention"
+          aria-label={T.interventionAriaLabel}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
 
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-              Ce que comprend{' '}
-              <span className="text-accent">l&apos;intervention</span>
+              {T.interventionTitle}{' '}
+              <span className="text-accent">{T.interventionAccent}</span>
             </h2>
 
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -163,13 +226,13 @@ export default function InterventionPageLayout({
         {/* ══ COMMENT ÇA SE PASSE ════════════════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label="Comment se passe la réparation"
+          aria-label={T.processAriaLabel}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-10">
 
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-              Comment se passe{' '}
-              <span className="text-accent">la réparation ?</span>
+              {T.processTitle}{' '}
+              <span className="text-accent">{T.processAccent}</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
@@ -192,13 +255,13 @@ export default function InterventionPageLayout({
         {/* ══ RÉASSURANCE ════════════════════════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label="Nos engagements"
+          aria-label={T.whyAriaLabel}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
 
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-              Pourquoi choisir{' '}
-              <span className="text-accent">ClikClak ?</span>
+              {T.whyTitle}{' '}
+              <span className="text-accent">{T.whyAccent}</span>
             </h2>
 
             <div className="flex flex-wrap gap-3">
@@ -220,13 +283,13 @@ export default function InterventionPageLayout({
         <section
           id="faq"
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label="Questions fréquentes"
+          aria-label={T.faqAriaLabel}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
 
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-              Questions{' '}
-              <span className="text-accent">fréquentes</span>
+              {T.faqTitle}{' '}
+              <span className="text-accent">{T.faqAccent}</span>
             </h2>
 
             <FAQAccordion items={faqItems} />
@@ -237,37 +300,37 @@ export default function InterventionPageLayout({
         {/* ══ CTA FINAL ══════════════════════════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label="Demander une réparation"
+          aria-label={T.ctaAriaLabel}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-6 text-center">
 
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight max-w-xl">
-              Besoin d&apos;une{' '}
-              <span className="text-accent">réparation ?</span>
+              {T.ctaTitle}{' '}
+              <span className="text-accent">{T.ctaAccent}</span>
             </h2>
 
             <p
               className="font-light max-w-xl"
               style={{ fontSize: 'clamp(14px, 1.4vw, 18px)', color: 'rgba(242,242,242,0.6)' }}
             >
-              Identifiez votre modèle pour consulter le tarif adapté ou contactez-nous directement.
+              {T.ctaDesc}
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">
-              <ContactPopover />
+              <ContactPopover locale={locale} />
             </div>
 
           </div>
         </section>
 
         {/* ══ SÉLECTION APPAREIL ═════════════════════════════════════════ */}
-        <InterventionDeviceSelector />
+        <InterventionDeviceSelector locale={locale} />
 
       </main>
 
-      <RepairEngagements />
+      <RepairEngagements locale={locale} />
       {bottomSlot}
-      <SiteFooter />
+      <SiteFooter locale={locale} />
       <SectionPinning />
     </>
   )

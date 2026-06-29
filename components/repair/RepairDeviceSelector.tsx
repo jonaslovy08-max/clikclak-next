@@ -12,6 +12,7 @@
 
 import { useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
 import {
@@ -22,16 +23,26 @@ import {
   IconDataRecovery,
 } from '@/components/home/ServiceIcons'
 import RepairModelSearch from '@/components/RepairModelSearch'
+import { getAlternatePath } from '@/i18n/routes'
 
-const devices = [
-  { id: 'smartphones',  label: 'Smartphones',                  icon: IconSmartphone,   href: '/reparation-smartphone-express/' },
-  { id: 'ordinateurs',  label: 'Ordinateurs',                  icon: IconComputer,      href: '/reparation-ordinateur-express'  },
-  { id: 'tablette',     label: 'Tablette',                     icon: IconTablet,        href: '/reparation-tablette-express'    },
-  { id: 'depannage',    label: 'Dépannage 7/7',                icon: IconCourier,       href: '/services/depannage-reparation-domicile' },
-  { id: 'recuperation', label: ['Récupération', 'de données'], icon: IconDataRecovery,  href: '/services/recuperation-donnees' },
-] as const
+type DeviceIcon = React.ComponentType<{ drawRef?: React.Ref<SVGGeometryElement>; className?: string }>
+type Device = { id: string; label: string | readonly string[]; icon: DeviceIcon; href: string }
 
-type Device = typeof devices[number]
+const devicesFr: Device[] = [
+  { id: 'smartphones',  label: 'Smartphones',                  icon: IconSmartphone,  href: '/reparation-smartphone-express/'         },
+  { id: 'ordinateurs',  label: 'Ordinateurs',                  icon: IconComputer,    href: '/reparation-ordinateur-express'           },
+  { id: 'tablette',     label: 'Tablette',                     icon: IconTablet,      href: '/reparation-tablette-express'             },
+  { id: 'depannage',    label: 'Dépannage 7/7',                icon: IconCourier,     href: '/services/depannage-reparation-domicile'  },
+  { id: 'recuperation', label: ['Récupération', 'de données'], icon: IconDataRecovery,href: '/services/recuperation-donnees'           },
+]
+
+const devicesEn: Device[] = [
+  { id: 'smartphones',  label: 'Smartphones',       icon: IconSmartphone,  href: '/en/services/smartphone-repair'   },
+  { id: 'ordinateurs',  label: 'Computers',          icon: IconComputer,    href: '/en/express-computer-repair'      },
+  { id: 'tablette',     label: 'Tablet',             icon: IconTablet,      href: '/en/express-tablet-repair'        },
+  { id: 'depannage',    label: '7/7 Support',        icon: IconCourier,     href: '/en/services/home-repair-service' },
+  { id: 'recuperation', label: ['Data', 'recovery'], icon: IconDataRecovery,href: '/en/services/data-recovery'       },
+]
 
 function DeviceCardLink({ device }: { device: Device }) {
   const cardRef    = useRef<HTMLAnchorElement>(null)
@@ -148,10 +159,14 @@ function DeviceCardLink({ device }: { device: Device }) {
 export default function RepairDeviceSelector({
   hideRecuperation = false,
   headingLevel     = 'h1',
+  locale           = 'fr',
 }: {
   hideRecuperation?: boolean
   headingLevel?:     'h1' | 'h2'
+  locale?:           'fr' | 'en'
 } = {}) {
+  const router = useRouter()
+  const devices = locale === 'en' ? devicesEn : devicesFr
   const visibleDevices = hideRecuperation
     ? devices.filter(d => d.id !== 'recuperation')
     : devices
@@ -162,11 +177,26 @@ export default function RepairDeviceSelector({
 
   const Heading = headingLevel
 
+  const h2a = locale === 'en' ? 'Which device' : 'Quel appareil'
+  const h2b = locale === 'en' ? 'do you want to repair?' : 'souhaitez-vous réparer ?'
+  const sub = locale === 'en' ? 'Or select your device here' : 'Ou sélectionnez votre appareil ici'
+  const reassurance = locale === 'en'
+    ? 'No worries ! Repair without data loss…'
+    : 'Pas d’inquiétude ! Réparation sans perte de données…'
+
+  /* For EN, convert search result FR href to EN via getAlternatePath */
+  const handleSearchSelect = locale === 'en'
+    ? (result: { modelId: string; href: string }) => {
+        const enHref = getAlternatePath(result.href, 'en')
+        router.push(enHref)
+      }
+    : undefined
+
   return (
     <section
       id="selection-service"
       className="min-h-svh flex flex-col justify-center px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-      aria-label="Sélection du service"
+      aria-label={locale === 'en' ? 'Service selection' : 'Sélection du service'}
     >
       <div className="w-full max-w-6xl mx-auto flex flex-col gap-10">
 
@@ -174,24 +204,24 @@ export default function RepairDeviceSelector({
         <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-14">
           <div className="flex-1">
             <Heading className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-              <span className="text-accent">Quel appareil</span>
+              <span className="text-accent">{h2a}</span>
               <br />
-              <span className="text-foreground">souhaitez-vous réparer&nbsp;?</span>
+              <span className="text-foreground">{h2b}</span>
             </Heading>
           </div>
           <div className="flex-1">
-            <RepairModelSearch inputId="device-search-repair" />
+            <RepairModelSearch inputId="device-search-repair" onSelect={handleSearchSelect} />
           </div>
         </div>
 
         {/* Sous-titre */}
         <p className="text-center text-sm text-foreground/40 tracking-wide -mt-4">
-          Ou sélectionnez votre appareil ici
+          {sub}
         </p>
 
         {/* Cartes appareils */}
         <div className={`grid ${cols} gap-4 lg:gap-6`}>
-          {visibleDevices.map((device) => (
+          {(visibleDevices as Device[]).map((device) => (
             <DeviceCardLink key={device.id} device={device} />
           ))}
         </div>
@@ -199,7 +229,7 @@ export default function RepairDeviceSelector({
         {/* Réassurance */}
         <div className="flex justify-center">
           <p className="text-xs text-foreground/40 border border-[rgba(242,242,242,0.18)] rounded-full px-6 py-2.5 text-center">
-            Pas d&apos;inquiétude&nbsp;! Réparation sans perte de données…
+            {reassurance}
           </p>
         </div>
 

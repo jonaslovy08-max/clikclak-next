@@ -6,7 +6,7 @@
   Gère la logique conditionnelle prix/mode tarifaire et indisponibilité.
 */
 
-import { type AdminActionResult } from '@/app/admin/(dashboard)/reparations/actions'
+import { type AdminActionResult } from '@/app/(fr)/admin/(dashboard)/reparations/actions'
 
 interface FieldErrorsProps { errors?: Record<string, string[]>; field: string }
 function FieldError({ errors, field }: FieldErrorsProps) {

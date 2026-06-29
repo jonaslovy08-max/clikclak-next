@@ -5,35 +5,29 @@ import gsap from 'gsap'
 
 /*
   RotatingRepairCapsule — capsule de réassurance à messages rotatifs.
-
-  Comportement :
-    - change de phrase toutes les 2 secondes
-    - transition sortante : opacity 1→0, y 0→-8, 0.35s power2.in
-    - transition entrante : opacity 0→1, y 8→0, 0.4s power3.out
-    - changement de textContent pendant que opacity = 0 (invisible)
-
-  Stabilité layout :
-    - min-h sur le <p> pour éviter les sauts de hauteur
-    - y ±8px reste dans la zone py-2.5 (10px) — pas de débordement
-
-  Cleanup :
-    - clearInterval au démontage
-    - ctx.revert() pour tuer les tweens GSAP actifs
-
-  prefers-reduced-motion :
-    - désactive toute animation — affichage statique de la première phrase
+  Supporte locale FR et EN.
 */
 
-const PHRASES = [
+const PHRASES_FR = [
   'Réparation express en 20 min dans la majorité des cas.',
   'Vos données restent conservées lors de la plupart des réparations.',
-  'Écran, batterie, charge : diagnostic rapide en boutique.',
+  'Écran, batterie, charge : diagnostic rapide en boutique.',
   'Pièces sélectionnées selon votre modèle et la disponibilité.',
   'Réparation smartphone, tablette et ordinateur à Lausanne.',
-  'Un doute sur le modèle ? ClikClak vous aide à l’identifier.',
+  "Un doute sur le modèle ? ClikClak vous aide à l'identifier.",
 ]
 
-export default function RotatingRepairCapsule() {
+const PHRASES_EN = [
+  'Express repair in 20 min in most cases.',
+  'Your data stays safe during most repairs.',
+  'Screen, battery, charging port: quick in-store diagnostic.',
+  'Parts selected according to your model and availability.',
+  'Smartphone, tablet and computer repair in Lausanne.',
+  "Not sure of your model? ClikClak helps you identify it.",
+]
+
+export default function RotatingRepairCapsule({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const PHRASES = locale === 'en' ? PHRASES_EN : PHRASES_FR
   const textRef  = useRef<HTMLSpanElement>(null)
   const indexRef = useRef(0)
 
@@ -72,11 +66,14 @@ export default function RotatingRepairCapsule() {
       clearInterval(intervalId)
       ctx.revert()
     }
-  }, [])
+  }, [PHRASES])
 
   return (
     <div className="flex justify-center">
-      <p className="text-xs rounded-full px-6 py-2.5 text-center min-h-[2.25rem] flex items-center justify-center" style={{ border: '1px solid #ccff33', background: 'rgba(255, 255, 255, 0.10)', color: '#ccff33' }}>
+      <p
+        className="text-xs rounded-full px-6 py-2.5 text-center min-h-[2.25rem] flex items-center justify-center"
+        style={{ border: '1px solid #ccff33', background: 'rgba(255, 255, 255, 0.10)', color: '#ccff33' }}
+      >
         <span ref={textRef}>{PHRASES[0]}</span>
       </p>
     </div>

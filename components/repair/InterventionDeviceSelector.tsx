@@ -6,11 +6,12 @@
 
 import RepairDeviceSelector from '@/components/repair/RepairDeviceSelector'
 
-export default function InterventionDeviceSelector() {
+export default function InterventionDeviceSelector({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
   return (
     <RepairDeviceSelector
       hideRecuperation={true}
       headingLevel="h2"
+      locale={locale}
     />
   )
 }

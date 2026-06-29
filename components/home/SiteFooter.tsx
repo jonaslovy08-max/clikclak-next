@@ -7,13 +7,23 @@ import CookiePreferencesButton from '@/components/ui/CookiePreferencesButton'
 const MAPS_URL =
   'https://www.google.com/maps/search/?api=1&query=Clik%20Clak%20Repair%20Rue%20du%20Petit-Ch%C3%AAne%209b%201003%20Lausanne'
 
-const navLinks = [
+const navLinksFr = [
   { label: 'Accueil',                 href: '/'                                },
   { label: 'Réparation',              href: '/reparation/'                     },
   { label: 'Récupération de données', href: '/services/recuperation-donnees/'  },
   { label: 'Conseils',                href: '/blog'                            },
   { label: 'CGV',                     href: '/cgv'                             },
   { label: 'Confidentialité',         href: '/politique-confidentialite'       },
+]
+
+const navLinksEn = [
+  { label: 'Home',             href: '/en'                                },
+  { label: 'iPhone Repair',    href: '/en/services/iphone-repair'         },
+  { label: 'Samsung Repair',   href: '/en/services/samsung-repair'        },
+  { label: 'Sell your device', href: '/en/services/sell-your-device'      },
+  { label: 'Contact',          href: '/en/contact'                        },
+  { label: 'Terms',            href: '/en/terms-and-conditions'           },
+  { label: 'Privacy',          href: '/en/privacy-policy'                 },
 ]
 
 /*
@@ -25,7 +35,12 @@ const navLinks = [
 
   data-pin-section : ciblé par SectionPinning (single-panel entrance animation).
 */
-export default function SiteFooter() {
+export default function SiteFooter({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const navLinks = locale === 'en' ? navLinksEn : navLinksFr
+  const followLabel = locale === 'en' ? 'Follow us' : 'Suivez-nous'
+  const mapsLabel   = locale === 'en' ? 'Open in Maps' : 'Ouvrir dans Maps'
+  const rights      = locale === 'en' ? '© ClikClak Sàrl 2026 — All rights reserved' : '© ClikClak Sàrl 2026 — Tous droits réservés'
+  const credit      = locale === 'en' ? 'Website by' : 'Site web créé par :'
   return (
     <footer
       id="contact"
@@ -83,7 +98,7 @@ export default function SiteFooter() {
 
               {/* Bouton Contact */}
               <div>
-                <ContactPopover />
+                <ContactPopover locale={locale} />
               </div>
             </div>
 
@@ -117,7 +132,7 @@ export default function SiteFooter() {
             <div className="flex flex-col gap-6">
               {/* En-tête section — uppercase retiré */}
               <span className="text-base md:text-xs text-foreground/40 tracking-wide">
-                Suivez-nous
+                {followLabel}
               </span>
 
               <div className="flex flex-col gap-3">
@@ -146,7 +161,7 @@ export default function SiteFooter() {
               </div>
 
               <Button href={MAPS_URL} size="lg" external className="w-full justify-center">
-                Ouvrir dans Maps
+                {mapsLabel}
               </Button>
             </div>
           </div>
@@ -154,10 +169,10 @@ export default function SiteFooter() {
           {/* ── Barre de copyright — opacity 0.5 ── */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-t border-[rgba(242,242,242,0.1)] pt-6">
             <p className="text-base md:text-xs text-foreground font-light opacity-50">
-              © ClikClak Sàrl 2026 — Tous droits réservés
+              {rights}
             </p>
             <p className="text-base md:text-xs text-foreground font-light opacity-50">
-              Site web créé par&nbsp;:{' '}
+              {credit}&nbsp;{' '}
               <a
                 href="https://jonaslovy.ch"
                 target="_blank"

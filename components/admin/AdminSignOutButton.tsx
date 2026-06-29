@@ -6,7 +6,7 @@
   Client Component car interactif, mais l'action est serveur.
 */
 
-import { signOut } from '@/app/admin/actions'
+import { signOut } from '@/app/(fr)/admin/actions'
 
 export function AdminSignOutButton() {
   return (

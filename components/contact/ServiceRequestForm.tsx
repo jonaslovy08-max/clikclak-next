@@ -29,16 +29,27 @@ interface CompressedImage {
 }
 
 /* ── Listes de services ─────────────────────────────────────────────── */
-const SERVICES_COURSIER = [
+const SERVICES_COURSIER_FR = [
   'Réparation écran', 'Changement de batterie', 'Connecteur de charge',
   'Dégâts d\'eau / oxydation', 'Diagnostic', 'Récupération de données',
   'Transfert de données', 'Problème logiciel', 'Nettoyage / surchauffe', 'Autre',
 ]
-const SERVICES_DEPANNAGE = [
+const SERVICES_DEPANNAGE_FR = [
   'Réparation écran', 'Changement de batterie', 'Connecteur de charge',
   'Dégâts d\'eau / oxydation', 'Diagnostic', 'Configuration',
   'Transfert de données', 'Sauvegarde', 'Problème logiciel',
   'Appareil bloqué', 'Récupération de données', 'Aide compte iCloud / Google', 'Autre',
+]
+const SERVICES_COURSIER_EN = [
+  'Screen repair', 'Battery replacement', 'Charging port',
+  'Water damage / oxidation', 'Diagnostics', 'Data recovery',
+  'Data transfer', 'Software issue', 'Cleaning / overheating', 'Other',
+]
+const SERVICES_DEPANNAGE_EN = [
+  'Screen repair', 'Battery replacement', 'Charging port',
+  'Water damage / oxidation', 'Diagnostics', 'Configuration',
+  'Data transfer', 'Backup', 'Software issue',
+  'Locked device', 'Data recovery', 'iCloud / Google account help', 'Other',
 ]
 
 /* ── Compression image ──────────────────────────────────────────────── */
@@ -114,9 +125,11 @@ function Field({ id, label, required, type = 'text', placeholder, disabled, valu
 }
 
 /* ════════════════════════════════════════════════════════════════════ */
-export default function ServiceRequestForm({ serviceType }: Props) {
+export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props & { locale?: 'fr' | 'en' }) {
   const uid = useId()
-  const services = serviceType === 'coursier' ? SERVICES_COURSIER : SERVICES_DEPANNAGE
+  const services = locale === 'en'
+    ? (serviceType === 'coursier' ? SERVICES_COURSIER_EN : SERVICES_DEPANNAGE_EN)
+    : (serviceType === 'coursier' ? SERVICES_COURSIER_FR : SERVICES_DEPANNAGE_FR)
 
   /* ── État ── */
   const [name,    setName]    = useState('')
@@ -522,10 +535,12 @@ export default function ServiceRequestForm({ serviceType }: Props) {
           onChange={e => { setConsent(e.target.checked); clearErr('consent') }}
           className="mt-[3px] shrink-0 w-4 h-4 accent-[#ccff33] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#ccff33]" />
         <span className="text-sm font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.55)' }}>
-          J&apos;accepte que ClikClak utilise ces informations pour répondre à ma demande, conformément à la{' '}
-          <Link href="/politique-confidentialite"
-            className="underline underline-offset-4 focus-visible:outline-none"
-            style={{ color: 'rgba(204,255,51,0.7)' }}>politique de confidentialité</Link>.{' '}
+          {locale === 'en'
+            ? <>I agree that ClikClak may use this information to respond to my request, in accordance with the{' '}
+                <Link href="/en/privacy-policy" className="underline underline-offset-4 focus-visible:outline-none" style={{ color: 'rgba(204,255,51,0.7)' }}>privacy policy</Link>.</>
+            : <>J&apos;accepte que ClikClak utilise ces informations pour répondre à ma demande, conformément à la{' '}
+                <Link href="/politique-confidentialite" className="underline underline-offset-4 focus-visible:outline-none" style={{ color: 'rgba(204,255,51,0.7)' }}>politique de confidentialité</Link>.</>
+          }{' '}
           <span style={{ color: '#ccff33' }}>*</span>
         </span>
       </label>

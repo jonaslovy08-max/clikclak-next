@@ -29,12 +29,22 @@ import AnimatedDiagnosticIcon      from '@/components/icons/AnimatedDiagnosticIc
   → à w-[82%] le rendu est plus grand visuellement que les icônes 262×262.
   Compensation : w-[64%] h-[64%] uniquement pour ce fichier.
 */
-const repairs: { label: string; href: string; mainIcon: string; actionIcon: string | null; mainIconSize?: string; rainEffect?: boolean; animated?: 'screen' | 'battery' | 'charge' | 'diagnostic' }[] = [
-  { label: 'Réparation écran',       href: '/services/reparation-ecran',       mainIcon: '/assets/icons/icon-screen-repair.svg',   actionIcon: '/assets/ui/icon-repair-action.svg',       animated: 'screen'     },
-  { label: 'Changement de batterie', href: '/services/changement-batterie',    mainIcon: '/assets/icons/icon-battery.svg',          actionIcon: '/assets/ui/icon-battery-action.svg',      animated: 'battery'    },
-  { label: 'Connecteur de charge',   href: '/services/connecteur-de-charge',   mainIcon: '/assets/icons/icon-charging-port.svg',    actionIcon: '/assets/ui/icon-battery-action.svg',      animated: 'charge'     },
-  { label: 'Dégâts d\'eau',           href: '/reparation-degat-eau-lausanne',  mainIcon: '/assets/icons/icon-water-damage.svg', actionIcon: '/assets/ui/icon-water-damage-action.svg', rainEffect: true },
-  { label: 'Diagnostic',             href: '/services/diagnostic',             mainIcon: '/assets/icons/icon-diagnostic.svg',       actionIcon: '/assets/ui/icon-diagnostic-action.svg',   animated: 'diagnostic' },
+type RepairItem = { label: string; href: string; mainIcon: string; actionIcon: string | null; mainIconSize?: string; rainEffect?: boolean; animated?: 'screen' | 'battery' | 'charge' | 'diagnostic' }
+
+const repairsFr: RepairItem[] = [
+  { label: 'Réparation écran',       href: '/services/reparation-ecran',      mainIcon: '/assets/icons/icon-screen-repair.svg',  actionIcon: '/assets/ui/icon-repair-action.svg',       animated: 'screen'     },
+  { label: 'Changement de batterie', href: '/services/changement-batterie',   mainIcon: '/assets/icons/icon-battery.svg',         actionIcon: '/assets/ui/icon-battery-action.svg',      animated: 'battery'    },
+  { label: 'Connecteur de charge',   href: '/services/connecteur-de-charge',  mainIcon: '/assets/icons/icon-charging-port.svg',   actionIcon: '/assets/ui/icon-battery-action.svg',      animated: 'charge'     },
+  { label: 'Dégâts d\'eau',          href: '/reparation-degat-eau-lausanne',  mainIcon: '/assets/icons/icon-water-damage.svg',    actionIcon: '/assets/ui/icon-water-damage-action.svg', rainEffect: true       },
+  { label: 'Diagnostic',             href: '/services/diagnostic',            mainIcon: '/assets/icons/icon-diagnostic.svg',      actionIcon: '/assets/ui/icon-diagnostic-action.svg',   animated: 'diagnostic' },
+]
+
+const repairsEn: RepairItem[] = [
+  { label: 'Screen repair',          href: '/en/services/screen-repair',         mainIcon: '/assets/icons/icon-screen-repair.svg',  actionIcon: '/assets/ui/icon-repair-action.svg',       animated: 'screen'     },
+  { label: 'Battery replacement',    href: '/en/services/battery-replacement',   mainIcon: '/assets/icons/icon-battery.svg',         actionIcon: '/assets/ui/icon-battery-action.svg',      animated: 'battery'    },
+  { label: 'Charging port',          href: '/en/services/charging-port-repair',  mainIcon: '/assets/icons/icon-charging-port.svg',   actionIcon: '/assets/ui/icon-battery-action.svg',      animated: 'charge'     },
+  { label: 'Water damage',           href: '/en/water-damage-repair-lausanne',   mainIcon: '/assets/icons/icon-water-damage.svg',    actionIcon: '/assets/ui/icon-water-damage-action.svg', rainEffect: true       },
+  { label: 'Diagnostics',            href: '/en/services/diagnostics',           mainIcon: '/assets/icons/icon-diagnostic.svg',      actionIcon: '/assets/ui/icon-diagnostic-action.svg',   animated: 'diagnostic' },
 ]
 
 
@@ -227,17 +237,20 @@ function RepairCard({ label, href, mainIcon, actionIcon, mainIconSize = 'w-[82%]
   )
 }
 
-export default function ServiceDetail() {
+export default function ServiceDetail({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const repairs = locale === 'en' ? repairsEn : repairsFr
+  const h2a = locale === 'en' ? 'Common' : 'Réparations'
+  const h2b = locale === 'en' ? 'repairs' : 'courantes'
   return (
     <section
       id="reparations-courantes"
       className="px-6 md:px-14 lg:px-20 py-32 md:py-40 lg:py-48 border-t border-white/10"
-      aria-label="Réparations courantes ClikClak"
+      aria-label={locale === 'en' ? 'Common repairs — ClikClak' : 'Réparations courantes ClikClak'}
     >
       <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
 
         <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-          Réparations <span className="text-accent">courantes</span>
+          {h2a} <span className="text-accent">{h2b}</span>
         </h2>
 
         {/* ── 5 types de réparation avec hover GSAP ── */}

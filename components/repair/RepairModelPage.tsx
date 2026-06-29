@@ -11,6 +11,7 @@
     modelId    → slug du modèle (ex: 'galaxy-s25-ultra')
     deviceType → 'smartphone' | 'tablet' | 'laptop'
     baseHref   → URL de base des pages modèles (ex: '/services/reparation-samsung-lausanne')
+    locale     → 'fr' | 'en'
 */
 
 import Link from 'next/link'
@@ -22,6 +23,7 @@ import SectionPinning from '@/components/ui/SectionPinning'
 import ContactPopover from '@/components/home/ContactPopover'
 import { MainRepairCard } from '@/components/repair/MainRepairCard'
 import { formatPrice, type RepairBrandData } from '@/data/repairTypes'
+import { getRepairLabel, getRepairPrice, normalizeModelLabel } from '@/i18n/repairLabels'
 
 export type DeviceType = 'smartphone' | 'tablet' | 'laptop'
 
@@ -30,10 +32,21 @@ interface Props {
   modelId:    string
   deviceType: DeviceType
   baseHref:   string  /* ex: '/services/reparation-samsung-lausanne' */
+  locale?:    'fr' | 'en'
 }
 
 /* ── Texte d'intro selon le type d'appareil ────────────────────────────────── */
-function introText(modelLabel: string, deviceType: DeviceType): string {
+function introText(modelLabel: string, deviceType: DeviceType, locale: 'fr' | 'en'): string {
+  if (locale === 'en') {
+    switch (deviceType) {
+      case 'smartphone':
+        return `Your ${modelLabel} is in good hands at ClikClak in Lausanne. Cracked screen, failing battery, damaged charging port, camera or other hardware issue — check the pricing below and contact us for a diagnosis.`
+      case 'tablet':
+        return `Your ${modelLabel} is in good hands at ClikClak in Lausanne. Cracked screen, damaged display, worn battery, charging port or faulty button — check the available pricing below.`
+      case 'laptop':
+        return `Your ${modelLabel} is in good hands at ClikClak in Lausanne. Damaged screen, worn battery, charging issues, overheating, keyboard, trackpad or data recovery — check the available pricing below or contact us for a diagnosis.`
+    }
+  }
   switch (deviceType) {
     case 'smartphone':
       return `Votre ${modelLabel} est entre de bonnes mains chez ClikClak à Lausanne. Écran fissuré, batterie défaillante, connecteur de charge endommagé, caméra ou autre panne matérielle — consultez les tarifs ci-dessous et contactez-nous pour un diagnostic.`
@@ -45,7 +58,11 @@ function introText(modelLabel: string, deviceType: DeviceType): string {
 }
 
 /* ── Label du lien retour ──────────────────────────────────────────────────── */
-function backLabel(data: RepairBrandData): string {
+function backLabel(data: RepairBrandData, locale: 'fr' | 'en'): string {
+  if (locale === 'en') {
+    if (data.h1Brand === 'MacBook') return 'All MacBook and iMac models'
+    return `All ${data.h1Brand} models`
+  }
   if (data.h1Brand === 'MacBook') return 'Tous les modèles MacBook et iMac'
   return `Tous les modèles ${data.h1Brand}`
 }
@@ -55,16 +72,45 @@ function priceColor(price: string): string {
   return price.startsWith('CHF') ? '#ccff33' : 'rgba(242,242,242,0.45)'
 }
 
+/* ── Strings localisées ────────────────────────────────────────────────────── */
+const STRINGS = {
+  fr: {
+    repairPricing:        'Tarifs de réparation',
+    otherRepairs:         'Autres interventions disponibles',
+    changeModel:          'Changer de modèle',
+    priceNote:            "Les prix sont indicatifs et peuvent varier selon l'état de l'appareil et les pièces disponibles. Un diagnostic complet est effectué avant toute intervention. Pensez à sauvegarder vos données avant de déposer votre appareil.",
+    otherModelsPrefix:    'Autres modèles',
+    ariaLabelSuffix:      '— tarifs et informations',
+    h1Prefix:             'Réparation',
+    h1Suffix:             'à Lausanne',
+    screenSubtitle:       'Remplacement écran',
+    batterySubtitle:      'Remplacement batterie',
+  },
+  en: {
+    repairPricing:        'Repair pricing',
+    otherRepairs:         'Other available repairs',
+    changeModel:          'Change model',
+    priceNote:            'Prices are indicative and may vary depending on the device condition and parts availability. A full diagnostic is carried out before any intervention. Please back up your data before dropping off your device.',
+    otherModelsPrefix:    'Other',
+    ariaLabelSuffix:      '— pricing and information',
+    h1Prefix:             '',
+    h1Suffix:             'Repair in Lausanne',
+    screenSubtitle:       'Screen replacement',
+    batterySubtitle:      'Battery replacement',
+  },
+} as const
+
 /* ══════════════════════════════════════════════════════════════════════════════
    Composant principal
 ══════════════════════════════════════════════════════════════════════════════ */
-export default function RepairModelPage({ data, modelId, deviceType, baseHref }: Props) {
-  const allModels   = data.families.flatMap(f => f.models)
-  const model       = allModels.find(m => m.id === modelId)
+export default function RepairModelPage({ data, modelId, deviceType, baseHref, locale = 'fr' }: Props) {
+  const T         = STRINGS[locale]
+  const allModels = data.families.flatMap(f => f.models)
+  const model     = allModels.find(m => m.id === modelId)
   if (!model) return null
 
-  const family      = data.families.find(f => f.models.some(m => m.id === modelId))
-  const siblings    = family ? family.models.filter(m => m.id !== modelId) : []
+  const family   = data.families.find(f => f.models.some(m => m.id === modelId))
+  const siblings = family ? family.models.filter(m => m.id !== modelId) : []
 
   const screenRepair  = model.repairs.find(r => r.category === 'screen')
   const batteryRepair = model.repairs.find(r => r.category === 'battery')
@@ -72,14 +118,28 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
 
   const hasMainCards = !!(screenRepair || batteryRepair)
 
+  const displayLabel = normalizeModelLabel(model.label, locale)
+
+  const ariaLabel = locale === 'en'
+    ? `${displayLabel} Repair ${T.ariaLabelSuffix}`
+    : `Réparation ${displayLabel} ${T.ariaLabelSuffix}`
+
+  const h1 = locale === 'en'
+    ? <><span className="text-accent">{displayLabel}</span> {T.h1Suffix}</>
+    : <>{T.h1Prefix} <span className="text-accent">{displayLabel}</span> {T.h1Suffix}</>
+
+  const otherModelsLabel = locale === 'en'
+    ? `${T.otherModelsPrefix}${family ? ` ${family.label}` : ''} models`
+    : `${T.otherModelsPrefix}${family ? ` ${family.label}` : ''}`
+
   return (
     <>
-      <Header />
+      <Header locale={locale} />
 
       <main>
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label={`Réparation ${model.label} — tarifs et informations`}
+          aria-label={ariaLabel}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-12">
 
@@ -96,22 +156,20 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                   aria-hidden
                   style={{ height: 14, width: 14, objectFit: 'contain' }}
                 />
-                {backLabel(data)}
+                {backLabel(data, locale)}
               </Link>
             </div>
 
             {/* ══ 2. H1 + INTRO ══════════════════════════════════════════ */}
             <div className="flex flex-col gap-5">
               <h1 className="text-[1.75rem] md:text-[2.5rem] font-light leading-tight">
-                Réparation{' '}
-                <span className="text-accent">{model.label}</span>{' '}
-                à Lausanne
+                {h1}
               </h1>
               <p
                 className="font-light leading-relaxed max-w-2xl"
                 style={{ fontSize: 'clamp(14px, 1.4vw, 18px)', color: 'rgba(242,242,242,0.6)' }}
               >
-                {introText(model.label, deviceType)}
+                {introText(displayLabel, deviceType, locale)}
               </p>
             </div>
 
@@ -121,7 +179,7 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                 className="font-light"
                 style={{ fontSize: 'clamp(18px, 2vw, 26px)', color: 'rgba(242,242,242,0.9)' }}
               >
-                Tarifs de réparation
+                {T.repairPricing}
               </h2>
 
               {/* Cards principales Écran + Batterie */}
@@ -131,22 +189,24 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                     <MainRepairCard
                       repair={{
                         name:     screenRepair.label,
-                        subtitle: 'Remplacement écran',
+                        subtitle: T.screenSubtitle,
                         price:    formatPrice(screenRepair.price),
                       }}
-                      modelLabel={model.label}
+                      modelLabel={displayLabel}
                       variant="screen"
+                      locale={locale}
                     />
                   )}
                   {batteryRepair && (
                     <MainRepairCard
                       repair={{
                         name:     batteryRepair.label,
-                        subtitle: 'Remplacement batterie',
+                        subtitle: T.batterySubtitle,
                         price:    formatPrice(batteryRepair.price),
                       }}
-                      modelLabel={model.label}
+                      modelLabel={displayLabel}
                       variant="battery"
+                      locale={locale}
                     />
                   )}
                 </div>
@@ -166,12 +226,12 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                     style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(242,242,242,0.1)' }}
                   >
                     <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.55)' }}>
-                      Autres interventions disponibles
+                      {T.otherRepairs}
                     </p>
                   </div>
                   <div className="flex flex-col">
                     {otherRepairs.map((repair, idx) => {
-                      const priceStr = formatPrice(repair.price)
+                      const priceStr = getRepairPrice(repair.price, locale)
                       return (
                         <div
                           key={repair.label}
@@ -179,7 +239,7 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                           style={{ borderTop: idx > 0 ? '1px solid rgba(242,242,242,0.07)' : undefined }}
                         >
                           <span className="font-light" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: 'rgba(242,242,242,0.75)' }}>
-                            {repair.label}
+                            {getRepairLabel(repair.label, locale)}
                           </span>
                           <span
                             className="font-light whitespace-nowrap ml-4"
@@ -209,7 +269,7 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                   aria-hidden
                   style={{ height: 13, width: 13, objectFit: 'contain' }}
                 />
-                Changer de modèle
+                {T.changeModel}
               </Link>
             </div>
 
@@ -218,8 +278,7 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
               className="text-sm font-light"
               style={{ color: '#a5a5a5', lineHeight: 1.7 }}
             >
-              {data.repairNote ??
-                "Les prix sont indicatifs et peuvent varier selon l'état de l'appareil et les pièces disponibles. Un diagnostic complet est effectué avant toute intervention."}
+              {data.repairNote ?? T.priceNote}
             </p>
 
             {/* ══ 6. AUTRES MODÈLES DE LA FAMILLE ═══════════════════════ */}
@@ -229,7 +288,7 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                   className="font-light"
                   style={{ fontSize: 'clamp(16px, 1.6vw, 22px)', color: 'rgba(242,242,242,0.85)' }}
                 >
-                  Autres modèles{family ? ` ${family.label}` : ''}
+                  {otherModelsLabel}
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {siblings.map(sibling => (
@@ -243,7 +302,7 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
                         backgroundColor: 'rgba(255,255,255,0.03)',
                       }}
                     >
-                      {sibling.label}
+                      {normalizeModelLabel(sibling.label, locale)}
                     </Link>
                   ))}
                 </div>
@@ -254,9 +313,9 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref }:
         </section>
       </main>
 
-      <RepairFAQGeneric deviceType={deviceType} />
-      {deviceType !== 'laptop' && <RepairEngagements />}
-      <SiteFooter />
+      <RepairFAQGeneric deviceType={deviceType} locale={locale} />
+      {deviceType !== 'laptop' && <RepairEngagements locale={locale} />}
+      <SiteFooter locale={locale} />
       <SectionPinning />
     </>
   )

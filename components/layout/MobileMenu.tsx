@@ -12,6 +12,7 @@ type NavLink = {
   href:         string
   accent?:      boolean
   hasDropdown?: boolean
+  dropdownId?:  'reparation' | 'services'
   subLinks?:    { label: string; href: string }[]
 }
 
@@ -142,7 +143,7 @@ const PATH_C = 'M 700 600 L 300 600 C 100 600 100 200 400 150 A 400 380 0 1 1 20
 
 /* ── Composant principal ── */
 
-export default function MobileMenu({ links, shopEnabled = false }: { links: NavLink[]; shopEnabled?: boolean }) {
+export default function MobileMenu({ links, shopEnabled = false, locale = 'fr' }: { links: NavLink[]; shopEnabled?: boolean; locale?: 'fr' | 'en' }) {
   const pathname      = usePathname()
   const activeSection = getActiveSection(pathname)
   const { totalItems } = useCart()
@@ -284,10 +285,10 @@ export default function MobileMenu({ links, shopEnabled = false }: { links: NavL
         <nav aria-label="Navigation principale" className="flex flex-col items-center">
           {links.map((link) => {
             const isShop     = link.href.startsWith('/shop-reparation-smartphone-lausanne')
-            const isContact  = link.href.startsWith('/contact-clik-clak-lausanne')
-            const isRepair   = link.href === '/reparation'
-            const isHome     = link.href === '/'
-            const isServices = link.href === '/services-nav'
+            const isContact  = link.href.startsWith('/contact-clik-clak-lausanne') || link.href === '/en/contact'
+            const isRepair   = link.dropdownId === 'reparation' || link.href === '/reparation'
+            const isHome     = link.href === '/' || link.href === '/en'
+            const isServices = link.dropdownId === 'services' || link.href === '/services-nav'
 
             const isActive =
               (isHome     && activeSection === 'home')     ||
@@ -394,6 +395,23 @@ export default function MobileMenu({ links, shopEnabled = false }: { links: NavL
             </Link>
           )}
         </nav>
+
+        {/* Sélecteur de langue */}
+        <div className="absolute bottom-20 left-0 right-0 flex justify-center">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            {locale === 'fr' ? (
+              <span className="text-accent" aria-current="true">FR</span>
+            ) : (
+              <Link href="/" onClick={closeMenu} className="text-foreground/50 hover:text-foreground transition-colors">FR</Link>
+            )}
+            <span className="text-foreground/25" aria-hidden>|</span>
+            {locale === 'en' ? (
+              <span className="text-accent" aria-current="true">EN</span>
+            ) : (
+              <Link href="/en" onClick={closeMenu} className="text-foreground/50 hover:text-foreground transition-colors">EN</Link>
+            )}
+          </div>
+        </div>
 
         {/* Liens sociaux — bas de l'overlay mobile. Mêmes assets que SocialLinks.tsx */}
         <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-5">

@@ -1,26 +1,10 @@
 import SocialLinks from './SocialLinks'
 import ScrollIndicator from './ScrollIndicator'
 import HeroSlider from './HeroSlider'
-import { heroSlides } from '@/data/heroSlides'
+import { heroSlides, heroSlidesEn } from '@/data/heroSlides'
 
-/*
-  Layout strategy — single H1 in DOM, positioned differently by breakpoint:
-
-  Mobile (grid-cols-1, auto-placement):
-    row 1 : Image (full-bleed)
-    row 2 : Pagination  ← md:hidden, intercalée entre image et texte
-    row 3 : Text (H1/p + desc + CTAs inline)
-    row 4 : Bottom bar
-
-  Desktop (grid-cols-2, explicit placement):
-    row 1 col 1 : Image      (md:row-start-1 md:col-start-1)
-    row 1 col 2 : Text       (md:row-start-1 md:col-start-2)
-    row 2 col-span-2 : Pagination desktop séparée (hidden md:block)
-
-  HeroSlider owns the grid + pagination — HomeHero keeps bottom bar + floaters.
-*/
-
-export default function HomeHero() {
+export default function HomeHero({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const slides = locale === 'en' ? heroSlidesEn : heroSlides
   return (
     <section
       aria-labelledby="hero-title"
@@ -30,7 +14,7 @@ export default function HomeHero() {
           flex-1 absorbe la hauteur restante ; md:justify-center centre
           le slider sur desktop sans risquer de débordement mobile.     */}
       <div className="flex-1 flex flex-col md:justify-center">
-        <HeroSlider slides={heroSlides} />
+        <HeroSlider slides={slides} />
       </div>
 
       {/* Bottom bar ─────────────────────────────────────────────── */}

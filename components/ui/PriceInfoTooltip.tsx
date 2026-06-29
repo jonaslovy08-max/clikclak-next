@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { getPriceInfoLabel, getPriceInfoTooltipText, type RepairLocale } from '@/i18n/repairLabels'
 
 /*
   PriceInfoTooltip — bouton information sur les cartes prix réparation.
@@ -14,12 +15,13 @@ import { useState, useEffect, useRef } from 'react'
   Fermeture : tap/clic hors tooltip via document listener (mobile uniquement).
 */
 
-type Props = { isScreen: boolean }
+type Props = { isScreen: boolean; locale?: RepairLocale }
 
 const isTouch = () =>
   typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
 
-export default function PriceInfoTooltip({ isScreen }: Props) {
+export default function PriceInfoTooltip({ isScreen, locale }: Props) {
+  const effectiveLocale: RepairLocale = locale ?? 'fr'
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -45,7 +47,7 @@ export default function PriceInfoTooltip({ isScreen }: Props) {
     <div ref={wrapRef} style={{ position: 'relative', flexShrink: 0 }}>
       <button
         type="button"
-        aria-label="Informations sur le prix affiché"
+        aria-label={getPriceInfoLabel(effectiveLocale)}
         aria-expanded={open}
         onMouseEnter={() => { if (!isTouch()) setOpen(true)  }}
         onMouseLeave={() => { if (!isTouch()) setOpen(false) }}
@@ -97,8 +99,7 @@ export default function PriceInfoTooltip({ isScreen }: Props) {
               color:      'rgba(242,242,242,0.72)',
             }}
           >
-            Plusieurs qualités de pièces de rechange existent selon le modèle.
-            {' '}Le choix est à confirmer en magasin.
+            {getPriceInfoTooltipText(effectiveLocale)}
           </p>
         </div>
       )}

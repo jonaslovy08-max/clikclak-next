@@ -3,15 +3,118 @@
 /*
   ContactForm — formulaire de contact ClikClak.
   Client component : gestion état, validation, compression image, envoi API.
-
-  Compression image :
-    FileReader → Image → Canvas (max 1600px) → canvas.toBlob(JPEG, 0.75)
-    Pas de dépendance externe. EXIF supprimé via canvas.
+  Supporte FR et EN via la prop locale.
 */
 
 import { useState, useRef, useId } from 'react'
 import Link from 'next/link'
 import TurnstileWidget from '@/components/forms/TurnstileWidget'
+
+/* ── Traductions ─────────────────────────────────────────────────────── */
+const TRANSLATIONS = {
+  fr: {
+    success_title:    'Votre demande a bien été envoyée.',
+    success_reply:    'ClikClak vous répondra dès que possible à l\'adresse',
+    send_again:       'Envoyer une nouvelle demande',
+    section_identity: 'Vos coordonnées',
+    label_name:       'Nom / prénom',
+    ph_name:          'Votre nom',
+    label_phone:      'Téléphone',
+    section_device:   'Votre appareil',
+    label_device_type:'Type d\'appareil',
+    select_default:   '— Sélectionner —',
+    opt_tablet:       'Tablette',
+    opt_data:         'Récupération de données',
+    opt_other:        'Autre',
+    label_brand:      'Marque',
+    label_model:      'Modèle',
+    ph_model:         'Ex : iPhone 16 Pro, Galaxy S25 Ultra, iPad Air 2, MacBook Pro 14"',
+    section_request:  'Votre demande',
+    label_req_type:   'Type de demande',
+    opt_screen:       'Réparation écran',
+    opt_battery:      'Changement de batterie',
+    opt_charging:     'Connecteur de charge',
+    opt_water:        'Dégâts d\'eau / oxydation',
+    opt_diagnostic:   'Diagnostic',
+    opt_data_rec:     'Récupération de données',
+    opt_data_transfer:'Transfert de données',
+    label_message:    'Message',
+    ph_message:       'Décrivez la panne, depuis quand elle est apparue, et si l\'appareil est tombé ou a été en contact avec un liquide.',
+    section_photo:    'Photo de l\'appareil',
+    photo_optional:   '(optionnel)',
+    photo_hint:       'Ajoutez une photo si cela peut aider au diagnostic. L\'image sera automatiquement réduite avant l\'envoi.',
+    photo_remove:     'Supprimer',
+    photo_loading:    'Compression en cours…',
+    photo_choose:     'Choisir une image',
+    consent_text:     'J\'accepte que ClikClak utilise ces informations pour répondre à ma demande, conformément à la',
+    consent_link:     'politique de confidentialité',
+    consent_link_href:'/politique-confidentialite',
+    sending:          'Envoi en cours…',
+    submit:           'Envoyer la demande',
+    err_name:         'Veuillez indiquer votre nom.',
+    err_email_req:    'Veuillez indiquer votre email.',
+    err_email_invalid:'Email invalide.',
+    err_message:      'Veuillez décrire votre demande.',
+    err_consent:      'Le consentement est obligatoire.',
+    err_turnstile:    'Veuillez valider la protection anti-spam avant d\'envoyer le formulaire.',
+    err_generic:      'Une erreur est survenue.',
+    err_network:      'Erreur réseau. Vérifiez votre connexion.',
+    err_contact:      'Vous pouvez aussi nous contacter directement par',
+    err_contact_email:'email',
+    err_contact_phone:'ou par téléphone.',
+  },
+  en: {
+    success_title:    'Your request has been sent successfully.',
+    success_reply:    'ClikClak will reply as soon as possible to',
+    send_again:       'Send another request',
+    section_identity: 'Your details',
+    label_name:       'Name',
+    ph_name:          'Your name',
+    label_phone:      'Phone',
+    section_device:   'Your device',
+    label_device_type:'Device type',
+    select_default:   '— Select —',
+    opt_tablet:       'Tablet',
+    opt_data:         'Data recovery',
+    opt_other:        'Other',
+    label_brand:      'Brand',
+    label_model:      'Model',
+    ph_model:         'E.g.: iPhone 16 Pro, Galaxy S25 Ultra, iPad Air 2, MacBook Pro 14"',
+    section_request:  'Your request',
+    label_req_type:   'Request type',
+    opt_screen:       'Screen repair',
+    opt_battery:      'Battery replacement',
+    opt_charging:     'Charging port repair',
+    opt_water:        'Water damage / oxidation',
+    opt_diagnostic:   'Diagnostic',
+    opt_data_rec:     'Data recovery',
+    opt_data_transfer:'Data transfer',
+    label_message:    'Message',
+    ph_message:       'Describe the issue, when it started, and whether the device was dropped or exposed to liquid.',
+    section_photo:    'Device photo',
+    photo_optional:   '(optional)',
+    photo_hint:       'Add a photo if it can help with the diagnostic. The image will be automatically compressed before sending.',
+    photo_remove:     'Remove',
+    photo_loading:    'Compressing…',
+    photo_choose:     'Choose an image',
+    consent_text:     'I agree that ClikClak may use this information to respond to my request, in accordance with the',
+    consent_link:     'privacy policy',
+    consent_link_href:'/en/privacy-policy',
+    sending:          'Sending…',
+    submit:           'Send request',
+    err_name:         'Please enter your name.',
+    err_email_req:    'Please enter your email.',
+    err_email_invalid:'Invalid email address.',
+    err_message:      'Please describe your request.',
+    err_consent:      'Consent is required.',
+    err_turnstile:    'Please complete the anti-spam verification before sending.',
+    err_generic:      'An error occurred.',
+    err_network:      'Network error. Please check your connection.',
+    err_contact:      'You can also contact us directly by',
+    err_contact_email:'email',
+    err_contact_phone:'or by phone.',
+  },
+} as const
 
 const SITE_KEY_CONFIGURED = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
@@ -151,7 +254,8 @@ const errorStyle: React.CSSProperties = {
 }
 
 /* ── Composant ──────────────────────────────────────────────────────── */
-export default function ContactForm() {
+export default function ContactForm({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const T = TRANSLATIONS[locale]
   const uid         = useId()
   const [fields, setFields] = useState<Fields>(INITIAL)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -205,13 +309,13 @@ export default function ContactForm() {
   /* ── Validation ── */
   const validate = (): boolean => {
     const e: Record<string, string> = {}
-    if (!fields.name.trim())    e.name    = 'Veuillez indiquer votre nom.'
-    if (!fields.email.trim())   e.email   = 'Veuillez indiquer votre email.'
+    if (!fields.name.trim())    e.name    = T.err_name
+    if (!fields.email.trim())   e.email   = T.err_email_req
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email))
-                                e.email   = 'Email invalide.'
-    if (!fields.message.trim()) e.message = 'Veuillez décrire votre demande.'
-    if (!fields.consent)        e.consent   = 'Le consentement est obligatoire.'
-    if (SITE_KEY_CONFIGURED && !turnstileToken) e.turnstile = 'Veuillez valider la protection anti-spam avant d\'envoyer le formulaire.'
+                                e.email   = T.err_email_invalid
+    if (!fields.message.trim()) e.message = T.err_message
+    if (!fields.consent)        e.consent   = T.err_consent
+    if (SITE_KEY_CONFIGURED && !turnstileToken) e.turnstile = T.err_turnstile
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -237,6 +341,7 @@ export default function ContactForm() {
         consent:        fields.consent,
         _hp:            fields._hp,
         turnstileToken,
+        locale,          // langue du client → transmise au serveur
       }
       if (image) {
         payload.imageBase64         = image.base64
@@ -253,13 +358,13 @@ export default function ContactForm() {
 
       const json = await res.json()
       if (!res.ok) {
-        setApiErr(json.error ?? 'Une erreur est survenue.')
+        setApiErr(json.error ?? T.err_generic)
         setState('error')
       } else {
         setState('success')
       }
     } catch {
-      setApiErr('Erreur réseau. Vérifiez votre connexion.')
+      setApiErr(T.err_network)
       setState('error')
     }
   }
@@ -274,10 +379,10 @@ export default function ContactForm() {
         <span className="text-3xl" aria-hidden>✓</span>
         <div className="flex flex-col gap-2">
           <p className="text-base font-light" style={{ color: 'rgba(242,242,242,0.9)' }}>
-            Votre demande a bien été envoyée.
+            {T.success_title}
           </p>
           <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.5)' }}>
-            ClikClak vous répondra dès que possible à l&apos;adresse <strong className="font-normal" style={{ color: '#ccff33' }}>{fields.email}</strong>.
+            {T.success_reply} <strong className="font-normal" style={{ color: '#ccff33' }}>{fields.email}</strong>.
           </p>
         </div>
         <button
@@ -286,7 +391,7 @@ export default function ContactForm() {
           className="text-sm font-light underline underline-offset-4 focus-visible:outline-none"
           style={{ color: 'rgba(242,242,242,0.45)' }}
         >
-          Envoyer une nouvelle demande
+          {T.send_again}
         </button>
       </div>
     )
@@ -319,19 +424,19 @@ export default function ContactForm() {
         style={{ border: '1px solid rgba(242,242,242,0.08)', background: 'rgba(255,255,255,0.02)' }}
       >
         <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>
-          Vos coordonnées
+          {T.section_identity}
         </p>
 
         {/* Nom */}
         <div>
           <label htmlFor={`${uid}-name`} style={labelStyle}>
-            Nom / prénom <span style={{ color: '#ccff33' }}>*</span>
+            {T.label_name} <span style={{ color: '#ccff33' }}>*</span>
           </label>
           <input
             id={`${uid}-name`}
             type="text"
             autoComplete="name"
-            placeholder="Votre nom"
+            placeholder={T.ph_name}
             disabled={isSending}
             value={fields.name}
             onChange={e => setField('name', e.target.value)}
@@ -364,7 +469,7 @@ export default function ContactForm() {
           </div>
           <div>
             <label htmlFor={`${uid}-phone`} style={labelStyle}>
-              Téléphone <span style={{ color: 'rgba(242,242,242,0.25)', fontSize: 11 }}>(optionnel)</span>
+              {T.label_phone} <span style={{ color: 'rgba(242,242,242,0.25)', fontSize: 11 }}>{T.photo_optional}</span>
             </label>
             <input
               id={`${uid}-phone`}
@@ -388,14 +493,14 @@ export default function ContactForm() {
         style={{ border: '1px solid rgba(242,242,242,0.08)', background: 'rgba(255,255,255,0.02)' }}
       >
         <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>
-          Votre appareil
+          {T.section_device}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Type */}
           <div>
             <label htmlFor={`${uid}-deviceType`} style={labelStyle}>
-              Type d&apos;appareil
+              {T.label_device_type}
             </label>
             <select
               id={`${uid}-deviceType`}
@@ -406,19 +511,19 @@ export default function ContactForm() {
               onBlur={() => setFocused('')}
               style={{ ...inputStyle, ...focusRing('deviceType'), cursor: 'pointer' }}
             >
-              <option value="">— Sélectionner —</option>
+              <option value="">{T.select_default}</option>
               <option value="Smartphone">Smartphone</option>
-              <option value="Tablette">Tablette</option>
+              <option value="Tablette">{T.opt_tablet}</option>
               <option value="Ordinateur / MacBook">Ordinateur / MacBook</option>
-              <option value="Récupération de données">Récupération de données</option>
-              <option value="Autre">Autre</option>
+              <option value="Récupération de données">{T.opt_data}</option>
+              <option value="Autre">{T.opt_other}</option>
             </select>
           </div>
 
           {/* Marque */}
           <div>
             <label htmlFor={`${uid}-brand`} style={labelStyle}>
-              Marque
+              {T.label_brand}
             </label>
             <select
               id={`${uid}-brand`}
@@ -429,7 +534,7 @@ export default function ContactForm() {
               onBlur={() => setFocused('')}
               style={{ ...inputStyle, ...focusRing('brand'), cursor: 'pointer' }}
             >
-              <option value="">— Sélectionner —</option>
+              <option value="">{T.select_default}</option>
               <option value="Apple">Apple</option>
               <option value="Samsung">Samsung</option>
               <option value="OPPO">OPPO</option>
@@ -437,7 +542,7 @@ export default function ContactForm() {
               <option value="Sony Xperia">Sony Xperia</option>
               <option value="Google Pixel">Google Pixel</option>
               <option value="Xiaomi">Xiaomi</option>
-              <option value="Autre">Autre</option>
+              <option value="Autre">{T.opt_other}</option>
             </select>
           </div>
         </div>
@@ -445,12 +550,12 @@ export default function ContactForm() {
         {/* Modèle */}
         <div>
           <label htmlFor={`${uid}-model`} style={labelStyle}>
-            Modèle
+            {T.label_model}
           </label>
           <input
             id={`${uid}-model`}
             type="text"
-            placeholder='Ex : iPhone 16 Pro, Galaxy S25 Ultra, iPad Air 2, MacBook Pro 14"'
+            placeholder={T.ph_model}
             disabled={isSending}
             value={fields.model}
             onChange={e => setField('model', e.target.value)}
@@ -467,13 +572,13 @@ export default function ContactForm() {
         style={{ border: '1px solid rgba(242,242,242,0.08)', background: 'rgba(255,255,255,0.02)' }}
       >
         <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>
-          Votre demande
+          {T.section_request}
         </p>
 
         {/* Type de demande */}
         <div>
           <label htmlFor={`${uid}-requestType`} style={labelStyle}>
-            Type de demande
+            {T.label_req_type}
           </label>
           <select
             id={`${uid}-requestType`}
@@ -484,27 +589,27 @@ export default function ContactForm() {
             onBlur={() => setFocused('')}
             style={{ ...inputStyle, ...focusRing('requestType'), cursor: 'pointer' }}
           >
-            <option value="">— Sélectionner —</option>
-            <option value="Réparation écran">Réparation écran</option>
-            <option value="Changement de batterie">Changement de batterie</option>
-            <option value="Connecteur de charge">Connecteur de charge</option>
-            <option value="Dégâts d'eau / oxydation">Dégâts d&apos;eau / oxydation</option>
-            <option value="Diagnostic">Diagnostic</option>
-            <option value="Récupération de données">Récupération de données</option>
-            <option value="Transfert de données">Transfert de données</option>
-            <option value="Autre">Autre</option>
+            <option value="">{T.select_default}</option>
+            <option value="Réparation écran">{T.opt_screen}</option>
+            <option value="Changement de batterie">{T.opt_battery}</option>
+            <option value="Connecteur de charge">{T.opt_charging}</option>
+            <option value="Dégâts d'eau / oxydation">{T.opt_water}</option>
+            <option value="Diagnostic">{T.opt_diagnostic}</option>
+            <option value="Récupération de données">{T.opt_data_rec}</option>
+            <option value="Transfert de données">{T.opt_data_transfer}</option>
+            <option value="Autre">{T.opt_other}</option>
           </select>
         </div>
 
         {/* Message */}
         <div>
           <label htmlFor={`${uid}-message`} style={labelStyle}>
-            Message <span style={{ color: '#ccff33' }}>*</span>
+            {T.label_message} <span style={{ color: '#ccff33' }}>*</span>
           </label>
           <textarea
             id={`${uid}-message`}
             rows={5}
-            placeholder="Décrivez la panne, depuis quand elle est apparue, et si l'appareil est tombé ou a été en contact avec un liquide."
+            placeholder={T.ph_message}
             disabled={isSending}
             value={fields.message}
             onChange={e => setField('message', e.target.value)}
@@ -523,10 +628,10 @@ export default function ContactForm() {
       >
         <div className="flex flex-col gap-1">
           <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>
-            Photo de l&apos;appareil <span style={{ color: 'rgba(242,242,242,0.25)', textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>(optionnel)</span>
+            {T.section_photo} <span style={{ color: 'rgba(242,242,242,0.25)', textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>{T.photo_optional}</span>
           </p>
           <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
-            Ajoutez une photo si cela peut aider au diagnostic. L&apos;image sera automatiquement réduite avant l&apos;envoi.
+            {T.photo_hint}
           </p>
         </div>
 
@@ -547,7 +652,7 @@ export default function ContactForm() {
                 className="text-xs font-light underline underline-offset-4 focus-visible:outline-none"
                 style={{ color: 'rgba(242,242,242,0.4)' }}
               >
-                Supprimer
+                {T.photo_remove}
               </button>
             </div>
           </div>
@@ -579,7 +684,7 @@ export default function ContactForm() {
                 cursor:       isSending ? 'not-allowed' : 'pointer',
               }}
             >
-              {imgLoading ? 'Compression en cours…' : 'Choisir une image'}
+              {imgLoading ? T.photo_loading : T.photo_choose}
             </label>
           </div>
         )}
@@ -601,13 +706,13 @@ export default function ContactForm() {
           className="mt-[3px] shrink-0 w-4 h-4 accent-[#ccff33] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#ccff33]"
         />
         <span className="text-sm font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.55)' }}>
-          J&apos;accepte que ClikClak utilise ces informations pour répondre à ma demande, conformément à la{' '}
+          {T.consent_text}{' '}
           <Link
-            href="/politique-confidentialite"
+            href={T.consent_link_href}
             className="underline underline-offset-4 hover:text-foreground/80 transition-colors duration-200 focus-visible:outline-none"
             style={{ color: 'rgba(204,255,51,0.7)' }}
           >
-            politique de confidentialité
+            {T.consent_link}
           </Link>
           . <span style={{ color: '#ccff33' }}>*</span>
         </span>
@@ -622,9 +727,9 @@ export default function ContactForm() {
         >
           {apiErr}
           <span style={{ color: 'rgba(242,242,242,0.4)' }}>
-            {' '}Vous pouvez aussi nous contacter directement par{' '}
-            <a href="mailto:info@clikclak.ch" className="underline underline-offset-4" style={{ color: 'rgba(204,255,51,0.7)' }}>email</a>
-            {' '}ou par téléphone.
+            {' '}{T.err_contact}{' '}
+            <a href="mailto:info@clikclak.ch" className="underline underline-offset-4" style={{ color: 'rgba(204,255,51,0.7)' }}>{T.err_contact_email}</a>
+            {' '}{T.err_contact_phone}
           </span>
         </div>
       )}
@@ -636,7 +741,7 @@ export default function ContactForm() {
           disabled={isSending}
           className="inline-flex items-center justify-center gap-2 font-rubik font-medium leading-none whitespace-nowrap rounded-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 disabled:cursor-not-allowed shiny-cta shiny-cta-primary text-primary-foreground h-14 px-8 text-base"
         >
-          {isSending ? 'Envoi en cours…' : 'Envoyer la demande'}
+          {isSending ? T.sending : T.submit}
         </button>
       </div>
 

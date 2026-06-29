@@ -10,6 +10,7 @@
 */
 import { stripCents } from '@/data/repairTypes'
 import PriceInfoTooltip from '@/components/ui/PriceInfoTooltip'
+import { getPricePrefix, getRepairLabel, type RepairLocale } from '@/i18n/repairLabels'
 
 /* ── CSS mask-image — colorise un SVG asset sans filter ni opacity ──────── */
 export function MaskedIcon({
@@ -57,11 +58,14 @@ export function MainRepairCard({
   repair,
   modelLabel,
   variant,
+  locale,
 }: {
   repair:     { name: string; subtitle: string; price: string }
   modelLabel: string
   variant:    'screen' | 'battery'
+  locale?:    RepairLocale
 }) {
+  const effectiveLocale: RepairLocale = locale ?? 'fr'
   const isScreen = variant === 'screen'
 
   return (
@@ -87,10 +91,10 @@ export function MainRepairCard({
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold leading-tight" style={{ fontSize: 'clamp(20px, 2.8vw, 34px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
-              {repair.name}
+              {getRepairLabel(repair.name, effectiveLocale)}
             </p>
             <p className="font-light" style={{ fontSize: 'clamp(14px, 1.4vw, 18px)', color: isScreen ? '#5a5a5a' : '#b4b4b4' }}>
-              A partir de :
+              {getPricePrefix(effectiveLocale)}
             </p>
           </div>
         </div>
@@ -118,14 +122,14 @@ export function MainRepairCard({
           </div>
           <div className="min-w-0">
             <p className="font-light leading-tight" style={{ fontSize: 'clamp(13px, 1.3vw, 18px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
-              {repair.subtitle}
+              {getRepairLabel(repair.subtitle, effectiveLocale)}
             </p>
             <p className="font-light" style={{ fontSize: 'clamp(13px, 1.3vw, 18px)', color: isScreen ? '#1a1a1a' : '#b4b4b4' }}>
               {modelLabel}
             </p>
           </div>
         </div>
-        <PriceInfoTooltip isScreen={isScreen} />
+        <PriceInfoTooltip isScreen={isScreen} locale={effectiveLocale} />
       </div>
     </div>
   )
