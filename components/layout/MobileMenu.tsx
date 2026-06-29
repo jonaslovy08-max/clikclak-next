@@ -12,6 +12,7 @@ type NavLink = {
   href:         string
   accent?:      boolean
   hasDropdown?: boolean
+  dropdownId?:  'reparation' | 'services'
   subLinks?:    { label: string; href: string }[]
 }
 
@@ -284,10 +285,10 @@ export default function MobileMenu({ links, shopEnabled = false, locale = 'fr' }
         <nav aria-label="Navigation principale" className="flex flex-col items-center">
           {links.map((link) => {
             const isShop     = link.href.startsWith('/shop-reparation-smartphone-lausanne')
-            const isContact  = link.href.startsWith('/contact-clik-clak-lausanne')
-            const isRepair   = link.href === '/reparation'
-            const isHome     = link.href === '/'
-            const isServices = link.href === '/services-nav'
+            const isContact  = link.href.startsWith('/contact-clik-clak-lausanne') || link.href === '/en/contact'
+            const isRepair   = link.dropdownId === 'reparation' || link.href === '/reparation'
+            const isHome     = link.href === '/' || link.href === '/en'
+            const isServices = link.dropdownId === 'services' || link.href === '/services-nav'
 
             const isActive =
               (isHome     && activeSection === 'home')     ||

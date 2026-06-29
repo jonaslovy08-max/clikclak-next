@@ -17,13 +17,13 @@ const navLinksFr = [
 ]
 
 const navLinksEn = [
-  { label: 'Home',          href: '/en'                              },
-  { label: 'iPhone Repair', href: '/en/services/iphone-repair'       },
-  { label: 'Samsung Repair',href: '/en/services/samsung-repair'      },
-  { label: 'Sell your device', href: '/en/services/sell-your-device' },
-  { label: 'Contact',       href: '/en/contact'                      },
-  { label: 'Terms',         href: '/cgv'                             },
-  { label: 'Privacy',       href: '/politique-confidentialite'       },
+  { label: 'Home',             href: '/en'                                },
+  { label: 'iPhone Repair',    href: '/en/services/iphone-repair'         },
+  { label: 'Samsung Repair',   href: '/en/services/samsung-repair'        },
+  { label: 'Sell your device', href: '/en/services/sell-your-device'      },
+  { label: 'Contact',          href: '/en/contact'                        },
+  { label: 'Terms',            href: '/en/terms-and-conditions'           },
+  { label: 'Privacy',          href: '/en/privacy-policy'                 },
 ]
 
 /*
@@ -98,7 +98,7 @@ export default function SiteFooter({ locale = 'fr' }: { locale?: 'fr' | 'en' }) 
 
               {/* Bouton Contact */}
               <div>
-                <ContactPopover />
+                <ContactPopover locale={locale} />
               </div>
             </div>
 

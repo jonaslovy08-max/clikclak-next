@@ -7,13 +7,17 @@ interface RelatedBlogPostsProps {
   title?:     string
   postSlugs?: string[]
   limit?:     number
+  locale?:    'fr' | 'en'
 }
 
 export default function RelatedBlogPosts({
   title     = 'Conseils utiles',
   postSlugs,
   limit     = 3,
+  locale    = 'fr',
 }: RelatedBlogPostsProps) {
+  /* Blog is FR-only — never render on EN pages */
+  if (locale === 'en') return null
   let posts: BlogMeta[]
 
   if (postSlugs && postSlugs.length > 0) {

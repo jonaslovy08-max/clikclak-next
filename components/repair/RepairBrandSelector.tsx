@@ -25,23 +25,34 @@ import gsap from 'gsap'
 */
 
 type Brand = {
-  id:    string
-  label: string
-  icon:  string
-  href:  string
+  id:        string
+  label:     string
+  icon:      string
+  href:      string
+  ariaLabel: string
 }
 
 /* Tunnel réparation : Réparation → Smartphone → Marque → Modèle → Tarifs
    Apple  : données structurées dans data/iphoneRepairs.ts → page sélection modèle
    Autres : pages marques existantes (stub → contact/diagnostic tant que prix non structurés) */
-const brands: Brand[] = [
-  { id: 'apple',   label: 'Apple',        icon: '/assets/icons/icon-iphone.svg',       href: '/services/reparation-iphone'           },
-  { id: 'samsung', label: 'Samsung',      icon: '/assets/icons/icon-samsung.svg',      href: '/services/reparation-samsung-lausanne' },
-  { id: 'huawei',  label: 'Huawei',       icon: '/assets/icons/icon-huawei.svg',       href: '/services/reparation-huawei-lausanne'  },
-  { id: 'pixel',   label: 'Google Pixel', icon: '/assets/icons/icon-google-pixel.svg', href: '/services/reparation-google-pixel'     },
-  { id: 'oppo',    label: 'Oppo',         icon: '/assets/icons/icon-oppo.svg',         href: '/services/reparation-oppo'             },
-  { id: 'xiaomi',  label: 'Xiaomi',       icon: '/assets/icons/icon-xiaomi.svg',       href: '/services/reparation-xiaomi'           },
-  { id: 'sony',    label: 'Sony Xperia',  icon: '/assets/icons/icon-sony-xperia.svg',  href: '/services/reparation-sony-xperia'      },
+const brandsFr: Brand[] = [
+  { id: 'apple',   label: 'Apple',        ariaLabel: 'Réparation Apple',        icon: '/assets/icons/icon-iphone.svg',       href: '/services/reparation-iphone'           },
+  { id: 'samsung', label: 'Samsung',      ariaLabel: 'Réparation Samsung',      icon: '/assets/icons/icon-samsung.svg',      href: '/services/reparation-samsung-lausanne' },
+  { id: 'huawei',  label: 'Huawei',       ariaLabel: 'Réparation Huawei',       icon: '/assets/icons/icon-huawei.svg',       href: '/services/reparation-huawei-lausanne'  },
+  { id: 'pixel',   label: 'Google Pixel', ariaLabel: 'Réparation Google Pixel', icon: '/assets/icons/icon-google-pixel.svg', href: '/services/reparation-google-pixel'     },
+  { id: 'oppo',    label: 'Oppo',         ariaLabel: 'Réparation Oppo',         icon: '/assets/icons/icon-oppo.svg',         href: '/services/reparation-oppo'             },
+  { id: 'xiaomi',  label: 'Xiaomi',       ariaLabel: 'Réparation Xiaomi',       icon: '/assets/icons/icon-xiaomi.svg',       href: '/services/reparation-xiaomi'           },
+  { id: 'sony',    label: 'Sony Xperia',  ariaLabel: 'Réparation Sony Xperia',  icon: '/assets/icons/icon-sony-xperia.svg',  href: '/services/reparation-sony-xperia'      },
+]
+
+const brandsEn: Brand[] = [
+  { id: 'apple',   label: 'Apple',        ariaLabel: 'Apple repair',        icon: '/assets/icons/icon-iphone.svg',       href: '/en/services/iphone-repair'        },
+  { id: 'samsung', label: 'Samsung',      ariaLabel: 'Samsung repair',      icon: '/assets/icons/icon-samsung.svg',      href: '/en/services/samsung-repair'       },
+  { id: 'huawei',  label: 'Huawei',       ariaLabel: 'Huawei repair',       icon: '/assets/icons/icon-huawei.svg',       href: '/en/services/huawei-repair'        },
+  { id: 'pixel',   label: 'Google Pixel', ariaLabel: 'Google Pixel repair', icon: '/assets/icons/icon-google-pixel.svg', href: '/en/services/google-pixel-repair'  },
+  { id: 'oppo',    label: 'Oppo',         ariaLabel: 'Oppo repair',         icon: '/assets/icons/icon-oppo.svg',         href: '/en/services/oppo-repair'          },
+  { id: 'xiaomi',  label: 'Xiaomi',       ariaLabel: 'Xiaomi repair',       icon: '/assets/icons/icon-xiaomi.svg',       href: '/en/services/xiaomi-repair'        },
+  { id: 'sony',    label: 'Sony Xperia',  ariaLabel: 'Sony Xperia repair',  icon: '/assets/icons/icon-sony-xperia.svg',  href: '/en/services/sony-xperia-repair'   },
 ]
 
 function BrandCard({ brand }: { brand: Brand }) {
@@ -127,7 +138,7 @@ function BrandCard({ brand }: { brand: Brand }) {
     <Link
       ref={linkRef}
       href={brand.href}
-      aria-label={`Réparation ${brand.label}`}
+      aria-label={brand.ariaLabel}
       onMouseEnter={show}
       onMouseLeave={hide}
       onFocus={show}
@@ -164,7 +175,8 @@ function BrandCard({ brand }: { brand: Brand }) {
   )
 }
 
-export default function RepairBrandSelector() {
+export default function RepairBrandSelector({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const brands = locale === 'en' ? brandsEn : brandsFr
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 lg:gap-6">
       {brands.map(brand => (

@@ -8,19 +8,21 @@ import { SHOP_ENABLED } from '@/lib/config/features'
 export type NavSubLink = { label: string; href: string }
 
 export type NavLink = {
-  label:       string
-  href:        string
-  accent?:     boolean
+  label:        string
+  href:         string
+  accent?:      boolean
   hasDropdown?: boolean
-  subLinks?:   NavSubLink[]
+  dropdownId?:  'reparation' | 'services'  /* discriminateur explicite du dropdown */
+  subLinks?:    NavSubLink[]
 }
 
 const navLinksFr: NavLink[] = [
-  { label: 'Accueil',    href: '/' },
+  { label: 'Accueil', href: '/' },
   {
     label:       'Réparation',
     href:        '/reparation',
     hasDropdown: true,
+    dropdownId:  'reparation',
     subLinks: [
       { label: 'Smartphone',  href: '/reparation-smartphone-express'         },
       { label: 'Tablette',    href: '/reparation-tablette-express'            },
@@ -33,35 +35,43 @@ const navLinksFr: NavLink[] = [
     label:       'Services',
     href:        '/services-nav',
     hasDropdown: true,
+    dropdownId:  'services',
     subLinks: [
-      { label: 'Récupération de données', href: '/services/recuperation-donnees'         },
-      { label: "Rachat d'appareils",      href: '/services/rachat-de-votre-smartphone'   },
+      { label: 'Récupération de données', href: '/services/recuperation-donnees'          },
+      { label: "Rachat d'appareils",      href: '/services/rachat-de-votre-smartphone'    },
       { label: 'Dépannage 7/7',           href: '/services/depannage-reparation-domicile' },
-      { label: 'Service de coursier',     href: '/service-de-coursier'                   },
-      { label: "Dégâts d'eau",            href: '/reparation-degat-eau-lausanne'          },
+      { label: 'Service de coursier',     href: '/service-de-coursier'                    },
+      { label: "Dégâts d'eau",            href: '/reparation-degat-eau-lausanne'           },
     ],
   },
 ]
 
 const navLinksEn: NavLink[] = [
-  { label: 'Home',    href: '/en' },
+  { label: 'Home', href: '/en' },
   {
     label:       'Repair',
     href:        '/en/services/smartphone-repair',
     hasDropdown: true,
+    dropdownId:  'reparation',
     subLinks: [
-      { label: 'Smartphone',  href: '/en/services/smartphone-repair' },
-      { label: 'iPhone',      href: '/en/services/iphone-repair'     },
-      { label: 'Samsung',     href: '/en/services/samsung-repair'    },
+      { label: 'Smartphone repair',   href: '/en/services/smartphone-repair'  },
+      { label: 'Tablet repair',       href: '/en/express-tablet-repair'        },
+      { label: 'Computer repair',     href: '/en/express-computer-repair'      },
+      { label: 'Home repair service', href: '/en/services/home-repair-service' },
+      { label: 'View all repairs',    href: '/en/repair'                       },
     ],
   },
   {
     label:       'Services',
-    href:        '/en',
+    href:        '/en/services/data-recovery',
     hasDropdown: true,
+    dropdownId:  'services',
     subLinks: [
-      { label: 'Data recovery',     href: '/services/recuperation-donnees'          },
-      { label: 'Sell your device',  href: '/en/services/sell-your-device'            },
+      { label: 'Data recovery',       href: '/en/services/data-recovery'      },
+      { label: 'Sell your device',    href: '/en/services/sell-your-device'    },
+      { label: 'Home repair service', href: '/en/services/home-repair-service' },
+      { label: 'Courier service',     href: '/en/courier-service'              },
+      { label: 'Water damage repair', href: '/en/water-damage-repair-lausanne' },
     ],
   },
 ]

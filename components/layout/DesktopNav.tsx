@@ -7,8 +7,8 @@ import { usePathname } from 'next/navigation'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
 import { getActiveSection, getSectionNavHref } from '@/lib/navUtils'
-import { useCart } from '@/components/shop/CartContext'
 import type { NavLink } from '@/components/layout/Header'
+import { useCart } from '@/components/shop/CartContext'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 
 /*
@@ -103,7 +103,7 @@ export default function DesktopNav({
 
   /* ── Active link ───────────────────────────────────────────────── */
   const activeSection = getActiveSection(pathname)
-  const activeHref    = getSectionNavHref(activeSection)
+  const activeHref    = getSectionNavHref(activeSection, locale)
 
   /* ── Helpers dropdown refs ──────────────────────────────────────── */
   const refsFor = useCallback((id: DropdownId) => ({
@@ -152,9 +152,9 @@ export default function DesktopNav({
       const nav = navRef.current
       if (!nav) return
       const openId = openDropdownIdRef.current
-      const openHref = openId === 'reparation' ? '/reparation' : openId === 'services' ? '/services-nav' : null
-      const el = openHref
-        ? nav.querySelector<HTMLElement>(`[data-href="${openHref}"]`)
+      /* Utilise data-dropdown-id pour retrouver le bon bouton quelle que soit la locale */
+      const el = openId
+        ? nav.querySelector<HTMLElement>(`[data-dropdown-id="${openId}"]`)
         : activeHref
           ? nav.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
           : null
@@ -201,8 +201,8 @@ export default function DesktopNav({
         if (menu.current)  gsap.set(menu.current,  { autoAlpha: 1, yPercent: 0, scale: 1, xPercent: -50 })
         if (arrow.current) gsap.set(arrow.current, { rotation: 180 })
       }
-      const openHref = openDropdownId === 'reparation' ? '/reparation' : '/services-nav'
-      const el = navRef.current?.querySelector<HTMLElement>(`[data-href="${openHref}"]`)
+      /* Utilise data-dropdown-id pour localiser le bon bouton quelle que soit la locale */
+      const el = navRef.current?.querySelector<HTMLElement>(`[data-dropdown-id="${openDropdownId}"]`)
       if (el) moveTo(el)
     } else if (prevId) {
       /* Tout fermé → retour au lien actif */
@@ -286,8 +286,8 @@ export default function DesktopNav({
             )
           }
 
-          /* Lien avec dropdown */
-          const ddId: DropdownId = link.href === '/reparation' ? 'reparation' : 'services'
+          /* Lien avec dropdown — utilise link.dropdownId (explicite dans navLinks FR et EN) */
+          const ddId: DropdownId = (link.dropdownId as DropdownId) ?? 'services'
           const isOpen           = openDropdownId === ddId
           const isActive         = link.href === activeHref
           const wrapRef          = ddId === 'reparation' ? repairWrapRef   : servicesWrapRef
@@ -301,6 +301,7 @@ export default function DesktopNav({
               <button
                 type="button"
                 data-href={link.href}
+                data-dropdown-id={ddId}
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
                 aria-controls={domId}
@@ -357,7 +358,7 @@ export default function DesktopNav({
       <div className="flex items-center gap-6">
         {rightLinks.map(link => {
           const isShop    = link.href.startsWith('/shop-reparation-smartphone-lausanne')
-          const isContact = link.href.startsWith('/contact-clik-clak-lausanne')
+          const isContact = link.href.startsWith('/contact-clik-clak-lausanne') || link.href === '/en/contact'
           const isActive  = (isShop && activeSection === 'shop') ||
                             (isContact && activeSection === 'contact')
 

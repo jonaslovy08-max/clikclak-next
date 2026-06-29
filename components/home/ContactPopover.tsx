@@ -20,7 +20,10 @@ import { cn } from '@/lib/utils'
 const MAPS_URL =
   'https://www.google.com/maps/search/?api=1&query=Clik%20Clak%20Repair%20Rue%20du%20Petit%20Ch%C3%AAne%209b%201003%20Lausanne'
 
-export default function ContactPopover({ closeSignal }: { closeSignal?: number }) {
+export default function ContactPopover({ closeSignal, locale = 'fr' }: { closeSignal?: number; locale?: 'fr' | 'en' }) {
+  const L = locale === 'en'
+    ? { btn: 'Contact', panelLabel: 'Contact options', call: 'Call', directions: 'Directions', address: 'Address' }
+    : { btn: 'Contact', panelLabel: 'Options de contact', call: 'Appeler', directions: 'Itinéraire', address: 'Adresse' }
   const [open, setOpen]  = useState(false)
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const panelRef         = useRef<HTMLDivElement>(null)
@@ -131,7 +134,7 @@ export default function ContactPopover({ closeSignal }: { closeSignal?: number }
           'h-14 px-8 text-lg min-w-[180px]',
         )}
       >
-        <span className="inline-flex items-center gap-2">Contact</span>
+        <span className="inline-flex items-center gap-2">{L.btn}</span>
       </button>
 
       {/* Panel — au-dessus du trigger, GSAP gère opacity/visibility/transform */}
@@ -139,7 +142,7 @@ export default function ContactPopover({ closeSignal }: { closeSignal?: number }
         ref={panelRef}
         id="contact-action-menu"
         role="menu"
-        aria-label="Options de contact"
+        aria-label={L.panelLabel}
         className={cn('contact-action-panel', open && 'is-open')}
       >
         {/* Appeler */}
@@ -149,7 +152,7 @@ export default function ContactPopover({ closeSignal }: { closeSignal?: number }
           className="contact-action-item"
           onClick={close}
         >
-          <span className="block text-[17px] md:text-sm font-normal" style={{ color: '#ccff33' }}>Appeler</span>
+          <span className="block text-[17px] md:text-sm font-normal" style={{ color: '#ccff33' }}>{L.call}</span>
           <span className="block text-[14px] md:text-xs mt-1" style={{ color: '#f2f2f2' }}>021 320 44 77</span>
         </a>
 
@@ -162,7 +165,7 @@ export default function ContactPopover({ closeSignal }: { closeSignal?: number }
           rel="noopener noreferrer"
           onClick={close}
         >
-          <span className="block text-[17px] md:text-sm font-normal" style={{ color: '#ccff33' }}>Itinéraire</span>
+          <span className="block text-[17px] md:text-sm font-normal" style={{ color: '#ccff33' }}>{L.directions}</span>
           <span className="block text-[14px] md:text-xs mt-1" style={{ color: '#f2f2f2' }}>Google Maps</span>
         </a>
 
@@ -183,7 +186,7 @@ export default function ContactPopover({ closeSignal }: { closeSignal?: number }
           className="contact-action-item"
           style={{ cursor: 'default' }}
         >
-          <span className="block text-[17px] md:text-sm font-normal" style={{ color: '#ccff33' }}>Adresse</span>
+          <span className="block text-[17px] md:text-sm font-normal" style={{ color: '#ccff33' }}>{L.address}</span>
           <span className="block text-[14px] md:text-xs mt-1 leading-snug" style={{ color: '#f2f2f2' }}>
             Rue du Petit Chêne 9b<br />1003 Lausanne
           </span>

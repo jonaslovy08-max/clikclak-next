@@ -29,9 +29,13 @@ type Props = {
   text:      string
   url:       string
   className?: string
+  locale?:   'fr' | 'en'
 }
 
-export default function ShareButton({ title, text, url, className }: Props) {
+export default function ShareButton({ title, text, url, className, locale = 'fr' }: Props) {
+  const L = locale === 'en'
+    ? { share: 'Share', copied: 'Link copied ✓', copy: 'Copy link', menu: 'Share options' }
+    : { share: 'Partager', copied: 'Lien copié ✓', copy: 'Copier le lien', menu: 'Options de partage' }
   const [open,    setOpen]    = useState(false)
   const [copied,  setCopied]  = useState(false)
   const [fullUrl, setFullUrl] = useState('')
@@ -120,7 +124,7 @@ export default function ShareButton({ title, text, url, className }: Props) {
           style={{ height: 14, width: 14, objectFit: 'contain', opacity: 0.7 }}
         />
         <span style={{ fontSize: 13, letterSpacing: '0.03em' }}>
-          {copied && !open ? 'Lien copié ✓' : 'Partager'}
+          {copied && !open ? L.copied : L.share}
         </span>
       </button>
 
@@ -136,7 +140,7 @@ export default function ShareButton({ title, text, url, className }: Props) {
             WebkitBackdropFilter: 'blur(8px)',
           }}
           role="menu"
-          aria-label="Options de partage"
+          aria-label={L.menu}
         >
           {ITEMS.map((item, i) => (
             <a
@@ -165,7 +169,7 @@ export default function ShareButton({ title, text, url, className }: Props) {
               borderTop:  '1px solid rgba(242,242,242,0.06)',
             }}
           >
-            {copied ? 'Lien copié ✓' : 'Copier le lien'}
+            {copied ? L.copied : L.copy}
           </button>
         </div>
       )}
