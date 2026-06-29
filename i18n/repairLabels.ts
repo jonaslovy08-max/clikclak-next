@@ -74,10 +74,24 @@ const PRICE_STRING_MAP: Record<string, Record<RepairLocale, string>> = {
 
 /* ── 3. Model label suffix map ─────────────────────────────────────────────── */
 const MODEL_SUFFIX_MAP: Array<{ fr: RegExp; en: string }> = [
-  { fr: /\s*et supérieur/g,           en: ' and later' },
-  { fr: /\s*ou supérieur/g,           en: ' or later' },
-  { fr: /\s*à\s*/g,                   en: ' to ' },   // for "2016 à 2019"
-  { fr: /\s*ou\s+(\d{4})$/g,         en: ' or $1' },  // for "2016 ou 2017"
+  { fr: /\s*et supérieur/g,                   en: ' and later' },
+  { fr: /\s*ou supérieur/g,                   en: ' or later' },
+  { fr: /(20\d{2})\s+à\s+(20\d{2})/g,        en: '$1 to $2' },  // "2016 à 2019" — only between years
+  { fr: /\s*ou\s+(\d{4})$/g,                  en: ' or $1' },    // "2016 ou 2017"
+  // French ordinal generation suffixes → English
+  { fr: /\b1ère Gén\./g,                      en: '1st Gen.' },
+  { fr: /\b2ème Gén\./g,                      en: '2nd Gen.' },
+  { fr: /\b3ème Gén\./g,                      en: '3rd Gen.' },
+  { fr: /\b4ème Gén\./g,                      en: '4th Gen.' },
+  { fr: /\b5ème Gén\./g,                      en: '5th Gen.' },
+  { fr: /\b6ème Gén\./g,                      en: '6th Gen.' },
+  { fr: /\b7ème Gén\./g,                      en: '7th Gen.' },
+  { fr: /\b8ème Gén\./g,                      en: '8th Gen.' },
+  { fr: /\b9ème Gén\./g,                      en: '9th Gen.' },
+  { fr: /\b10ème Gén\./g,                     en: '10th Gen.' },
+  { fr: /\b(\d+)ème Gén\./g,                  en: '$1th Gen.' }, // catch-all for others
+  // "M2 ou supérieur" (chip-level qualifier)
+  { fr: /M2 ou supérieur/g,                   en: 'M2 or later' },
 ]
 
 /* ── 4. Repair note map ─────────────────────────────────────────────────────── */

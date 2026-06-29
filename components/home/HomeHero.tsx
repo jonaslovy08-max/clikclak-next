@@ -14,7 +14,7 @@ export default function HomeHero({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
           flex-1 absorbe la hauteur restante ; md:justify-center centre
           le slider sur desktop sans risquer de débordement mobile.     */}
       <div className="flex-1 flex flex-col md:justify-center">
-        <HeroSlider slides={slides} />
+        <HeroSlider slides={slides} locale={locale} />
       </div>
 
       {/* Bottom bar ─────────────────────────────────────────────── */}

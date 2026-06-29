@@ -693,7 +693,7 @@ export default function ContactForm({ locale = 'fr' }: { locale?: 'fr' | 'en' })
       </div>
 
       {/* ── Protection anti-spam Turnstile ── */}
-      <TurnstileWidget onToken={t => { setTurnstileToken(t ?? ''); setErrors(p => { const n = { ...p }; delete n.turnstile; return n }) }} />
+      <TurnstileWidget onToken={t => { setTurnstileToken(t ?? ''); setErrors(p => { const n = { ...p }; delete n.turnstile; return n }) }} locale={locale} />
       {errors.turnstile && <p style={{ ...errorStyle, marginTop: -8 }}>{errors.turnstile}</p>}
 
       {/* ── Consentement ── */}

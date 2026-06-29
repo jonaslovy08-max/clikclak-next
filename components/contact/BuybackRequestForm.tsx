@@ -823,7 +823,7 @@ export default function BuybackRequestForm({ locale = 'fr' }: { locale?: 'fr' | 
             {errors.confirms&&<p style={ES}>{errors.confirms}</p>}
           </div>
 
-          <TurnstileWidget onToken={t=>{ setTurnstileToken(t??''); clearErr('turnstile') }}/>
+          <TurnstileWidget onToken={t=>{ setTurnstileToken(t??''); clearErr('turnstile') }} locale={locale}/>
           {errors.turnstile&&<p style={ES}>{errors.turnstile}</p>}
 
           {fState==='error'&&apiErr&&(

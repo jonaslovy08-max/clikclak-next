@@ -61,7 +61,7 @@ export default function FrLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
       <body className={rubik.variable}>
-        <RootProviders showChatbot>
+        <RootProviders showChatbot locale="fr">
           {children}
         </RootProviders>
       </body>

@@ -331,7 +331,9 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
       {/* ── B. Adresse principale ── */}
       <div style={BS}>
         <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>
-          {serviceType === 'coursier' ? 'Adresse de prise en charge' : "Adresse d'intervention"}
+          {serviceType === 'coursier'
+            ? (locale === 'en' ? 'Pickup address' : 'Adresse de prise en charge')
+            : (locale === 'en' ? 'Intervention address' : "Adresse d'intervention")}
         </p>
         {serviceType === 'depannage' && (
           <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
@@ -357,7 +359,9 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
       {/* ── C. Adresse retour (coursier) ── */}
       {serviceType === 'coursier' && (
         <div style={BS}>
-          <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>Adresse de retour</p>
+          <p className="text-xs font-light uppercase tracking-[0.15em]" style={{ color: '#ccff33' }}>
+            {locale === 'en' ? 'Return address' : 'Adresse de retour'}
+          </p>
           <label className="flex items-center gap-3 cursor-pointer select-none">
             <input type="checkbox" checked={sameReturn} disabled={isSending}
               onChange={e => setSameReturn(e.target.checked)}
@@ -396,12 +400,12 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
             <select id={`${uid}-device`} disabled={isSending} value={deviceType} onChange={e => setDeviceType(e.target.value)}
               onFocus={() => setFocused('device')} onBlur={() => setFocused('')}
               style={{ ...IS, ...ring(focused, 'device'), cursor: 'pointer' }}>
-              <option value="">— Sélectionner —</option>
-              <option>Smartphone</option>
-              <option>Tablette</option>
-              <option value="Ordinateur / MacBook">Ordinateur / MacBook</option>
-              <option value="Récupération de données">Récupération de données</option>
-              <option>Autre</option>
+              <option value="">{locale === 'en' ? '— Select —' : '— Sélectionner —'}</option>
+              <option value="Smartphone">Smartphone</option>
+              <option value="Tablette">{locale === 'en' ? 'Tablet' : 'Tablette'}</option>
+              <option value="Ordinateur / MacBook">{locale === 'en' ? 'Computer / MacBook' : 'Ordinateur / MacBook'}</option>
+              <option value="Récupération de données">{locale === 'en' ? 'Data recovery' : 'Récupération de données'}</option>
+              <option value="Autre">{locale === 'en' ? 'Other' : 'Autre'}</option>
             </select>
           </div>
           <Field id={`${uid}-brand`} label="Marque / modèle" disabled={isSending}
@@ -484,7 +488,7 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
               </p>
               <button type="button" onClick={removeImage}
                 className="text-xs font-light underline underline-offset-4 focus-visible:outline-none"
-                style={{ color: 'rgba(242,242,242,0.4)' }}>Supprimer</button>
+                style={{ color: 'rgba(242,242,242,0.4)' }}>{locale === 'en' ? 'Remove' : 'Supprimer'}</button>
             </div>
           </div>
         ) : (
@@ -495,7 +499,9 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px',
                 border: '1px dashed rgba(242,242,242,0.2)', borderRadius: 8, fontSize: 14, fontWeight: 300,
                 color: imgLoading ? 'rgba(242,242,242,0.3)' : 'rgba(242,242,242,0.6)', cursor: isSending ? 'not-allowed' : 'pointer' }}>
-              {imgLoading ? 'Compression…' : 'Choisir une image'}
+              {imgLoading
+                ? (locale === 'en' ? 'Compressing…' : 'Compression…')
+                : (locale === 'en' ? 'Choose an image' : 'Choisir une image')}
             </label>
             {imgErr && <p style={{ ...ES, marginTop: 8 }}>{imgErr}</p>}
           </div>
@@ -547,7 +553,7 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
       {errors.consent && <p style={{ ...ES, marginTop: -8 }}>{errors.consent}</p>}
 
       {/* ── Protection anti-spam Turnstile ── */}
-      <TurnstileWidget onToken={t => { setTurnstileToken(t ?? ''); clearErr('turnstile') }} />
+      <TurnstileWidget onToken={t => { setTurnstileToken(t ?? ''); clearErr('turnstile') }} locale={locale} />
       {errors.turnstile && <p style={ES}>{errors.turnstile}</p>}
 
       {/* ── Erreur API ── */}
@@ -567,7 +573,11 @@ export default function ServiceRequestForm({ serviceType, locale = 'fr' }: Props
         <button type="submit" disabled={isSending}
           className="inline-flex items-center justify-center gap-2 font-rubik font-medium leading-none whitespace-nowrap rounded-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 disabled:cursor-not-allowed shiny-cta shiny-cta-primary text-primary-foreground h-14 px-8 text-base">
           <span className="inline-flex items-center gap-2">
-            {isSending ? 'Envoi en cours…' : serviceType === 'depannage' ? 'Envoyer la demande de dépannage' : 'Envoyer la demande de coursier'}
+            {isSending
+              ? (locale === 'en' ? 'Sending…' : 'Envoi en cours…')
+              : serviceType === 'depannage'
+                ? (locale === 'en' ? 'Send repair request' : 'Envoyer la demande de dépannage')
+                : (locale === 'en' ? 'Send courier request' : 'Envoyer la demande de coursier')}
           </span>
         </button>
       </div>

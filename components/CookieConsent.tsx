@@ -24,7 +24,51 @@ import {
 
 type View = null | 'banner' | 'preferences'
 
-export default function CookieConsent() {
+const STRINGS = {
+  fr: {
+    bannerAriaLabel:     'Bannière cookies',
+    prefsAriaLabel:      'Préférences cookies',
+    bannerText:          'Nous utilisons des cookies pour mesurer l\'audience, améliorer le site et, avec votre accord, personnaliser nos campagnes publicitaires.',
+    decline:             'Refuser',
+    customise:           'Personnaliser',
+    acceptAll:           'Tout accepter',
+    prefsTitle:          'Préférences cookies',
+    closeAriaLabel:      'Fermer',
+    necessary:           'Nécessaires',
+    necessaryDesc:       'Indispensables au fonctionnement du site. Toujours actifs.',
+    alwaysActive:        'Toujours actif',
+    statistics:          'Statistiques',
+    statisticsDesc:      'Mesure d\'audience via Google Analytics. Permet d\'améliorer le site.',
+    marketing:           'Marketing',
+    marketingDesc:       'Suivi de conversions et publicités personnalisées via Google Ads.',
+    declineAll:          'Tout refuser',
+    save:                'Sauvegarder',
+    footerNote:          'Vos préférences sont enregistrées localement et peuvent être modifiées à tout moment via le lien « Gestion des cookies » en bas de page.',
+  },
+  en: {
+    bannerAriaLabel:     'Cookie banner',
+    prefsAriaLabel:      'Cookie preferences',
+    bannerText:          'We use cookies to measure audience, improve the site and, with your consent, personalise our advertising campaigns.',
+    decline:             'Decline',
+    customise:           'Customise',
+    acceptAll:           'Accept all',
+    prefsTitle:          'Cookie preferences',
+    closeAriaLabel:      'Close',
+    necessary:           'Necessary',
+    necessaryDesc:       'Essential for the site to work. Always active.',
+    alwaysActive:        'Always active',
+    statistics:          'Statistics',
+    statisticsDesc:      'Audience measurement via Google Analytics. Helps improve the site.',
+    marketing:           'Marketing',
+    marketingDesc:       'Conversion tracking and personalised ads via Google Ads.',
+    declineAll:          'Decline all',
+    save:                'Save preferences',
+    footerNote:          'Your preferences are saved locally and can be changed at any time via the \'Cookie settings\' link at the bottom of the page.',
+  },
+}
+
+export default function CookieConsent({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const S = STRINGS[locale]
   const [view,      setView]      = useState<View>(null)
   const [visible,   setVisible]   = useState(false)
   const [analytics, setAnalytics] = useState(true)
@@ -94,7 +138,7 @@ export default function CookieConsent() {
   return (
     <div
       role="dialog"
-      aria-label={view === 'banner' ? 'Bannière cookies' : 'Préférences cookies'}
+      aria-label={view === 'banner' ? S.bannerAriaLabel : S.prefsAriaLabel}
       aria-modal="false"
       style={{
         position:   'fixed',
@@ -116,11 +160,10 @@ export default function CookieConsent() {
               className="text-sm font-light flex-1 leading-relaxed"
               style={{ color: 'rgba(242,242,242,0.65)' }}
             >
-              Nous utilisons des cookies pour mesurer l&apos;audience, améliorer le site et,
-              avec votre accord, personnaliser nos campagnes publicitaires.
+              {S.bannerText}
             </p>
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-              <BannerBtn variant="ghost"  onClick={rejectAll}>Refuser</BannerBtn>
+              <BannerBtn variant="ghost"  onClick={rejectAll}>{S.decline}</BannerBtn>
               <BannerBtn
                 variant="outline"
                 onClick={() => {
@@ -128,9 +171,9 @@ export default function CookieConsent() {
                   setTimeout(() => setView('preferences'), 200)
                 }}
               >
-                Personnaliser
+                {S.customise}
               </BannerBtn>
-              <BannerBtn variant="primary" onClick={acceptAll}>Tout accepter</BannerBtn>
+              <BannerBtn variant="primary" onClick={acceptAll}>{S.acceptAll}</BannerBtn>
             </div>
           </div>
         </div>
@@ -151,12 +194,12 @@ export default function CookieConsent() {
             {/* En-tête */}
             <div className="flex items-center justify-between">
               <h2 className="text-base font-light" style={{ color: 'rgba(242,242,242,0.92)' }}>
-                Préférences cookies
+                {S.prefsTitle}
               </h2>
               <button
                 type="button"
                 onClick={dismiss}
-                aria-label="Fermer"
+                aria-label={S.closeAriaLabel}
                 className="focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
                 style={{ color: 'rgba(242,242,242,0.35)', fontSize: 18, lineHeight: 1, padding: '2px 4px' }}
               >
@@ -169,33 +212,35 @@ export default function CookieConsent() {
 
             {/* Catégories */}
             <ConsentRow
-              label="Nécessaires"
-              description="Indispensables au fonctionnement du site. Toujours actifs."
+              label={S.necessary}
+              description={S.necessaryDesc}
+              alwaysActiveLabel={S.alwaysActive}
               value={true}
               disabled
             />
             <ConsentRow
-              label="Statistiques"
-              description="Mesure d'audience via Google Analytics. Permet d'améliorer le site."
+              label={S.statistics}
+              description={S.statisticsDesc}
+              alwaysActiveLabel={S.alwaysActive}
               value={analytics}
               onChange={setAnalytics}
             />
             <ConsentRow
-              label="Marketing"
-              description="Suivi de conversions et publicités personnalisées via Google Ads."
+              label={S.marketing}
+              description={S.marketingDesc}
+              alwaysActiveLabel={S.alwaysActive}
               value={marketing}
               onChange={setMarketing}
             />
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2.5 justify-end pt-1">
-              <BannerBtn variant="ghost"   onClick={rejectAll}>Tout refuser</BannerBtn>
-              <BannerBtn variant="primary" onClick={saveCustom}>Sauvegarder</BannerBtn>
+              <BannerBtn variant="ghost"   onClick={rejectAll}>{S.declineAll}</BannerBtn>
+              <BannerBtn variant="primary" onClick={saveCustom}>{S.save}</BannerBtn>
             </div>
 
             <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.3)', lineHeight: 1.5 }}>
-              Vos préférences sont enregistrées localement et peuvent être modifiées à tout moment
-              via le lien «&nbsp;Gestion des cookies&nbsp;» en bas de page.
+              {S.footerNote}
             </p>
           </div>
         </div>
@@ -233,15 +278,17 @@ function BannerBtn({
 function ConsentRow({
   label,
   description,
+  alwaysActiveLabel,
   value,
   onChange,
   disabled,
 }: {
-  label:       string
-  description: string
-  value:       boolean
-  onChange?:   (v: boolean) => void
-  disabled?:   boolean
+  label:             string
+  description:       string
+  alwaysActiveLabel: string
+  value:             boolean
+  onChange?:         (v: boolean) => void
+  disabled?:         boolean
 }) {
   return (
     <div
@@ -256,7 +303,7 @@ function ConsentRow({
               className="ml-2 text-xs"
               style={{ color: 'rgba(242,242,242,0.35)' }}
             >
-              Toujours actif
+              {alwaysActiveLabel}
             </span>
           )}
         </span>
