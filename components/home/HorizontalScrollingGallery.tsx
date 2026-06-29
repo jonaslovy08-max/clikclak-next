@@ -24,8 +24,19 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 /* ── Images ─────────────────────────────────────────────────────────── */
-const IMAGES = [
+const IMAGES_FR = [
   { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_01.webp', alt: 'Réparation smartphone' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_02.webp', alt: '' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_04.webp', alt: '' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_05.webp', alt: '' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_06.webp', alt: '' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_07.webp', alt: '' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_08.webp', alt: '' },
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_09.webp', alt: '' },
+]
+
+const IMAGES_EN = [
+  { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_01.webp', alt: 'Smartphone repair' },
   { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_02.webp', alt: '' },
   { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_04.webp', alt: '' },
   { src: '/assets/images/horizontal-scrolling-gallery/clikclak-gallery_05.webp', alt: '' },
@@ -45,6 +56,7 @@ const GAP       = 20
    Composant
 ════════════════════════════════════════════════════════════════════ */
 export default function HorizontalScrollingGallery({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const IMAGES = locale === 'en' ? IMAGES_EN : IMAGES_FR
   const title = locale === 'en' ? 'A complete' : 'Un service'
   const titleAccent = locale === 'en' ? 'service' : 'complet'
   const sub = locale === 'en'
