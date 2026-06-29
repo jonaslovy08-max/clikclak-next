@@ -41,9 +41,10 @@ const INTERVAL_MS = 4500
 
 type Props = {
   slides: HeroSlide[]
+  locale?: 'fr' | 'en'
 }
 
-export default function HeroSlider({ slides }: Props) {
+export default function HeroSlider({ slides, locale = 'fr' }: Props) {
   const [current,       setCurrent]       = useState(0)
   const [transitioning, setTransitioning] = useState(false)
   const [popupOpen,     setPopupOpen]     = useState(false)
@@ -307,7 +308,7 @@ export default function HeroSlider({ slides }: Props) {
           {/* Chevrons mobile */}
           <button
             type="button"
-            aria-label="Slide précédent"
+            aria-label={locale === 'en' ? 'Previous slide' : 'Slide précédent'}
             onClick={handlePrev}
             className="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
           >
@@ -316,7 +317,7 @@ export default function HeroSlider({ slides }: Props) {
           </button>
           <button
             type="button"
-            aria-label="Slide suivant"
+            aria-label={locale === 'en' ? 'Next slide' : 'Slide suivant'}
             onClick={handleNext}
             className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
           >
@@ -388,7 +389,7 @@ export default function HeroSlider({ slides }: Props) {
                     className="md:hidden text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
                     style={{ color: '#ccff33' }}
                   >
-                    Voir détails
+                    {locale === 'en' ? 'See details' : 'Voir détails'}
                   </button>
                 </div>
                 <div className="slide-ctas flex gap-3 justify-center mt-4 md:mt-6 md:justify-start">
@@ -412,7 +413,7 @@ export default function HeroSlider({ slides }: Props) {
         {/* Chevrons desktop */}
         <button
           type="button"
-          aria-label="Slide précédent"
+          aria-label={locale === 'en' ? 'Previous slide' : 'Slide précédent'}
           onClick={handlePrev}
           className="hidden md:block absolute left-[2px] top-1/2 -translate-y-1/2 z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
         >
@@ -421,7 +422,7 @@ export default function HeroSlider({ slides }: Props) {
         </button>
         <button
           type="button"
-          aria-label="Slide suivant"
+          aria-label={locale === 'en' ? 'Next slide' : 'Slide suivant'}
           onClick={handleNext}
           className="hidden md:block absolute right-[2px] top-1/2 -translate-y-1/2 z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
         >

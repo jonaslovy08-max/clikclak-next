@@ -19,7 +19,7 @@ export default function EnLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={rubik.variable}>
-        <RootProviders showChatbot={false}>
+        <RootProviders showChatbot={false} locale="en">
           {children}
         </RootProviders>
       </body>

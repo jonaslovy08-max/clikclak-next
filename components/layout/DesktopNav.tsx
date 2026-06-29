@@ -386,8 +386,12 @@ export default function DesktopNav({
                   href="/shop-reparation-smartphone-lausanne/panier"
                   aria-label={
                     cartCount > 0
-                      ? `Voir le panier, ${cartCount} article${cartCount > 1 ? 's' : ''}`
-                      : 'Voir le panier'
+                      ? locale === 'en'
+                        ? `View cart, ${cartCount} item${cartCount > 1 ? 's' : ''}`
+                        : `Voir le panier, ${cartCount} article${cartCount > 1 ? 's' : ''}`
+                      : locale === 'en'
+                        ? 'View cart'
+                        : 'Voir le panier'
                   }
                   className="inline-flex items-center gap-2 leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
                 >
