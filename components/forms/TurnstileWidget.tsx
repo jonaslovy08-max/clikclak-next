@@ -68,7 +68,7 @@ function ensureTurnstile(): Promise<void> {
 }
 
 /* ── Composant ── */
-export default function TurnstileWidget({ onToken }: { onToken: (token: string | null) => void }) {
+export default function TurnstileWidget({ onToken, locale = 'fr' }: { onToken: (token: string | null) => void; locale?: 'fr' | 'en' }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef  = useRef<string | null>(null)
   const cbRef        = useRef(onToken)
@@ -104,7 +104,9 @@ export default function TurnstileWidget({ onToken }: { onToken: (token: string |
   if (!SITE_KEY) {
     return (
       <p className="text-xs font-light" style={{ color: 'rgba(242,242,242,0.28)' }}>
-        Protection anti-spam (mode développement — clé non configurée)
+        {locale === 'en'
+          ? 'Anti-spam protection (development mode — key not configured)'
+          : 'Protection anti-spam (mode développement — clé non configurée)'}
       </p>
     )
   }
@@ -112,7 +114,7 @@ export default function TurnstileWidget({ onToken }: { onToken: (token: string |
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-light uppercase tracking-[0.1em]" style={{ color: 'rgba(242,242,242,0.35)' }}>
-        Protection anti-spam
+        {locale === 'en' ? 'Anti-spam protection' : 'Protection anti-spam'}
       </p>
       <div ref={containerRef} />
     </div>

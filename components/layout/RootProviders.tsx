@@ -20,9 +20,10 @@ interface Props {
   children:      React.ReactNode
   /** Masquer le chatbot FR sur les pages anglaises (Phase 2 : traduire le chatbot) */
   showChatbot?:  boolean
+  locale?:       'fr' | 'en'
 }
 
-export default function RootProviders({ children, showChatbot = true }: Props) {
+export default function RootProviders({ children, showChatbot = true, locale = 'fr' }: Props) {
   return (
     <CartProvider>
       <ChatbotProvider>
@@ -34,7 +35,7 @@ export default function RootProviders({ children, showChatbot = true }: Props) {
         <PageTransitionWrapper>
           {children}
         </PageTransitionWrapper>
-        <CookieConsent />
+        <CookieConsent locale={locale} />
         <GlobalFloatingActions />
         {showChatbot && <ChatbotWrapper />}
       </ChatbotProvider>

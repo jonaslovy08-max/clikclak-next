@@ -122,7 +122,7 @@ export default function SiteFooter({ locale = 'fr' }: { locale?: 'fr' | 'en' }) 
                     </li>
                   ))}
                   <li>
-                    <CookiePreferencesButton />
+                    <CookiePreferencesButton locale={locale} />
                   </li>
                 </ul>
               </nav>
