@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Rubik } from 'next/font/google'
 import '../globals.css'
 import RootProviders from '@/components/layout/RootProviders'
@@ -8,6 +9,24 @@ const rubik = Rubik({
   variable: '--font-rubik',
   display: 'swap',
 })
+
+/*
+  Favicon metadata — identical to app/(fr)/layout.tsx.
+  Absolute paths from /public ensure consistent resolution
+  regardless of route depth (/en vs /).
+*/
+export const metadata: Metadata = {
+  metadataBase: new URL('https://clikclak.ch'),
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+}
 
 /*
   Root layout ANGLAIS — route group (en).
