@@ -205,7 +205,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
 
             {/* ══ 4. CTA ═════════════════════════════════════════════════ */}
             <div className="flex flex-wrap items-center gap-4">
-              <ContactPopover />
+              <ContactPopover locale={locale} />
               <Link
                 href={T.ctaBackHref}
                 className="inline-flex items-center gap-2 text-sm font-light focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
