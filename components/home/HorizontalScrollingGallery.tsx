@@ -44,7 +44,12 @@ const GAP       = 20
 /* ════════════════════════════════════════════════════════════════════
    Composant
 ════════════════════════════════════════════════════════════════════ */
-export default function HorizontalScrollingGallery() {
+export default function HorizontalScrollingGallery({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const title = locale === 'en' ? 'A complete' : 'Un service'
+  const titleAccent = locale === 'en' ? 'service' : 'complet'
+  const sub = locale === 'en'
+    ? 'Repair, diagnostic, data recovery and technical support in Lausanne.'
+    : 'Réparation, diagnostic, récupération de données et accompagnement technique à Lausanne.'
   const sectionRef = useRef<HTMLElement>(null)
   const stripRef   = useRef<HTMLDivElement>(null)
   const ctxRef     = useRef<gsap.Context | null>(null)
@@ -106,11 +111,11 @@ export default function HorizontalScrollingGallery() {
         style={{ minHeight: HEADER_H }}
       >
         <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-          Un service{' '}
-          <span className="text-accent">complet</span>
+          {title}{' '}
+          <span className="text-accent">{titleAccent}</span>
         </h2>
         <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.45)' }}>
-          Réparation, diagnostic, récupération de données et accompagnement technique à Lausanne.
+          {sub}
         </p>
       </div>
 

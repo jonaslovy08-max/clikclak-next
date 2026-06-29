@@ -2,12 +2,11 @@ import type { Metadata } from 'next'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
+import SectionPinning from '@/components/ui/SectionPinning'
 import ContactForm from '@/components/contact/ContactForm'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 import { Button } from '@/components/ui/Button'
 import FloatingContactActions from '@/components/home/FloatingContactActions'
-
-/* ── SEO ─────────────────────────────────────────────────────────────── */
 
 export const metadata: Metadata = {
   title: 'Contact ClikClak Lausanne | Smartphone, iPad, MacBook Repair',
@@ -97,6 +96,8 @@ export default function EnContactPage() {
       <Header locale="en" />
 
       <main>
+
+        {/* ══ HERO ════════════════════════════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10"
           aria-label="Contact ClikClak"
@@ -123,75 +124,249 @@ export default function EnContactPage() {
               A question about a repair, a model, a price or a problem? Send us your request with a few details about your device. A photo can help us better understand the issue.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
-              {/* Form */}
-              <div className="flex flex-col gap-6">
-                <ContactForm locale="en" />
+            <div className="flex flex-wrap items-center gap-4">
+              <Button href="#formulaire">Send a request</Button>
+              <Button href="#localisation" variant="secondary">View address</Button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ COORDONNÉES ═════════════════════════════════════════════ */}
+        <section
+          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          aria-label="Contact details"
+        >
+          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
+            <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
+              Our{' '}
+              <span className="text-accent">contact details</span>
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+              {/* Phone */}
+              <a
+                href="tel:+41213204477"
+                className="flex flex-col gap-4 p-5 rounded-xl group"
+                style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
+                aria-label="Call ClikClak"
+              >
+                <span style={{ color: '#ccff33' }}><IconPhone /></span>
+                <div>
+                  <p className="text-xs font-light uppercase tracking-[0.12em] mb-2" style={{ color: 'rgba(242,242,242,0.35)' }}>Phone</p>
+                  <p className="text-base font-light group-hover:text-accent transition-colors duration-200" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    021 320 44 77
+                  </p>
+                </div>
+              </a>
+
+              {/* Email */}
+              <a
+                href="mailto:info@clikclak.ch"
+                className="flex flex-col gap-4 p-5 rounded-xl group"
+                style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
+                aria-label="Send an email to ClikClak"
+              >
+                <span style={{ color: '#ccff33' }}><IconEmail /></span>
+                <div>
+                  <p className="text-xs font-light uppercase tracking-[0.12em] mb-2" style={{ color: 'rgba(242,242,242,0.35)' }}>Email</p>
+                  <p className="text-base font-light group-hover:text-accent transition-colors duration-200" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    info@clikclak.ch
+                  </p>
+                </div>
+              </a>
+
+              {/* Address */}
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col gap-4 p-5 rounded-xl group"
+                style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
+                aria-label="View address on Google Maps"
+              >
+                <span style={{ color: '#ccff33' }}><IconPin /></span>
+                <div>
+                  <p className="text-xs font-light uppercase tracking-[0.12em] mb-2" style={{ color: 'rgba(242,242,242,0.35)' }}>Address</p>
+                  <p className="text-sm font-light leading-snug" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    Rue du Petit-Chêne 9b<br />
+                    1003 Lausanne
+                  </p>
+                </div>
+              </a>
+
+              {/* Hours */}
+              <div
+                className="flex flex-col gap-4 p-5 rounded-xl"
+                style={{ border: '1px solid rgba(242,242,242,0.1)', background: 'rgba(255,255,255,0.02)' }}
+              >
+                <span style={{ color: '#ccff33' }}><IconClock /></span>
+                <div>
+                  <p className="text-xs font-light uppercase tracking-[0.12em] mb-2" style={{ color: 'rgba(242,242,242,0.35)' }}>Hours</p>
+                  <p className="text-sm font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    Mon – Fri: 10:00 – 18:30<br />
+                    Saturday: 10:00 – 17:30
+                  </p>
+                </div>
               </div>
 
-              {/* Info */}
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 text-foreground/70">
-                    <IconPin />
-                    <a
-                      href={MAPS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground transition-colors font-light"
-                    >
-                      Rue du Petit-Chêne 9b, 1003 Lausanne
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3 text-foreground/70">
-                    <IconClock />
-                    <span className="font-light">Mon–Sat 10am–6:30pm</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-foreground/70">
-                    <IconEmail />
-                    <a
-                      href="mailto:info@clikclak.ch"
-                      className="hover:text-foreground transition-colors font-light"
-                    >
-                      info@clikclak.ch
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3 text-foreground/70">
-                    <IconPhone />
-                    <a
-                      href="tel:+41216527110"
-                      className="hover:text-foreground transition-colors font-light"
-                    >
-                      +41 21 652 71 10
-                    </a>
-                  </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ QUICK CONTACT ═══════════════════════════════════════════ */}
+        <section
+          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          aria-label="Quick contact"
+        >
+          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
+            <div className="flex flex-col gap-3">
+              <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
+                Quick{' '}
+                <span className="text-accent">contact</span>
+              </h2>
+              <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.45)' }}>
+                Need a fast reply? Choose the most suitable contact method.
+              </p>
+            </div>
+            <FloatingContactActions layout="section" locale="en" />
+          </div>
+        </section>
+
+        {/* ══ FORMULAIRE ══════════════════════════════════════════════ */}
+        <section
+          id="formulaire"
+          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          aria-label="Contact form"
+        >
+          <div className="w-full max-w-6xl mx-auto flex flex-col gap-10">
+            <div className="flex flex-col gap-3">
+              <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
+                Send a{' '}
+                <span className="text-accent">request</span>
+              </h2>
+              <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.45)' }}>
+                Fields marked <span style={{ color: '#ccff33' }}>*</span> are required.
+                Never share your Apple, Google or Samsung passwords in this form.
+              </p>
+            </div>
+            <div className="max-w-2xl">
+              <ContactForm locale="en" />
+            </div>
+          </div>
+        </section>
+
+        {/* ══ TIPS ════════════════════════════════════════════════════ */}
+        <section
+          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          aria-label="How to help us reply faster"
+        >
+          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
+            <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
+              How to help us reply{' '}
+              <span className="text-accent">faster?</span>
+            </h2>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                'State the model if you know it (iPhone 14, Galaxy S23…)',
+                'Describe the problem precisely (black screen, inactive touchscreen, won\'t start…)',
+                'Mention if the device was dropped or exposed to liquid',
+                'Indicate when the issue started',
+                'Add a photo if it can help with the diagnosis',
+                'Never share your Apple, Google or Samsung passwords',
+              ].map(item => (
+                <li key={item} className="flex items-start gap-3">
+                  <span style={{ color: '#ccff33', flexShrink: 0, fontWeight: 300 }}>—</span>
+                  <span className="text-sm font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.7)' }}>
+                    {item}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ══ LOCALISATION ════════════════════════════════════════════ */}
+        <section
+          id="localisation"
+          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          aria-label="Find ClikClak in Lausanne"
+        >
+          <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
+            <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
+              Find us{' '}
+              <span className="text-accent">in Lausanne</span>
+            </h2>
+
+            <div className="flex flex-col sm:flex-row gap-8 items-start">
+              <div className="flex flex-col gap-5">
+                <address className="not-italic flex flex-col gap-2">
+                  <p className="text-base font-light" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    Clik Clak Repair
+                  </p>
+                  <p className="text-sm font-light leading-relaxed" style={{ color: 'rgba(242,242,242,0.6)' }}>
+                    Rue du Petit-Chêne 9b<br />
+                    1003 Lausanne<br />
+                    Switzerland
+                  </p>
+                </address>
+
+                <div className="flex flex-col gap-2 text-sm font-light" style={{ color: 'rgba(242,242,242,0.6)' }}>
+                  <p>Mon – Fri: 10:00 – 18:30</p>
+                  <p>Saturday: 10:00 – 17:30</p>
                 </div>
 
-                <Button href={MAPS_URL} external variant="ghost" size="sm" className="self-start mt-2">
-                  View on Google Maps →
+                <Button href={MAPS_URL} variant="secondary" external>
+                  Open in Maps
                 </Button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
+        {/* ══ FAQ ═════════════════════════════════════════════════════ */}
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label="FAQ"
+          aria-label="Frequently asked questions"
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
               Frequently asked{' '}
               <span className="text-accent">questions</span>
             </h2>
-            <FAQAccordion items={FAQ_ITEMS} />
+            <div className="max-w-3xl">
+              <FAQAccordion items={FAQ_ITEMS} />
+            </div>
           </div>
         </section>
+
+        {/* ══ CTA FINAL ═══════════════════════════════════════════════ */}
+        <section
+          className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
+          aria-label="Contact ClikClak"
+        >
+          <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-6 text-center">
+            <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight max-w-xl">
+              Ready to send your{' '}
+              <span className="text-accent">request?</span>
+            </h2>
+            <p
+              className="font-light max-w-xl"
+              style={{ fontSize: 'clamp(14px, 1.4vw, 18px)', color: 'rgba(242,242,242,0.6)' }}
+            >
+              Use the form above or contact us directly by phone or email.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button href="#formulaire">Send a request</Button>
+              <Button href="tel:+41213204477" variant="secondary">021 320 44 77</Button>
+            </div>
+          </div>
+        </section>
+
       </main>
 
-      <FloatingContactActions />
       <SiteFooter locale="en" />
+      <SectionPinning />
     </>
   )
 }

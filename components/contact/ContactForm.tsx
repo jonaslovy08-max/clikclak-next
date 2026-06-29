@@ -99,7 +99,7 @@ const TRANSLATIONS = {
     photo_choose:     'Choose an image',
     consent_text:     'I agree that ClikClak may use this information to respond to my request, in accordance with the',
     consent_link:     'privacy policy',
-    consent_link_href:'/politique-confidentialite',
+    consent_link_href:'/en/privacy-policy',
     sending:          'Sending…',
     submit:           'Send request',
     err_name:         'Please enter your name.',

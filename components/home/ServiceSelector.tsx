@@ -14,7 +14,7 @@ import {
 import RepairModelSearch     from '@/components/RepairModelSearch'
 import RotatingRepairCapsule from '@/components/home/RotatingRepairCapsule'
 
-const devices = [
+const devicesFr = [
   { id: 'smartphones',  label: 'Smartphones',                  icon: IconSmartphone,  href: '/reparation-smartphone-express/' },
   { id: 'ordinateurs',  label: 'Ordinateurs',                  icon: IconComputer,    href: '/reparation-ordinateur-express'  },
   { id: 'tablette',     label: 'Tablette',                     icon: IconTablet,      href: '/reparation-tablette-express'    },
@@ -22,7 +22,21 @@ const devices = [
   { id: 'recuperation', label: ['Récupération', 'de données'], icon: IconDataRecovery,href: '/services/recuperation-donnees'  },
 ] as const
 
-type Device = typeof devices[number]
+const devicesEn = [
+  { id: 'smartphones',  label: 'Smartphones',          icon: IconSmartphone,  href: '/en/services/smartphone-repair'  },
+  { id: 'ordinateurs',  label: 'Computers',             icon: IconComputer,    href: '/en/express-computer-repair'     },
+  { id: 'tablette',     label: 'Tablet',                icon: IconTablet,      href: '/en/express-tablet-repair'       },
+  { id: 'depannage',    label: '7/7 Support',           icon: IconCourier,     href: '/en/services/home-repair-service'},
+  { id: 'recuperation', label: ['Data', 'recovery'],    icon: IconDataRecovery,href: '/en/services/data-recovery'      },
+] as const
+
+type IconComponent = React.ComponentType<{ drawRef?: React.Ref<SVGGeometryElement>; className?: string }>
+type Device = {
+  id: string
+  label: string | readonly string[]
+  icon: IconComponent
+  href: string
+}
 
 /*
   DeviceCard — animation GSAP BUTTON HOVER + stroke drawing.
@@ -161,12 +175,16 @@ function DeviceCard({ device }: { device: Device }) {
   )
 }
 
-export default function ServiceSelector() {
+export default function ServiceSelector({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
+  const devices = locale === 'en' ? devicesEn : devicesFr
+  const h2a = locale === 'en' ? 'Which device' : 'Quel appareil'
+  const h2b = locale === 'en' ? 'do you want to repair?' : 'souhaitez-vous réparer ?'
+  const sub = locale === 'en' ? 'Or select your device here' : 'Ou sélectionnez votre appareil ici'
   return (
     <section
       id="selection-service"
       className="px-6 md:px-14 lg:px-20 py-32 md:py-40 lg:py-48 border-t border-white/10"
-      aria-label="Sélection du service"
+      aria-label={locale === 'en' ? 'Service selection' : 'Sélection du service'}
     >
       <div className="w-full max-w-6xl mx-auto flex flex-col gap-16">
 
@@ -174,33 +192,30 @@ export default function ServiceSelector() {
         <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-14">
           <div className="flex-1">
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-              <span className="text-accent">Quel appareil</span>
+              <span className="text-accent">{h2a}</span>
               <br />
-              <span className="text-foreground">souhaitez-vous réparer&nbsp;?</span>
+              <span className="text-foreground">{h2b}</span>
             </h2>
           </div>
           <div className="flex-1">
-            <RepairModelSearch inputId="device-search" />
+            <RepairModelSearch inputId="device-search" locale={locale} />
           </div>
         </div>
 
-        {/* ── Séparateur ── */}
-
-
         {/* ── Sous-titre ── */}
         <p className="text-center text-sm text-foreground/40 tracking-wide">
-          Ou sélectionnez votre appareil ici
+          {sub}
         </p>
 
         {/* ── Cartes appareils ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
-          {devices.map((device) => (
+          {(devices as readonly Device[]).map((device) => (
             <DeviceCard key={device.id} device={device} />
           ))}
         </div>
 
         {/* ── Réassurance rotatif ── */}
-        <RotatingRepairCapsule />
+        <RotatingRepairCapsule locale={locale} />
 
       </div>
     </section>

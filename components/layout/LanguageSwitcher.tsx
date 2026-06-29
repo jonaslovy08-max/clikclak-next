@@ -2,12 +2,12 @@
 /*
   LanguageSwitcher — sélecteur FR | EN
   Accessible, sans drapeau, sans menu déroulant.
-  Conserve la page équivalente si une correspondance existe, sinon redirige vers la racine.
+  Utilise getAlternatePath (i18n/routes.ts) pour trouver l'URL équivalente dans l'autre locale.
 */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { getAlternateUrl } from '@/i18n/navigation'
+import { getAlternatePath } from '@/i18n/routes'
 
 interface Props {
   /** Locale courante de la page */
@@ -19,7 +19,7 @@ interface Props {
 export default function LanguageSwitcher({ locale, className = '' }: Props) {
   const pathname    = usePathname()
   const otherLocale = locale === 'fr' ? 'en' : 'fr'
-  const otherUrl    = getAlternateUrl(pathname, otherLocale)
+  const otherUrl    = getAlternatePath(pathname, otherLocale)
 
   return (
     <div
@@ -37,7 +37,7 @@ export default function LanguageSwitcher({ locale, className = '' }: Props) {
         </span>
       ) : (
         <Link
-          href="/"
+          href={otherUrl}
           aria-label="Passer en français"
           className="text-foreground/50 hover:text-foreground transition-colors"
         >

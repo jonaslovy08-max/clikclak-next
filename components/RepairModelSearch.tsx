@@ -31,17 +31,21 @@ import { useRouter } from 'next/navigation'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
 import { searchRepairs, repairSearchIndex, type SearchableModel } from '@/lib/repairSearch'
+import { getAlternatePath } from '@/i18n/routes'
+import { getNoModelFoundText, getViewPricingText, getSearchAriaLabel } from '@/i18n/repairLabels'
 
 export default function RepairModelSearch({
   placeholder = 'Trouver mon appareil et tarifs...',
   inputId     = 'repair-model-search',
   onSelect,
   className,
+  locale      = 'fr',
 }: {
   placeholder?: string
   inputId?:     string
   onSelect?:    (result: SearchableModel) => void
   className?:   string
+  locale?:      'fr' | 'en'
 }) {
   const [query,   setQuery]   = useState('')
   const [focused, setFocused] = useState(false)
@@ -154,13 +158,15 @@ export default function RepairModelSearch({
     if (onSelect) {
       onSelect(result)
     } else {
-      router.push(result.href)
+      /* When locale="en", convert the FR model href to its EN equivalent */
+      const href = locale === 'en' ? getAlternatePath(result.href, 'en') : result.href
+      router.push(href)
     }
   }
 
   return (
     <div ref={wrapRef} className={`relative${className ? ` ${className}` : ''}`}>
-      <label className="sr-only" htmlFor={inputId}>Rechercher un appareil</label>
+      <label className="sr-only" htmlFor={inputId}>{getSearchAriaLabel(locale)}</label>
       <input
         id={inputId}
         type="search"
@@ -232,7 +238,7 @@ export default function RepairModelSearch({
             className="rms-item px-5 py-4 text-base font-light"
             style={{ color: 'rgba(242,242,242,0.35)' }}
           >
-            Aucun modèle trouvé pour «&nbsp;{query.trim()}&nbsp;»
+            {getNoModelFoundText(query.trim(), locale)}
           </div>
         ) : results.map((result, idx) => (
           <button
@@ -252,7 +258,7 @@ export default function RepairModelSearch({
               </span>
             </div>
             <span style={{ fontSize: 11, color: '#ccff33', flexShrink: 0, whiteSpace: 'nowrap' }}>
-              Voir les tarifs →
+              {getViewPricingText(locale)}
             </span>
           </button>
         ))}

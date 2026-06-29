@@ -28,8 +28,13 @@ type ContactItem = {
   isChatbot?: boolean
 }
 
-const allItems: ContactItem[] = [
+const allItemsFr: ContactItem[] = [
   { label: 'Appeler',  tooltip: 'Appeler',   href: 'tel:+41213204477',          icon: '/assets/ui/icon-phone.svg'          },
+  { label: 'WhatsApp', tooltip: 'WhatsApp',  href: 'https://wa.me/41782573242', icon: '/assets/ui/icon-whatsapp.svg'       },
+  { label: 'Chatbot',  tooltip: 'Assistant', isChatbot: true,                   icon: '/assets/chatbot/icon_chatbot.svg'   },
+]
+const allItemsEn: ContactItem[] = [
+  { label: 'Call',     tooltip: 'Call',      href: 'tel:+41213204477',          icon: '/assets/ui/icon-phone.svg'          },
   { label: 'WhatsApp', tooltip: 'WhatsApp',  href: 'https://wa.me/41782573242', icon: '/assets/ui/icon-whatsapp.svg'       },
   { label: 'Chatbot',  tooltip: 'Assistant', isChatbot: true,                   icon: '/assets/chatbot/icon_chatbot.svg'   },
 ]
@@ -159,10 +164,12 @@ function FloatingItem({ item, onChatbot }: { item: ContactItem; onChatbot?: () =
 type Props = {
   layout?:    'inline' | 'stack' | 'section'
   className?: string
+  locale?:    'fr' | 'en'
 }
 
-export default function FloatingContactActions({ layout = 'stack', className }: Props) {
+export default function FloatingContactActions({ layout = 'stack', className, locale = 'fr' }: Props) {
   const { open: openChatbot } = useChatbot()
+  const allItems = locale === 'en' ? allItemsEn : allItemsFr
 
   const cardStyle: React.CSSProperties = {
     border:     '1px solid rgba(242,242,242,0.1)',

@@ -28,6 +28,7 @@ import RepairModelSearch from '@/components/RepairModelSearch'
 import ShareButton       from '@/components/share/ShareButton'
 import { MainRepairCard, MaskedIcon } from '@/components/repair/MainRepairCard'
 import { formatPrice, type RepairBrandData, type RepairFamily, type RepairModel } from '@/data/repairTypes'
+import { getRepairLabel, getRepairPrice, normalizeModelLabel } from '@/i18n/repairLabels'
 import type { SearchableModel } from '@/lib/repairSearch'
 
 /* ── Dropdown modèles — port exact du pattern iPhone ───────────────────────── */
@@ -154,7 +155,7 @@ function priceColor(price: string): string {
 /* ══════════════════════════════════════════════════════════════════════════════
    Composant principal
 ══════════════════════════════════════════════════════════════════════════════ */
-export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBrandData; bottomSlot?: React.ReactNode }) {
+export default function RepairPricingPage({ data, bottomSlot, locale = 'fr' }: { data: RepairBrandData; bottomSlot?: React.ReactNode; locale?: 'fr' | 'en' }) {
   const {
     h1Prefix, h1Brand, brandIcon,
     breadcrumbLabel, breadcrumbHref,
@@ -165,6 +166,29 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
     searchPlaceholder = 'Rechercher mon appareil...',
   } = data
 
+  const UI = locale === 'en'
+    ? {
+        backLabel:     'Back',
+        selectModel:   'Select your model',
+        orSelect:      'Or select your device here',
+        seeMore:       (n: number) => `See more models… (${n} families)`,
+        seeLess:       'See less…',
+        repairTitle:   (label: string) => `${label} Repair`,
+        repairNote_:   repairNote ? `Note: ${repairNote}` : undefined,
+        screenSub:     'Screen replacement',
+        batterySub:    'Battery replacement',
+      }
+    : {
+        backLabel:     'Retour',
+        selectModel:   'Sélectionnez votre modèle',
+        orSelect:      'Ou sélectionnez votre appareil ici',
+        seeMore:       (n: number) => `Voir plus de modèles... (${n} familles)`,
+        seeLess:       'Voir moins...',
+        repairTitle:   (label: string) => `Réparation ${label}`,
+        repairNote_:   repairNote,
+        screenSub:     'Remplacement écran',
+        batterySub:    'Remplacement batterie',
+      }
   const router  = useRouter()
   const INITIAL = Math.min(initialFamilyCount ?? families.length, 5)
   const hasMore = families.length > INITIAL
@@ -320,12 +344,12 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
 
   return (
     <>
-      <Header />
+      <Header locale={locale} />
 
       <main>
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label={`Réparation ${h1Brand} — sélection du modèle et tarifs`}
+          aria-label={locale === 'en' ? `${h1Brand} Repair — model selection and pricing` : `Réparation ${h1Brand} — sélection du modèle et tarifs`}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-10">
 
@@ -342,7 +366,7 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
               <h1 className="text-[1.75rem] md:text-[2.25rem] text-center font-light leading-tight">
                 {h1Prefix && <>{h1Prefix}{' '}</>}
                 <span className="text-accent">{h1Brand}</span>
-                {' '}prix
+                {locale === 'en' ? ' pricing' : ' prix'}
               </h1>
             </div>
 
@@ -356,7 +380,7 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/assets/ui/icon-chevron-left.svg" alt="" aria-hidden style={{ height: 14, width: 14, objectFit: 'contain' }} />
-                  <span>Retour</span>
+                  <span>{UI.backLabel}</span>
                 </Link>
                 <span className="font-light" style={{ fontSize: 'clamp(13px, 1.4vw, 22px)', color: '#a8a8a8' }}>
                   {breadcrumbLabel}
@@ -369,19 +393,20 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
             {/* ══ 3. SÉLECTION + RECHERCHE ══ */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-10">
               <p className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight shrink-0">
-                Sélectionnez votre modèle
+                {UI.selectModel}
               </p>
               <RepairModelSearch
                 inputId={`${h1Brand.toLowerCase().replace(/\s+/g, '-')}-search`}
                 placeholder={searchPlaceholder}
                 className="w-full md:max-w-[520px]"
+                locale={locale}
                 onSelect={handleSearchSelect}
               />
             </div>
 
             {/* ══ 4. SOUS-TEXTE ══ */}
             <p className="text-center font-light text-sm -mt-4" style={{ color: '#909090' }}>
-              Ou sélectionnez votre appareil ici
+              {UI.orSelect}
             </p>
 
             {/* ══ 5. BOUTONS FAMILLES — identique iPhone ══ */}
@@ -412,8 +437,8 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
                   >
                     <span>
                       {showAll
-                        ? 'Voir moins...'
-                        : `Voir plus de modèles... (${families.length - INITIAL} familles)`}
+                        ? UI.seeLess
+                        : UI.seeMore(families.length - INITIAL)}
                     </span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -431,16 +456,21 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
 
                 <div className="flex justify-end">
                   <ShareButton
-                    title={`Réparation ${selectedModel.label} — ClikClak Lausanne`}
-                    text={`Tarifs de réparation pour ${selectedModel.label} chez ClikClak à Lausanne.`}
+                    title={locale === 'en' ? `${normalizeModelLabel(selectedModel.label, locale)} Repair — ClikClak Lausanne` : `Réparation ${selectedModel.label} — ClikClak Lausanne`}
+                    text={locale === 'en' ? `Repair pricing for ${normalizeModelLabel(selectedModel.label, locale)} at ClikClak in Lausanne.` : `Tarifs de réparation pour ${selectedModel.label} chez ClikClak à Lausanne.`}
                     url={`?model=${selectedModelId}`}
+                    locale={locale}
                   />
                 </div>
 
                 <div style={{ border: '1px solid #5a5a5a', borderRadius: 4 }}>
                   <div className="flex flex-col items-center gap-6 px-8 pt-8 pb-6">
                     <h2 className="text-[1.5rem] md:text-[2rem] text-center font-light leading-tight">
-                      Réparation <span className="text-accent">{selectedModel.label}</span>
+                      {UI.repairTitle(normalizeModelLabel(selectedModel.label, locale)).split(normalizeModelLabel(selectedModel.label, locale)).map((part, i, arr) =>
+                        i < arr.length - 1
+                          ? <span key={i}>{part}<span className="text-accent">{normalizeModelLabel(selectedModel.label, locale)}</span></span>
+                          : <span key={i}>{part}</span>
+                      )}
                     </h2>
                     <hr className="w-full" style={{ borderColor: 'rgba(242,242,242,0.15)' }} />
                   </div>
@@ -451,16 +481,18 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
                       <div className="flex-1 flex flex-col gap-5 min-w-0">
                         {screenRepair && (
                           <MainRepairCard
-                            repair={{ name: screenRepair.label, subtitle: 'Remplacement écran', price: formatPrice(screenRepair.price) }}
-                            modelLabel={selectedModel.label}
+                            repair={{ name: screenRepair.label, subtitle: UI.screenSub, price: formatPrice(screenRepair.price) }}
+                            modelLabel={normalizeModelLabel(selectedModel.label, locale)}
                             variant="screen"
+                            locale={locale}
                           />
                         )}
                         {batteryRepair && (
                           <MainRepairCard
-                            repair={{ name: batteryRepair.label, subtitle: 'Remplacement batterie', price: formatPrice(batteryRepair.price) }}
-                            modelLabel={selectedModel.label}
+                            repair={{ name: batteryRepair.label, subtitle: UI.batterySub, price: formatPrice(batteryRepair.price) }}
+                            modelLabel={normalizeModelLabel(selectedModel.label, locale)}
                             variant="battery"
+                            locale={locale}
                           />
                         )}
                       </div>
@@ -475,10 +507,10 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
                             style={{ borderBottom: '1px solid rgba(242,242,242,0.07)' }}
                           >
                             <span className="font-light" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: '#b0b0b0' }}>
-                              {repair.label}
+                              {getRepairLabel(repair.label, locale)}
                             </span>
-                            <span className="font-light whitespace-nowrap ml-4" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: priceColor(formatPrice(repair.price)) }}>
-                              {formatPrice(repair.price)}
+                            <span className="font-light whitespace-nowrap ml-4" style={{ fontSize: 'clamp(15px, 1.3vw, 16px)', color: priceColor(getRepairPrice(repair.price, locale)) }}>
+                              {getRepairPrice(repair.price, locale)}
                             </span>
                           </div>
                         ))}
@@ -491,9 +523,9 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
                   </div>
                 </div>
 
-                {repairNote && (
+                {UI.repairNote_ && (
                   <p className="text-center mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 18px)', color: '#a5a5a5', maxWidth: 640, lineHeight: 1.6 }}>
-                    {repairNote}
+                    {UI.repairNote_}
                   </p>
                 )}
               </div>
@@ -504,8 +536,8 @@ export default function RepairPricingPage({ data, bottomSlot }: { data: RepairBr
       </main>
 
       {bottomSlot}
-      <RepairEngagements />
-      <SiteFooter />
+      <RepairEngagements locale={locale} />
+      <SiteFooter locale={locale} />
       <SectionPinning />
     </>
   )

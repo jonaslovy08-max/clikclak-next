@@ -7,6 +7,7 @@
     'smartphone' → Samsung, OPPO, Huawei, Sony Xperia
     'tablet'     → iPad
     'laptop'     → MacBook / iMac
+  locale : 'fr' | 'en'
 */
 
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
@@ -15,8 +16,8 @@ import gsap from 'gsap'
 type FaqItem    = { q: string; a: string }
 type DeviceType = 'smartphone' | 'tablet' | 'laptop'
 
-/* ── Questions smartphone Android ──────────────────────────────────────────── */
-const FAQ_SMARTPHONE: FaqItem[] = [
+/* ── Questions smartphone Android — FR ─────────────────────────────────────── */
+const FAQ_SMARTPHONE_FR: FaqItem[] = [
   {
     q: 'Combien de temps dure une réparation ?',
     a: "La durée dépend du modèle et de la disponibilité des pièces. Les réparations courantes comme un écran ou une batterie peuvent être effectuées rapidement. Les diagnostics complexes, dégâts liquides ou commandes de pièces spécifiques demandent plus de temps.",
@@ -63,8 +64,8 @@ const FAQ_SMARTPHONE: FaqItem[] = [
   },
 ]
 
-/* ── Questions tablette (iPad) ─────────────────────────────────────────────── */
-const FAQ_TABLET: FaqItem[] = [
+/* ── Questions tablette — FR ───────────────────────────────────────────────── */
+const FAQ_TABLET_FR: FaqItem[] = [
   {
     q: 'Combien de temps dure une réparation de tablette ?',
     a: "La durée dépend du type de réparation et de la disponibilité des pièces. Le remplacement d'une vitre ou d'une batterie peut être réalisé assez rapidement. Les diagnostics complexes ou commandes spécifiques demandent plus de temps.",
@@ -107,8 +108,8 @@ const FAQ_TABLET: FaqItem[] = [
   },
 ]
 
-/* ── Questions ordinateur (MacBook / iMac) ─────────────────────────────────── */
-const FAQ_LAPTOP: FaqItem[] = [
+/* ── Questions ordinateur — FR ─────────────────────────────────────────────── */
+const FAQ_LAPTOP_FR: FaqItem[] = [
   {
     q: 'Combien de temps dure une réparation MacBook ?',
     a: "La durée varie selon le type d'intervention. Certaines réparations peuvent être réalisées en quelques heures. Les diagnostics approfondis, réparations de carte mère, commandes de pièces ou dégâts liquides demandent généralement plus de temps. Un délai estimatif est communiqué lors du dépôt.",
@@ -151,16 +152,168 @@ const FAQ_LAPTOP: FaqItem[] = [
   },
 ]
 
-const FAQ_MAP: Record<DeviceType, FaqItem[]> = {
-  smartphone: FAQ_SMARTPHONE,
-  tablet:     FAQ_TABLET,
-  laptop:     FAQ_LAPTOP,
+/* ── Questions smartphone — EN ─────────────────────────────────────────────── */
+const FAQ_SMARTPHONE_EN: FaqItem[] = [
+  {
+    q: 'How long does a repair take?',
+    a: "Duration depends on the model and parts availability. Common repairs like a screen or battery can be done quickly. Complex diagnostics, liquid damage or special part orders take longer.",
+  },
+  {
+    q: 'Are displayed prices final?',
+    a: "Prices correspond to standard repairs for the selected model. If additional damage is found during the diagnostic, a supplementary quote is offered before any further work.",
+  },
+  {
+    q: 'Should I back up my data before the repair?',
+    a: "Yes. Data backup is the client's responsibility. Before any intervention, back up photos, contacts, messages and important files. ClikClak cannot guarantee data preservation during a technical intervention.",
+  },
+  {
+    q: 'Will my data be accessed?',
+    a: "No. ClikClak does not access your personal content. Some tests may require powering on the device or checking basic functions. Any required code is used solely for technical testing.",
+  },
+  {
+    q: 'Is the repair covered by a warranty?',
+    a: "Yes, depending on the part type. Original or manufacturer parts carry a longer warranty than compatible parts. The warranty covers part or assembly defects, but not shock, drops, oxidation, breakage or misuse after repair.",
+  },
+  {
+    q: 'What if my device is beyond repair?',
+    a: "If the device is beyond repair or the client declines the quote after diagnosis, a diagnostic fee may apply per the general terms. The client can then collect their device.",
+  },
+  {
+    q: 'Do you use original parts?',
+    a: "Depending on the model and availability, different part qualities may be offered: original, manufacturer-equivalent, compatible or refurbished. Part choice affects price, result and warranty duration.",
+  },
+  {
+    q: 'Can I come without an appointment?',
+    a: "Depending on the day, some repairs can be taken without an appointment. To ensure parts availability and reduce waiting, contact ClikClak before visiting.",
+  },
+]
+
+/* ── Questions tablette — EN ───────────────────────────────────────────────── */
+const FAQ_TABLET_EN: FaqItem[] = [
+  {
+    q: 'How long does a tablet repair take?',
+    a: "Duration depends on the type of repair and parts availability. Screen or battery replacements can often be done quickly. Complex diagnostics or special part orders take longer.",
+  },
+  {
+    q: 'Are displayed prices final?',
+    a: "Prices correspond to standard repairs for the selected model. If additional damage is found during the diagnostic, a supplementary quote is offered before any further work.",
+  },
+  {
+    q: 'Should I back up my data before the repair?',
+    a: "Yes. Data backup is the client's responsibility. Before any intervention, back up photos, documents, notes and important files to iCloud or a computer.",
+  },
+  {
+    q: 'Is the repair covered by a warranty?',
+    a: "Yes, depending on the part type. Original or manufacturer parts carry a longer warranty. The warranty covers part or assembly defects, not shock, drops or misuse after repair.",
+  },
+  {
+    q: 'Are the glass and screen separate components?',
+    a: "On some models, the glass and screen are bonded and must be replaced together. On others, only the glass can be replaced separately. A diagnostic clarifies this before any work.",
+  },
+  {
+    q: 'Will my tablet remain water-resistant after repair?',
+    a: "No. After opening a device, the original water resistance cannot be guaranteed, even if gaskets are replaced. Avoid prolonged water contact after repair.",
+  },
+  {
+    q: 'Do you repair tablets that have been dropped in water?',
+    a: "Yes, a diagnostic can be carried out. In case of oxidation or liquid contact, the goal is often data recovery or getting the device working again. No lifespan guarantee can be given on an oxidised device.",
+  },
+  {
+    q: 'Will my data be accessed?',
+    a: "No. ClikClak does not access your personal content. Some tests may require powering on the device or checking basic functions.",
+  },
+  {
+    q: 'What if my tablet is beyond repair?',
+    a: "If the device is beyond repair or the client declines the quote, a diagnostic fee may apply per the general terms. The client can then collect their tablet.",
+  },
+  {
+    q: 'Do you use original parts?',
+    a: "Depending on the model and availability, original, compatible or refurbished parts may be offered. Part choice affects price, result and warranty duration.",
+  },
+]
+
+/* ── Questions ordinateur — EN ─────────────────────────────────────────────── */
+const FAQ_LAPTOP_EN: FaqItem[] = [
+  {
+    q: 'How long does a MacBook repair take?',
+    a: "Duration varies by intervention type. Some repairs can be done in a few hours. In-depth diagnostics, motherboard repairs, part orders or liquid damage generally take longer. An estimated timeline is given at drop-off.",
+  },
+  {
+    q: 'Are displayed prices final?',
+    a: "Displayed prices are indicative and may vary depending on the exact configuration, parts availability and device condition. A diagnostic may be required before confirming the final price.",
+  },
+  {
+    q: 'Should I back up my data before the repair?',
+    a: "Yes, absolutely. Data backup is strongly recommended before any drop-off. ClikClak cannot guarantee data preservation during a technical intervention. Use Time Machine or a cloud backup before bringing in your Mac.",
+  },
+  {
+    q: 'Do you repair MacBooks with water damage?',
+    a: "Yes, a diagnostic is possible. In case of oxidation or liquid contact, the main goal may be data recovery or temporary restoration. No lifespan guarantee can be given on an oxidised device.",
+  },
+  {
+    q: 'Can data be recovered from a MacBook that won\'t boot?',
+    a: "In many cases, yes. A diagnostic is needed to assess the cause and feasibility of recovery. If the SSD is intact, recovery chances are generally good.",
+  },
+  {
+    q: 'Are MacBook repairs covered by a warranty?',
+    a: "Yes, depending on the part used. The warranty covers part or assembly defects. It does not cover shock, drops, oxidation or misuse after repair.",
+  },
+  {
+    q: 'What if the diagnostic reveals another issue?',
+    a: "A supplementary quote is presented before any additional work. The client decides freely whether to proceed. No repair is carried out without prior agreement.",
+  },
+  {
+    q: 'Should I bring the charger with my MacBook?',
+    a: "It's not required, but it can help with certain tests, particularly to check the charging port or power behaviour. If in doubt, bring it.",
+  },
+  {
+    q: 'Do you also repair iMacs?',
+    a: "Yes, ClikClak handles iMacs for screen repairs, internal cleaning, overheating issues, software faults and data recovery. Contact us for a diagnostic based on your model.",
+  },
+  {
+    q: 'What if the repair is not cost-effective?',
+    a: "If the repair cost exceeds the device's value or the client declines the quote, a diagnostic fee may apply per the general terms. The client can then collect their device.",
+  },
+]
+
+const FAQ_MAP_FR = {
+  smartphone: FAQ_SMARTPHONE_FR,
+  tablet:     FAQ_TABLET_FR,
+  laptop:     FAQ_LAPTOP_FR,
+}
+
+const FAQ_MAP_EN = {
+  smartphone: FAQ_SMARTPHONE_EN,
+  tablet:     FAQ_TABLET_EN,
+  laptop:     FAQ_LAPTOP_EN,
+}
+
+const HEADER_FR = {
+  h2a:      'Questions',
+  h2accent: 'fréquentes',
+  sub:      'Les réponses essentielles avant de confier votre appareil à ClikClak.',
+  ariaLabel: 'Questions fréquentes',
+}
+
+const HEADER_EN = {
+  h2a:      'Frequently asked',
+  h2accent: 'questions',
+  sub:      'Key answers before entrusting your device to ClikClak.',
+  ariaLabel: 'Frequently asked questions',
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    Composant accordéon — identique à RepairFAQ.tsx
 ══════════════════════════════════════════════════════════════════════════════ */
-export default function RepairFAQGeneric({ deviceType }: { deviceType: DeviceType }) {
+export default function RepairFAQGeneric({
+  deviceType,
+  locale = 'fr',
+}: {
+  deviceType: DeviceType
+  locale?: 'fr' | 'en'
+}) {
+  const FAQ_MAP = locale === 'en' ? FAQ_MAP_EN : FAQ_MAP_FR
+  const HEADER  = locale === 'en' ? HEADER_EN  : HEADER_FR
   const items = FAQ_MAP[deviceType]
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
@@ -213,17 +366,17 @@ export default function RepairFAQGeneric({ deviceType }: { deviceType: DeviceTyp
     <section
       id="faq"
       className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-      aria-label="Questions fréquentes"
+      aria-label={HEADER.ariaLabel}
     >
       <div className="w-full max-w-6xl mx-auto flex flex-col gap-10">
 
         <div className="flex flex-col gap-3">
           <h2 className="text-[1.75rem] md:text-[2.25rem] font-light leading-tight">
-            Questions{' '}
-            <span className="text-accent">fréquentes</span>
+            {HEADER.h2a}{' '}
+            <span className="text-accent">{HEADER.h2accent}</span>
           </h2>
           <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.45)' }}>
-            Les réponses essentielles avant de confier votre appareil à ClikClak.
+            {HEADER.sub}
           </p>
         </div>
 
