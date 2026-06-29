@@ -516,7 +516,7 @@ export default function RepairPricingPage({ data, bottomSlot, locale = 'fr' }: {
                         ))}
                       </div>
                       <div className="mt-6 flex">
-                        <ContactPopover />
+                        <ContactPopover locale={locale} />
                       </div>
                     </div>
 

@@ -475,7 +475,7 @@ export default function IphoneRepairPage({ locale = 'fr' }: { locale?: 'fr' | 'e
                         ))}
                       </div>
                       <div className="mt-6 flex">
-                        <ContactPopover />
+                        <ContactPopover locale={locale} />
                       </div>
                     </div>
                   </div>

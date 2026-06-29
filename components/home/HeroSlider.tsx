@@ -398,7 +398,7 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
                   </Button>
                   {/* Contact ouvre un menu d'action (tel, itinéraire, adresse) */}
                   {slide.ctaSecondary.label === 'Contact' ? (
-                    <ContactPopover closeSignal={current} />
+                    <ContactPopover closeSignal={current} locale={locale} />
                   ) : (
                     <Button href={slide.ctaSecondary.href} size="lg" variant="secondary">
                       {slide.ctaSecondary.label}
