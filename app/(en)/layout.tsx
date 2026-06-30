@@ -32,13 +32,14 @@ export const metadata: Metadata = {
   Root layout ANGLAIS — route group (en).
   Produit nativement <html lang="en">.
   Aucun script client, aucun workaround.
-  Le chatbot français est masqué (showChatbot={false}) jusqu'à la Phase 2.
+  Le chatbot ClikClak est bilingue (FR/EN) — ChatbotWrapper détermine la
+  locale depuis le pathname et l'affiche en anglais sur les routes /en.
 */
 export default function EnLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={rubik.variable}>
-        <RootProviders showChatbot={false} locale="en">
+        <RootProviders showChatbot locale="en">
           {children}
         </RootProviders>
       </body>
