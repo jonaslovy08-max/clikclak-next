@@ -17,6 +17,8 @@ import {
   type RepairBrand,
 } from './repairPricesIndex'
 import { normalizeText } from './normalizeSearch'
+import { localizeChatbotHref } from './i18n'
+import type { ChatbotLocale } from './locale'
 
 /* ── Types ─────────────────────────────────────────────────────── */
 
@@ -67,52 +69,74 @@ const REPAIR_TOKENS: RepairToken[] = [
     key:    'screen',
     label:  'Écran',
     tokens: [
+      /* FR */
       'ecran casse', 'changer ecran', 'remplacer ecran', 'reparation ecran',
       'vitre cassee', 'vitre brisee', 'vitre fissuree',
-      'ecran', 'vitre', 'screen', 'lcd', 'oled', 'display', 'affichage',
+      'ecran', 'vitre', 'lcd', 'oled', 'affichage',
       'casse', 'fissure', 'brise', 'craque', 'tactile',
+      /* EN */
+      'screen', 'display', 'broken screen', 'cracked screen', 'replace screen',
+      'screen repair', 'shattered', 'cracked', 'glass replacement',
     ],
   },
   {
     key:    'battery',
     label:  'Batterie',
     tokens: [
+      /* FR */
       'changer batterie', 'remplacer batterie', 'reparation batterie',
-      'batterie', 'battery', 'autonomie', 'decharge', 'ne charge plus',
+      'batterie', 'autonomie', 'decharge', 'ne charge plus',
       'charge lente', 'se decharge', 'gonflee',
+      /* EN */
+      'battery', 'replace battery', 'battery replacement', 'wont charge',
+      'not charging', 'drains fast', 'swollen battery', 'poor battery life',
     ],
   },
   {
     key:    'connector',
     label:  'Connecteur de charge',
     tokens: [
+      /* FR */
       'connecteur de charge', 'port de charge', 'prise de charge',
       'connecteur', 'lightning', 'usb-c', 'usbc', 'usb c',
       'ne se charge pas', 'ne charge pas', 'branchement',
+      /* EN */
+      'charging port', 'charging issue', 'wont charge', 'not charging',
+      'charging socket',
     ],
   },
   {
     key:    'camera',
     label:  'Caméra',
     tokens: [
+      /* FR */
       'camera principale', 'camera frontale', 'photo floue',
       'camera', 'photo', 'objectif', 'lentille', 'flash',
+      /* EN */
+      'main camera', 'front camera', 'blurry photo', 'lens', 'camera lens',
     ],
   },
   {
     key:    'backglass',
     label:  'Vitre arrière',
     tokens: [
+      /* FR */
       'vitre arriere', 'dos casse', 'face arriere', 'vitre dos',
       'chassis', 'dos du telephone',
+      /* EN */
+      'back glass', 'rear glass', 'cracked back', 'back cover',
     ],
   },
   {
     key:    'diagnostic',
     label:  'Diagnostic',
     tokens: [
+      /* FR */
       'ne s allume plus', 'ne s allume pas', 'eteint', 's eteint tout seul',
       'plante', 'bug', 'probleme', 'diagnostic',
+      /* EN */
+      'wont turn on', 'not turning on', 'wont power on', 'frozen', 'crashes',
+      'diagnostics', 'issue', 'problem', 'malfunction',
     ],
   },
 ]
@@ -302,6 +326,11 @@ const CONTACT_HREF  = '/contact-clik-clak-lausanne'
 const BTN: ChatbotAction['variant']  = 'button'
 const LINK: ChatbotAction['variant'] = 'link'
 
+/** Localise un href métier (FR par défaut) selon la locale du chatbot. */
+function loc(href: string, locale: ChatbotLocale): string {
+  return localizeChatbotHref(href, locale)
+}
+
 /* ── Helpers grammaticaux français ─────────────────────────────── */
 
 const VOWELS = 'aeiouàâäéèêëîïôùûüœæ'
@@ -385,6 +414,28 @@ function getReparationInfo(repairLabel: string): ReparationInfo {
 }
 
 /**
+ * Équivalent anglais de getReparationInfo — pas de genre ni d'élision
+ * en anglais, donc une simple phrase suffit.
+ */
+function getReparationPhraseEn(repairLabel: string): string {
+  const n = normalizeText(repairLabel)
+
+  if (n.includes('ecran')) return 'screen replacement'
+  if (n.includes('batt')) return 'battery replacement'
+  if (n.includes('connect') || n.includes('charge') || n.includes('nfc')) return 'charging port repair'
+  if (n.includes('vitre') || n.includes('chassis') || n.includes('dos')) return 'back glass replacement'
+  if (n.includes('lentille')) return 'camera lens replacement'
+  if (n.includes('camera') || n.includes('camero') || n.includes('photo')) {
+    if (n.includes('principal') || n.includes('arriere')) return 'main camera repair'
+    if (n.includes('frontal')) return 'front camera repair'
+    return 'camera repair'
+  }
+  if (n.includes('diagn')) return 'diagnostic'
+
+  return `${repairLabel.toLowerCase()} repair`
+}
+
+/**
  * Construit le nom d'appareil affiché dans la réponse.
  * Si le modèle commence déjà par le nom de la marque (ex: "iPhone 14 Pro"),
  * on n'ajoute pas le brand en préfixe pour éviter "iPhone iPhone 14 Pro".
@@ -395,7 +446,7 @@ function deviceName(brand: string, model: string): string {
   return `${brand} ${model}`
 }
 
-export function buildPricingResponse(match: PricingMatch): PricingResponse {
+function buildPricingResponseFr(match: PricingMatch): PricingResponse {
   switch (match.status) {
 
     case 'found': {
@@ -472,9 +523,85 @@ export function buildPricingResponse(match: PricingMatch): PricingResponse {
     }
 
     default:
-      return {
-        answer:  '',
-        actions: [],
-      }
+      return { answer: '', actions: [] }
   }
+}
+
+function buildPricingResponseEn(match: PricingMatch): PricingResponse {
+  switch (match.status) {
+
+    case 'found': {
+      const entries = match.results!
+      const device  = deviceName(match.brand!, match.model!)
+      const phrase  = getReparationPhraseEn(match.repairLabel!)
+      const actions: ChatbotAction[] = []
+
+      if (match.modelHref) {
+        actions.push({ label: 'View details', href: loc(match.modelHref, 'en'), variant: LINK })
+      }
+      actions.push({ label: 'Contact us', href: loc(CONTACT_HREF, 'en'), variant: BTN })
+
+      if (entries.length === 1) {
+        const e = entries[0]
+        return {
+          answer: `Sure. The ${phrase} for the ${device} is ${fmtPrice(e.price)}.\n\nSee the page below for details or contact the workshop.`,
+          actions,
+        }
+      }
+
+      const lines = entries.map(e => `${e.label} : ${fmtPrice(e.price)}`).join('\n')
+      return {
+        answer: `Here are the available options for the ${phrase} on the ${device}:\n\n${lines}\n\nContact the workshop to choose the most suitable option.`,
+        actions,
+      }
+    }
+
+    case 'no_price': {
+      const device = deviceName(match.brand!, match.model!)
+      const phrase = getReparationPhraseEn(match.repairLabel ?? 'repair')
+      const actions: ChatbotAction[] = [
+        { label: 'Contact us', href: loc(CONTACT_HREF, 'en'), variant: BTN },
+      ]
+      if (match.modelHref) {
+        actions.unshift({ label: 'View repair page', href: loc(match.modelHref, 'en'), variant: LINK })
+      }
+      return {
+        answer: `I don't have a published price for the ${phrase} on the ${device}. Contact the workshop for a precise quote.`,
+        actions,
+      }
+    }
+
+    case 'model_needed': {
+      const brand = match.brand!
+      return {
+        answer: `What is the exact model of your ${brand}?\n\n(example: ${brand} 14, ${brand} 15 Pro…)`,
+        actions: [{ label: `${brand} prices`, href: loc(match.brandHref!, 'en'), variant: LINK }],
+      }
+    }
+
+    case 'repair_needed': {
+      const device = deviceName(match.brand!, match.model!)
+      return {
+        answer: `Which repair would you like for your ${device}?\n\nScreen, battery, charging port or something else?`,
+        actions: [
+          { label: 'View prices', href: loc(match.modelHref!, 'en'), variant: LINK },
+          { label: 'Contact us', href: loc(CONTACT_HREF, 'en'), variant: BTN },
+        ],
+      }
+    }
+
+    case 'brand_only': {
+      return {
+        answer: `I'll help you with your ${match.brand!}. What model do you have and what type of repair would you like?`,
+        actions: [{ label: `${match.brand!} prices`, href: loc(match.brandHref!, 'en'), variant: LINK }],
+      }
+    }
+
+    default:
+      return { answer: '', actions: [] }
+  }
+}
+
+export function buildPricingResponse(match: PricingMatch, locale: ChatbotLocale): PricingResponse {
+  return locale === 'en' ? buildPricingResponseEn(match) : buildPricingResponseFr(match)
 }

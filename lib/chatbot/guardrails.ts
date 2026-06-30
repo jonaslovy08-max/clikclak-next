@@ -1,24 +1,38 @@
 /*
   lib/chatbot/guardrails.ts
 
-  Garde-fous du chatbot ClikClak.
+  Garde-fous du chatbot ClikClak — bilingue FR/EN.
   Server-side uniquement.
 
   Deux niveaux :
   - Injection manifeste → violation enregistrée, réponse locale, pas d'Anthropic.
   - Hors sujet → OFF_TOPIC_RESPONSE, pas d'Anthropic, pas de violation.
+
+  Sécurité : la détection d'injection et le filtre hors-sujet s'appliquent
+  TOUJOURS aux deux langues, indépendamment de la locale déclarée par le
+  client — un attaquant ne doit jamais pouvoir affaiblir les protections
+  en déclarant une fausse locale. Seules les RÉPONSES affichées sont
+  localisées.
 */
 
-/* ── Réponses locales ────────────────────────────────────────────── */
+import type { ChatbotLocale } from './locale'
 
-export const OFF_TOPIC_RESPONSE =
-  'Je suis l\'assistant Clik Clak et je peux vous aider pour les réparations, les tarifs, les services ou les informations pratiques. Quel est votre appareil ou votre question ?'
+/* ── Réponses locales (bilingues) ────────────────────────────────── */
 
-export const INJECTION_RESPONSE =
-  'Je suis l\'assistant Clik Clak. Je peux vous aider avec les réparations et services proposés.'
+export const OFF_TOPIC_RESPONSE: Record<ChatbotLocale, string> = {
+  fr: 'Je suis l\'assistant Clik Clak et je peux vous aider pour les réparations, les tarifs, les services ou les informations pratiques. Quel est votre appareil ou votre question ?',
+  en: "I'm the Clik Clak assistant and I can help with repairs, pricing, services or practical information. What's your device or question?",
+}
 
-export const GREETING_RESPONSE =
-  'Bonjour 👋 Je suis l\'assistant Clik Clak. Je peux vous aider à trouver un tarif de réparation, identifier un problème ou choisir le bon service. Quel est votre appareil ?'
+export const INJECTION_RESPONSE: Record<ChatbotLocale, string> = {
+  fr: 'Je suis l\'assistant Clik Clak. Je peux vous aider avec les réparations et services proposés.',
+  en: "I'm the Clik Clak assistant. I can help you with our repairs and services.",
+}
+
+export const GREETING_RESPONSE: Record<ChatbotLocale, string> = {
+  fr: 'Bonjour 👋 Je suis l\'assistant Clik Clak. Je peux vous aider à trouver un tarif de réparation, identifier un problème ou choisir le bon service. Quel est votre appareil ?',
+  en: "Hello 👋 I'm the Clik Clak assistant. I can help you find a repair price, identify an issue or choose the right service. What's your device?",
+}
 
 /* ── Normalisation ───────────────────────────────────────────────── */
 
@@ -30,7 +44,8 @@ export function normalizeText(input: string): string {
     .trim()
 }
 
-/* ── Patterns d'injection (liste exhaustive) ─────────────────────── */
+/* ── Patterns d'injection (liste exhaustive, FR + EN fusionnés) ──────
+   Une seule liste, toujours appliquée quelle que soit la locale déclarée. */
 
 export const BLOCKED_PATTERNS: RegExp[] = [
   /* Jailbreak classiques */
@@ -42,7 +57,7 @@ export const BLOCKED_PATTERNS: RegExp[] = [
   /sans\s*restriction/i,
   /tu\s*n.?as\s*(pas|aucune)\s*(de\s*)?restriction/i,
 
-  /* Manipulation du rôle */
+  /* Manipulation du rôle — FR */
   /ignore\s*(les?\s*)?(instructions?|r[eè]gles?|consignes?|pr[eé]c[eé]dentes?)/i,
   /oublie\s*(les?\s*)?(instructions?|r[eè]gles?|ton\s*r[oô]le)/i,
   /mode\s*d[eé]veloppeur/i,
@@ -60,12 +75,30 @@ export const BLOCKED_PATTERNS: RegExp[] = [
   /nouvelle\s*personnalite/i,
   /oublie\s*ton\s*r[oô]le/i,
 
-  /* Extraction du prompt système */
+  /* Manipulation du rôle — EN */
+  /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions?|rules?|prompts?)/i,
+  /ignore\s+(your\s+)?(instructions?|rules?|guidelines?)/i,
+  /forget\s+(your\s+)?(instructions?|rules?|role)/i,
+  /you\s*are\s*now\b/i,
+  /new\s*persona/i,
+  /override\s*(your\s*)?(rules?|instructions?|restrictions?)/i,
+  /disregard\s+(your\s+)?(instructions?|rules?|previous)/i,
+  /from\s*now\s*on\s*you/i,
+
+  /* Extraction du prompt système — FR */
   /system\s*prompt/i,
   /r[eé]v[eè]le?\s*(le\s*)?(prompt|instructions?)/i,
   /montre\s*(le\s*)?(prompt|instructions?|instructions?\s*cach[eé]es?)/i,
   /affiche\s*(le\s*)?(prompt|instructions?|instructions?\s*internes?)/i,
   /instructions?\s*(cach[eé]es?|internes?|syst[eè]me)/i,
+
+  /* Extraction du prompt système — EN */
+  /reveal\s*(your\s*)?(system\s*)?prompt/i,
+  /show\s*(me\s*)?(your\s*)?(system\s*)?prompt/i,
+  /print\s*(your\s*)?(system\s*)?prompt/i,
+  /hidden\s*instructions?/i,
+  /internal\s*instructions?/i,
+  /what\s*(are|is)\s*your\s*instructions?/i,
 
   /* Exploits courants */
   /grandma\s*(exploit|trick)/i,
@@ -82,20 +115,20 @@ export const BLOCKED_PATTERNS: RegExp[] = [
 /**
  * Analyse un texte (ou la concaténation de plusieurs messages récents)
  * pour détecter une tentative d'injection.
- * Ne logge pas le contenu du message.
+ * Couvre le français et l'anglais. Ne logge pas le contenu du message.
  */
 export function detectInjectionAttempt(input: string): boolean {
   if (!input || input.length < 3) return false
   return BLOCKED_PATTERNS.some(pattern => pattern.test(input))
 }
 
-/* ── Mots-clés autorisés ─────────────────────────────────────────── */
+/* ── Mots-clés autorisés (FR + EN fusionnés) ─────────────────────── */
 
 export const ALLOWED_KEYWORDS: string[] = [
   'clikclak', 'clik clak',
   /* Salutations — autorisées pour éviter les faux positifs */
-  'bonjour', 'salut', 'hello', 'bonsoir', 'coucou',
-  /* Réparations */
+  'bonjour', 'salut', 'hello', 'bonsoir', 'coucou', 'hi', 'hey',
+  /* Réparations — FR */
   'reparation', 'reparer', 'repare', 'changer', 'remplacer',
   'prix', 'tarif', 'devis', 'cout', 'combien',
   'iphone', 'samsung', 'huawei', 'oppo', 'ipad', 'macbook',
@@ -113,6 +146,21 @@ export const ALLOWED_KEYWORDS: string[] = [
   'pixel', 'xiaomi', 'nokia', 'motorola', 'realme', 'honor', 'vivo', 'galaxy',
   'transfert', 'depannage', 'depot',
   'garantie', 'facture',
+  /* Réparations — EN */
+  'repair', 'fix', 'broken', 'cracked', 'replace', 'replacement',
+  'price', 'quote', 'cost', 'how much',
+  'computer', 'tablet', 'screen', 'display',
+  'battery', 'charging', 'charger', 'port',
+  'camera', 'lens',
+  'diagnostics', 'issue', 'problem', 'wont turn on', 'overheating', 'crash',
+  'water damage', 'liquid damage',
+  'data', 'recovery', 'backup',
+  'sell', 'buyback', 'trade in', 'trade-in',
+  'store', 'product', 'accessory', 'parts', 'availability', 'in stock',
+  'opening hours', 'hours', 'address', 'contact', 'call',
+  'courier', 'pickup', 'delivery',
+  'transfer', 'support', 'drop off',
+  'warranty', 'invoice', 'receipt',
 ]
 
 /* ── Filtre hors-sujet ───────────────────────────────────────────── */
@@ -120,7 +168,7 @@ export const ALLOWED_KEYWORDS: string[] = [
 /**
  * Retourne true si le message concerne ClikClak.
  * Vérifie d'abord les injections (qui retournent false immédiatement),
- * puis cherche au moins un mot-clé autorisé.
+ * puis cherche au moins un mot-clé autorisé (FR ou EN).
  */
 export function isAllowedClikClakTopic(input: string): boolean {
   const text = normalizeText(input)
@@ -132,6 +180,7 @@ export function isAllowedClikClakTopic(input: string): boolean {
 /* ── Sanitisation de la réponse ──────────────────────────────────── */
 
 const FORBIDDEN_OUTPUT_PATTERNS: string[] = [
+  /* FR */
   'je peux parler de tout',
   'je peux repondre a tout',
   'voici du code',
@@ -140,38 +189,51 @@ const FORBIDDEN_OUTPUT_PATTERNS: string[] = [
   'conseil financier',
   'sans restriction',
   'en tant qu',
+  /* EN */
+  'i can talk about anything',
+  'i can answer anything',
+  'here is some code',
+  'medical advice',
+  'legal advice',
+  'financial advice',
+  'without restriction',
+  'as an ai',
 ]
 
 /* ── Détection de salutation ─────────────────────────────────────── */
 
-const GREETING_RE = /^(bonjour|salut|hello|bonsoir|coucou|hi|hey|allo|all[oô])[!?,.\s]*$/i
+const GREETING_RE = /^(bonjour|salut|hello|bonsoir|coucou|hi|hey|allo|all[oô]|good\s*(morning|afternoon|evening))[!?,.\s]*$/i
 
 /**
  * Vrai si le message est une salutation simple (pas une question intégrée).
  * Traité avant le filtre hors-sujet pour éviter les faux positifs.
+ * Couvre le français et l'anglais.
  */
 export function isGreeting(input: string): boolean {
   return GREETING_RE.test(normalizeText(input))
 }
 
-const FALLBACK_ANSWER =
-  "Je n'ai pas pu générer de réponse. Contactez Clik Clak directement."
+const FALLBACK_ANSWER: Record<ChatbotLocale, string> = {
+  fr: "Je n'ai pas pu générer de réponse. Contactez Clik Clak directement.",
+  en: 'I could not generate a reply. Please contact Clik Clak directly.',
+}
 
 /**
  * Vérifie que la réponse Claude respecte le périmètre ClikClak.
  * Supprime les liens Markdown [texte](url) — ils doivent passer par les actions structurées.
- * Retourne FALLBACK_ANSWER si la réponse est absente ou hors périmètre.
+ * Retourne FALLBACK_ANSWER[locale] si la réponse est absente,
+ * ou OFF_TOPIC_RESPONSE[locale] si elle sort du périmètre attendu.
  */
-export function sanitizeAssistantAnswer(answer: string): string {
+export function sanitizeAssistantAnswer(answer: string, locale: ChatbotLocale): string {
   let text = answer.trim()
-  if (!text) return FALLBACK_ANSWER
+  if (!text) return FALLBACK_ANSWER[locale]
 
   /* Supprimer les liens Markdown [texte](url) → garder uniquement le texte */
   text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').trim()
 
   const normalized = normalizeText(text)
   if (FORBIDDEN_OUTPUT_PATTERNS.some(p => normalized.includes(normalizeText(p)))) {
-    return OFF_TOPIC_RESPONSE
+    return OFF_TOPIC_RESPONSE[locale]
   }
 
   return text
