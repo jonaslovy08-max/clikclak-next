@@ -15,6 +15,8 @@ import {
 } from '@/lib/chatbot/searchRepairPrices'
 import { SHOP_PRODUCTS } from '@/data/shopProducts'
 import { CHATBOT_LIMITS } from '@/lib/chatbot/config'
+import { CHATBOT_I18N, localizeChatbotHref } from '@/lib/chatbot/i18n'
+import type { ChatbotLocale } from '@/lib/chatbot/locale'
 
 /* ── Types ── */
 type GuidedScreen =
@@ -39,31 +41,6 @@ interface AiMessage {
 /* ── Constants ── */
 const MAX_SESSION_MESSAGES = CHATBOT_LIMITS.maxQuestionsPerConversation
 
-const WELCOME_MSG: AiMessage = {
-  role:    'assistant',
-  content: 'Bonjour, je suis ClikClak Bot. Je peux vous aider à trouver un prix de réparation, identifier une panne, chercher un produit ou vous orienter vers le bon service.',
-}
-
-const BRANDS: { key: BrandKey; label: string }[] = [
-  { key: 'iphone',  label: 'iPhone'  },
-  { key: 'samsung', label: 'Samsung' },
-  { key: 'ipad',    label: 'iPad'    },
-  { key: 'macbook', label: 'MacBook' },
-  { key: 'huawei',  label: 'Huawei'  },
-  { key: 'oppo',    label: 'OPPO'    },
-  { key: 'other',   label: 'Autre'   },
-]
-
-const QUICK_ACTIONS: { label: string; screen: GuidedScreen }[] = [
-  { label: 'Trouver un prix',         screen: 'find-price'     },
-  { label: 'Identifier mon modèle',   screen: 'identify-model' },
-  { label: 'Récupération de données', screen: 'data-recovery'  },
-  { label: 'Vendre un appareil',      screen: 'sell-device'    },
-  { label: 'Dépannage 7/7',           screen: 'depannage'      },
-  { label: 'Voir le shop',            screen: 'shop'           },
-  { label: 'Contacter ClikClak',      screen: 'contact'        },
-]
-
 /* ── Sub-components ── */
 
 function Chip({ label, onClick }: { label: string; onClick: () => void }) {
@@ -75,11 +52,11 @@ function Chip({ label, onClick }: { label: string; onClick: () => void }) {
   )
 }
 
-function BackBtn({ to, onClick }: { to: GuidedScreen; onClick: (s: GuidedScreen) => void }) {
+function BackBtn({ to, label, onClick }: { to: GuidedScreen; label: string; onClick: (s: GuidedScreen) => void }) {
   return (
     <button type="button" onClick={() => onClick(to)}
       className="self-start text-[12px] font-light text-foreground/40 hover:text-foreground/70 transition-colors focus-visible:outline-none">
-      ← Retour
+      {label}
     </button>
   )
 }
@@ -104,8 +81,32 @@ function LoadingDots() {
 }
 
 /* ── Main component ── */
-export default function ClikClakAssistant() {
+export default function ClikClakAssistant({ locale }: { locale: ChatbotLocale }) {
   const { isOpen, close } = useChatbot()
+  const T  = CHATBOT_I18N[locale]
+  const lh = useCallback((href: string) => localizeChatbotHref(href, locale), [locale])
+
+  const WELCOME_MSG: AiMessage = useMemo(() => ({ role: 'assistant', content: T.welcomeMessage }), [T])
+
+  const BRANDS: { key: BrandKey; label: string }[] = useMemo(() => [
+    { key: 'iphone',  label: 'iPhone'  },
+    { key: 'samsung', label: 'Samsung' },
+    { key: 'ipad',    label: 'iPad'    },
+    { key: 'macbook', label: 'MacBook' },
+    { key: 'huawei',  label: 'Huawei'  },
+    { key: 'oppo',    label: 'OPPO'    },
+    { key: 'other',   label: T.brandOther },
+  ], [T])
+
+  const QUICK_ACTIONS: { label: string; screen: GuidedScreen }[] = useMemo(() => [
+    { label: T.qaFindPrice,        screen: 'find-price'     },
+    { label: T.qaIdentifyModel,    screen: 'identify-model' },
+    { label: T.qaDataRecovery,     screen: 'data-recovery'  },
+    { label: T.qaSellDevice,       screen: 'sell-device'    },
+    { label: T.qaDepannage,        screen: 'depannage'      },
+    { label: T.qaShop,             screen: 'shop'           },
+    { label: T.qaContact,          screen: 'contact'        },
+  ], [T])
 
   /* Guided screens */
   const [screen,     setScreen]   = useState<GuidedScreen>('home')
@@ -271,7 +272,7 @@ export default function ClikClakAssistant() {
       const res = await fetch('/api/chatbot', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ messages }),
+        body:    JSON.stringify({ messages, locale }),
       })
 
       /* Lecture JSON tolérante — évite les crashes si le body est vide */
@@ -288,12 +289,12 @@ export default function ClikClakAssistant() {
           d.actions && d.actions.length > 0
             ? d.actions.map(a => ({ label: a.label, href: a.href, variant: a.variant }))
             : d.blocked
-              ? [{ label: 'Voir les services', href: '/reparation-smartphone-express', variant: 'link' as const }]
+              ? [{ label: T.viewServices, href: lh('/reparation-smartphone-express'), variant: 'link' as const }]
               : undefined
 
         setChatMessages(prev => [...prev, {
           role:        'assistant',
-          content:     d.answer ?? "Je n'ai pas pu générer de réponse.",
+          content:     d.answer ?? T.fallbackAnswer,
           suggestions,
         }])
         return
@@ -304,15 +305,15 @@ export default function ClikClakAssistant() {
       let suggestions: AiMessage['suggestions']
 
       if (res.status === 429) {
-        content = 'Vous avez envoyé trop de messages. Réessayez dans quelques minutes.'
+        content = T.errRateLimited
       } else if (res.status === 503) {
-        content = 'Le chatbot est momentanément indisponible. Vous pouvez contacter ClikClak directement.'
-        suggestions = [{ label: 'Contacter ClikClak', href: '/contact-clik-clak-lausanne' }]
+        content = T.errUnavailable
+        suggestions = [{ label: T.contactClikClak, href: lh('/contact-clik-clak-lausanne') }]
       } else if (res.status === 413) {
-        content = 'Votre message est trop long. Raccourcissez-le et réessayez.'
+        content = T.errTooLong
       } else {
         /* 400, 415 ou autre */
-        content = "Votre message n'a pas pu être traité. Reformulez votre question."
+        content = T.errGeneric
       }
 
       setChatMessages(prev => [...prev, { role: 'assistant', content, isError: true, suggestions }])
@@ -321,14 +322,14 @@ export default function ClikClakAssistant() {
       /* Réseau inaccessible */
       setChatMessages(prev => [...prev, {
         role:    'assistant',
-        content: 'Le chatbot IA est momentanément indisponible. Vous pouvez contacter Clik Clak directement.',
+        content: T.errNetwork,
         isError: true,
-        suggestions: [{ label: 'Contacter ClikClak', href: '/contact-clik-clak-lausanne' }],
+        suggestions: [{ label: T.contactClikClak, href: lh('/contact-clik-clak-lausanne') }],
       }])
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, msgCount, chatMessages])
+  }, [isLoading, msgCount, chatMessages, locale, T, lh])
 
   /* ── Rendu centralisé des actions/suggestions ──────────────────── */
 
@@ -379,8 +380,8 @@ export default function ClikClakAssistant() {
       case 'find-price':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="home" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/70">Pour quelle marque&nbsp;?</p>
+            <BackBtn to="home" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/70">{T.whichBrand}</p>
             <div className="flex flex-wrap gap-2">
               {BRANDS.map(b => <Chip key={b.key} label={b.label} onClick={() => selectBrand(b.key)} />)}
             </div>
@@ -389,9 +390,9 @@ export default function ClikClakAssistant() {
       case 'iphone-model':
         return (
           <div className="flex flex-col gap-3 p-4">
-            <BackBtn to="find-price" onClick={goBack} />
+            <BackBtn to="find-price" label={T.back} onClick={goBack} />
             <input type="search" value={modelQuery} onChange={e => setModelQ(e.target.value)}
-              placeholder="Rechercher un modèle iPhone…"
+              placeholder={T.searchIphoneModelPlaceholder}
               style={{ fontSize: 16 }}
               className="w-full px-3 py-2.5 font-light rounded-lg border border-white/[0.1] bg-white/[0.05] text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-accent/40" />
             <div className="flex flex-col gap-1.5">
@@ -401,14 +402,14 @@ export default function ClikClakAssistant() {
                   {m.label}
                 </button>
               ))}
-              {iPhoneModels.length === 0 && <p className="text-[13px] font-light text-foreground/40">Aucun modèle trouvé.</p>}
+              {iPhoneModels.length === 0 && <p className="text-[13px] font-light text-foreground/40">{T.noModelFound}</p>}
             </div>
           </div>
         )
       case 'iphone-repair':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="iphone-model" onClick={goBack} />
+            <BackBtn to="iphone-model" label={T.back} onClick={goBack} />
             <p className="text-sm font-light" style={{ color: 'rgba(204,255,51,0.85)' }}>{selModel?.label}</p>
             <div className="flex flex-col gap-1.5">
               {repairs.map(r => (
@@ -418,25 +419,25 @@ export default function ClikClakAssistant() {
                 </div>
               ))}
             </div>
-            {selModel && <NavLink href={selModel.href} onClose={close}>Voir la page complète</NavLink>}
-            <p className="text-[11px] font-light text-foreground/35">Les tarifs peuvent varier selon les pièces disponibles.</p>
+            {selModel && <NavLink href={lh(selModel.href)} onClose={close}>{T.viewFullPage}</NavLink>}
+            <p className="text-[11px] font-light text-foreground/35">{T.pricesVaryNote}</p>
           </div>
         )
       case 'other-brand':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="find-price" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/70">Tarifs {brand ? BRAND_LABELS[brand] : ''}</p>
+            <BackBtn to="find-price" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/70">{T.pricesFor(brand ? BRAND_LABELS[brand] : '')}</p>
             {brand && brand !== 'other' ? (
               <>
-                <NavLink href={BRAND_PAGE_HREFS[brand]} onClose={close}>Voir les tarifs {BRAND_LABELS[brand]}</NavLink>
-                <p className="text-[11px] font-light text-foreground/35">Les tarifs varient selon le modèle exact.</p>
+                <NavLink href={lh(BRAND_PAGE_HREFS[brand])} onClose={close}>{T.viewBrandPrices(BRAND_LABELS[brand])}</NavLink>
+                <p className="text-[11px] font-light text-foreground/35">{T.pricesVaryByModelNote}</p>
               </>
             ) : (
               <div className="flex flex-col gap-2">
-                <NavLink href="/reparation-smartphone-express" onClose={close}>Réparation smartphone</NavLink>
-                <NavLink href="/reparation-tablette-express"   onClose={close}>Réparation tablette</NavLink>
-                <NavLink href="/reparation-ordinateur-express" onClose={close}>Réparation ordinateur</NavLink>
+                <NavLink href={lh('/reparation-smartphone-express')} onClose={close}>{T.navSmartphoneRepair}</NavLink>
+                <NavLink href={lh('/reparation-tablette-express')}   onClose={close}>{T.navTabletRepair}</NavLink>
+                <NavLink href={lh('/reparation-ordinateur-express')} onClose={close}>{T.navComputerRepair}</NavLink>
               </div>
             )}
           </div>
@@ -444,76 +445,76 @@ export default function ClikClakAssistant() {
       case 'identify-model':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="home" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/80">Comment identifier votre modèle</p>
+            <BackBtn to="home" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">{T.identifyModelTitle}</p>
             <div className="flex flex-col gap-3 text-[13px] font-light text-foreground/65 leading-relaxed">
-              <div><span className="text-accent">iPhone / iPad</span><br />Réglages &gt; Général &gt; Informations</div>
-              <div><span className="text-accent">Samsung / Android</span><br />Paramètres &gt; À propos du téléphone</div>
-              <div><span className="text-accent">MacBook / Mac</span><br />Menu Apple &gt; À propos de ce Mac</div>
+              <div><span className="text-accent">iPhone / iPad</span><br />{T.identifySettingsIphone}</div>
+              <div><span className="text-accent">Samsung / Android</span><br />{T.identifySettingsAndroid}</div>
+              <div><span className="text-accent">MacBook / Mac</span><br />{T.identifySettingsMac}</div>
             </div>
-            <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Envoyer une photo</NavLink>
+            <NavLink href={lh('/contact-clik-clak-lausanne')} onClose={close}>{T.sendPhoto}</NavLink>
           </div>
         )
       case 'data-recovery':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="home" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/80">Récupération de données</p>
-            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Aucun résultat ne peut être garanti avant analyse.</p>
+            <BackBtn to="home" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">{T.dataRecoveryTitle}</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">{T.dataRecoveryNote}</p>
             <div className="flex flex-col gap-2">
-              <NavLink href="/services/recuperation-donnees"  onClose={close}>Voir la page récupération</NavLink>
-              <NavLink href="/contact-clik-clak-lausanne"     onClose={close}>Contacter ClikClak</NavLink>
+              <NavLink href={lh('/services/recuperation-donnees')}  onClose={close}>{T.viewDataRecoveryPage}</NavLink>
+              <NavLink href={lh('/contact-clik-clak-lausanne')}     onClose={close}>{T.contactClikClak}</NavLink>
             </div>
           </div>
         )
       case 'sell-device':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="home" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/80">Vendre un appareil</p>
-            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Smartphone, tablette, Mac, montre ou écouteurs. Offre après contrôle réel.</p>
-            <NavLink href="/services/rachat-de-votre-smartphone" onClose={close}>Demander une estimation</NavLink>
+            <BackBtn to="home" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">{T.sellDeviceTitle}</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">{T.sellDeviceNote}</p>
+            <NavLink href={lh('/services/rachat-de-votre-smartphone')} onClose={close}>{T.requestEstimate}</NavLink>
           </div>
         )
       case 'depannage':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="home" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/80">Dépannage 7/7</p>
-            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Selon disponibilité et faisabilité technique.</p>
-            <NavLink href="/services/depannage-reparation-domicile" onClose={close}>Demander un dépannage</NavLink>
+            <BackBtn to="home" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">{T.depannageTitle}</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">{T.depannageNote}</p>
+            <NavLink href={lh('/services/depannage-reparation-domicile')} onClose={close}>{T.requestDepannage}</NavLink>
           </div>
         )
       case 'shop':
         return (
           <div className="flex flex-col gap-3 p-4">
-            <BackBtn to="home" onClick={goBack} />
+            <BackBtn to="home" label={T.back} onClick={goBack} />
             <input type="search" value={shopQuery} onChange={e => setShopQ(e.target.value)}
-              placeholder="Chercher un produit…"
+              placeholder={T.searchProductPlaceholder}
               style={{ fontSize: 16 }}
               className="w-full px-3 py-2.5 font-light rounded-lg border border-white/[0.1] bg-white/[0.05] text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-accent/40" />
             <div className="flex flex-col gap-1.5">
               {shopResults.map(p => (
-                <Link key={p.id} href={`/shop-reparation-smartphone-lausanne/${p.slug}`} onClick={close}
+                <Link key={p.id} href={lh(`/shop-reparation-smartphone-lausanne/${p.slug}`)} onClick={close}
                   className="flex items-center justify-between px-3 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:border-accent/20 transition-colors focus-visible:outline-none">
                   <span className="text-[13px] font-light text-foreground/80 truncate mr-2">{p.name}</span>
                   <span className="text-[13px] font-light text-accent shrink-0">
-                    {p.price != null ? `CHF ${p.price.toFixed(0)}` : 'Prix sur demande'}
+                    {p.price != null ? `CHF ${p.price.toFixed(0)}` : T.priceOnRequest}
                   </span>
                 </Link>
               ))}
-              {shopResults.length === 0 && <p className="text-[13px] font-light text-foreground/40">Aucun produit trouvé.</p>}
+              {shopResults.length === 0 && <p className="text-[13px] font-light text-foreground/40">{T.noProductFound}</p>}
             </div>
-            <NavLink href="/shop-reparation-smartphone-lausanne" onClose={close}>Voir tout le shop</NavLink>
+            <NavLink href={lh('/shop-reparation-smartphone-lausanne')} onClose={close}>{T.viewFullShop}</NavLink>
           </div>
         )
       case 'contact':
         return (
           <div className="flex flex-col gap-4 p-4">
-            <BackBtn to="home" onClick={goBack} />
-            <p className="text-sm font-light text-foreground/80">Contacter ClikClak</p>
-            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">Formulaire de contact ou passage en boutique à Lausanne.</p>
-            <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Formulaire de contact</NavLink>
+            <BackBtn to="home" label={T.back} onClick={goBack} />
+            <p className="text-sm font-light text-foreground/80">{T.contactTitle}</p>
+            <p className="text-[13px] font-light text-foreground/60 leading-relaxed">{T.contactNote}</p>
+            <NavLink href={lh('/contact-clik-clak-lausanne')} onClose={close}>{T.contactForm}</NavLink>
           </div>
         )
       default: return null
@@ -545,7 +546,7 @@ export default function ClikClakAssistant() {
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="ClikClak Bot"
+        aria-label={T.dialogAriaLabel}
         aria-hidden={!isOpen}
         className="fixed z-[55] flex flex-col bottom-[104px] md:bottom-[88px] inset-x-2 md:inset-x-auto md:right-[84px] md:left-auto md:w-[380px]"
       style={{
@@ -570,14 +571,14 @@ export default function ClikClakAssistant() {
             width={36} height={36} style={{ display: 'block', flexShrink: 0 }} />
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-light leading-tight" style={{ color: 'rgba(242,242,242,0.9)' }}>
-              ClikClak Bot
+              {T.botName}
             </span>
             <span className="text-[10px] font-light leading-none" style={{ color: 'rgba(242,242,242,0.35)' }}>
-              Assistant automatisé
+              {T.botSubtitle}
             </span>
           </div>
         </div>
-        <button type="button" onClick={close} aria-label="Fermer le chatbot"
+        <button type="button" onClick={close} aria-label={T.closeAriaLabel}
           className="inline-flex items-center justify-center p-1 shrink-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
           style={{ background: 'transparent', border: 'none' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -620,9 +621,9 @@ export default function ClikClakAssistant() {
         {msgCount >= MAX_SESSION_MESSAGES ? (
           <div className="flex flex-col gap-2 pb-1">
             <p className="text-[12px] font-light text-foreground/55 leading-relaxed">
-              Vous avez atteint la limite de cette conversation. Pour poursuivre, contactez directement ClikClak.
+              {T.sessionLimitReached}
             </p>
-            <NavLink href="/contact-clik-clak-lausanne" onClose={close}>Contacter ClikClak</NavLink>
+            <NavLink href={lh('/contact-clik-clak-lausanne')} onClose={close}>{T.contactClikClak}</NavLink>
           </div>
         ) : (
           <div className="flex flex-col gap-1">
@@ -633,7 +634,7 @@ export default function ClikClakAssistant() {
                 type="text"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
-                placeholder="Posez votre question : prix, panne, modèle, shop…"
+                placeholder={T.inputPlaceholder}
                 maxLength={CHATBOT_LIMITS.maxInputCharacters}
                 disabled={isLoading}
                 style={{ fontSize: 16, background: '#f2f2f2', color: '#191919' }}
@@ -642,7 +643,7 @@ export default function ClikClakAssistant() {
               <button
                 type="submit"
                 disabled={isLoading || !inputValue.trim()}
-                aria-label="Envoyer"
+                aria-label={T.sendAriaLabel}
                 className="flex items-center justify-center px-3 rounded-lg transition-colors focus-visible:outline-none shrink-0 disabled:opacity-40"
                 style={{ background: '#ccff33', border: 'none' }}
               >
@@ -654,7 +655,7 @@ export default function ClikClakAssistant() {
             {/* Compteur restant — affiché quand ≤ 4 questions restantes */}
             {MAX_SESSION_MESSAGES - msgCount <= 4 && MAX_SESSION_MESSAGES - msgCount > 0 && (
               <p className="text-[11px] font-light text-foreground/35 text-right pr-1">
-                {MAX_SESSION_MESSAGES - msgCount} question{MAX_SESSION_MESSAGES - msgCount > 1 ? 's' : ''} restante{MAX_SESSION_MESSAGES - msgCount > 1 ? 's' : ''}
+                {T.questionsRemaining(MAX_SESSION_MESSAGES - msgCount)}
               </p>
             )}
           </div>
@@ -666,7 +667,7 @@ export default function ClikClakAssistant() {
         <button type="button" onClick={() => setQaOpen(prev => !prev)}
           className="flex items-center justify-between w-full px-4 py-2.5 text-[12px] font-light transition-colors focus-visible:outline-none"
           style={{ color: '#ccff33' }}>
-          <span>Actions rapides</span>
+          <span>{T.quickActionsToggle}</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={qaOpen ? '/assets/ui/icon-chevron-toggle-up.svg' : '/assets/ui/icon-chevron-toggle-down.svg'}

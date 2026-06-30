@@ -18,7 +18,7 @@ import ChatbotWrapper from '@/components/chatbot/ChatbotWrapper'
 
 interface Props {
   children:      React.ReactNode
-  /** Masquer le chatbot FR sur les pages anglaises (Phase 2 : traduire le chatbot) */
+  /** Active le chatbot ClikClak (bilingue FR/EN — locale dérivée du pathname par ChatbotWrapper) */
   showChatbot?:  boolean
   locale?:       'fr' | 'en'
 }

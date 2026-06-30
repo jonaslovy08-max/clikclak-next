@@ -1,19 +1,19 @@
 /*
-  app/api/chatbot/route.ts — Chatbot ClikClak V2 IA
+  app/api/chatbot/route.ts — Chatbot ClikClak V2 IA — bilingue FR/EN
 
   Pipeline de traitement (ordre strict) :
     1. Feature flag CHATBOT_ENABLED
     2. Validation Content-Type
     3. Limite taille body
-    4. Parsing JSON + validation schéma strict
+    4. Parsing JSON + extraction locale (fr|en, défaut fr) + validation schéma strict
     5. Normalisation NFKC + nettoyage
     6. Identifiant visiteur anonyme
     7. Vérification blocage temporaire
     8. Rate limiting (minute / heure / jour)
-    9. Guardrails — injection et hors-sujet
-   10. Construction prompt système + historique validé
+    9. Guardrails — injection et hors-sujet (toujours appliqués aux deux langues)
+   10. Construction prompt système + historique validé (localisés)
    11. Appel Anthropic (timeout 20s, 0 retry)
-   12. Sanitisation de la réponse
+   12. Sanitisation de la réponse (localisée)
    13. Réponse avec Cache-Control: no-store
 
   Sécurité :
@@ -21,6 +21,9 @@
   - Aucune donnée personnelle loggée
   - Aucun message d'erreur technique exposé au client
   - Panne Redis → 503 (fail closed)
+  - La locale du body est une simple préférence d'affichage : elle ne
+    contourne JAMAIS les guardrails (injection/hors-sujet), qui couvrent
+    les deux langues indépendamment de ce que le client déclare.
 */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -28,6 +31,8 @@ import Anthropic                     from '@anthropic-ai/sdk'
 
 import { CHATBOT_ENABLED }         from '@/lib/config/features'
 import { CHATBOT_LIMITS }          from '@/lib/chatbot/config'
+import { parseChatbotLocale, type ChatbotLocale } from '@/lib/chatbot/locale'
+import { apiMessage }              from '@/lib/chatbot/apiMessages'
 import { getVisitorIdentity }      from '@/lib/chatbot/requestIdentity'
 import {
   checkRateLimit,
@@ -43,7 +48,7 @@ import {
   INJECTION_RESPONSE,
   GREETING_RESPONSE,
 }                                  from '@/lib/chatbot/guardrails'
-import { CLIKCLAK_SYSTEM_PROMPT }  from '@/lib/chatbot/systemPrompt'
+import { getClikClakSystemPrompt } from '@/lib/chatbot/systemPrompt'
 import { getClikClakSiteContext }  from '@/lib/chatbot/siteContext'
 import {
   resolveRepairPricing,
@@ -89,27 +94,27 @@ type ValidMessage = { role: ValidRole; content: string }
 
 type SchemaResult =
   | { ok: true;  messages: ValidMessage[] }
-  | { ok: false; error: string }
+  | { ok: false; code: 'INVALID_BODY' | 'MESSAGES_NOT_ARRAY' | 'MESSAGES_EMPTY' | 'TOO_MANY_MESSAGES' | 'MESSAGE_INVALID' | 'ROLE_MISSING' | 'ROLE_INVALID' | 'CONTENT_NOT_STRING' | 'LAST_MUST_BE_USER'; vars?: Record<string, string | number> }
 
 function validateSchema(parsed: unknown): SchemaResult {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    return { ok: false, error: 'Format de requête invalide.' }
+    return { ok: false, code: 'INVALID_BODY' }
   }
 
   const body = parsed as Record<string, unknown>
 
   if (!Array.isArray(body.messages)) {
-    return { ok: false, error: 'messages doit être un tableau.' }
+    return { ok: false, code: 'MESSAGES_NOT_ARRAY' }
   }
 
   const msgs = body.messages as unknown[]
 
   if (msgs.length === 0) {
-    return { ok: false, error: 'messages ne peut pas être vide.' }
+    return { ok: false, code: 'MESSAGES_EMPTY' }
   }
 
   if (msgs.length > CHATBOT_LIMITS.maxHistoryMessages) {
-    return { ok: false, error: `Trop de messages (maximum ${CHATBOT_LIMITS.maxHistoryMessages}).` }
+    return { ok: false, code: 'TOO_MANY_MESSAGES', vars: { max: CHATBOT_LIMITS.maxHistoryMessages } }
   }
 
   const validated: ValidMessage[] = []
@@ -117,21 +122,21 @@ function validateSchema(parsed: unknown): SchemaResult {
   for (let i = 0; i < msgs.length; i++) {
     const m = msgs[i]
     if (!m || typeof m !== 'object' || Array.isArray(m)) {
-      return { ok: false, error: `Message ${i} invalide.` }
+      return { ok: false, code: 'MESSAGE_INVALID', vars: { index: i } }
     }
 
     const msg = m as Record<string, unknown>
 
     if (typeof msg.role !== 'string') {
-      return { ok: false, error: `Message ${i} : role manquant.` }
+      return { ok: false, code: 'ROLE_MISSING', vars: { index: i } }
     }
 
     if (msg.role !== 'user' && msg.role !== 'assistant') {
-      return { ok: false, error: `Message ${i} : role invalide (user ou assistant uniquement).` }
+      return { ok: false, code: 'ROLE_INVALID', vars: { index: i } }
     }
 
     if (typeof msg.content !== 'string') {
-      return { ok: false, error: `Message ${i} : content doit être une chaîne.` }
+      return { ok: false, code: 'CONTENT_NOT_STRING', vars: { index: i } }
     }
 
     validated.push({ role: msg.role as ValidRole, content: msg.content })
@@ -139,7 +144,7 @@ function validateSchema(parsed: unknown): SchemaResult {
 
   /* Le dernier message doit être de l'utilisateur */
   if (validated[validated.length - 1].role !== 'user') {
-    return { ok: false, error: 'Le dernier message doit être de l\'utilisateur.' }
+    return { ok: false, code: 'LAST_MUST_BE_USER' }
   }
 
   return { ok: true, messages: validated }
@@ -149,7 +154,7 @@ function validateSchema(parsed: unknown): SchemaResult {
 
 type NormResult =
   | { ok: true;  messages: ValidMessage[] }
-  | { ok: false; error: string; code: string }
+  | { ok: false; code: 'EMPTY_CONTENT' | 'CONTENT_TOO_LONG'; vars?: Record<string, string | number> }
 
 function normalizeMessages(messages: ValidMessage[]): NormResult {
   const result: ValidMessage[] = []
@@ -158,15 +163,11 @@ function normalizeMessages(messages: ValidMessage[]): NormResult {
     const normalized = normalizeContent(messages[i].content)
 
     if (!normalized) {
-      return { ok: false, error: `Message ${i} vide après normalisation.`, code: 'EMPTY_CONTENT' }
+      return { ok: false, code: 'EMPTY_CONTENT', vars: { index: i } }
     }
 
     if (normalized.length > CHATBOT_LIMITS.maxInputCharacters) {
-      return {
-        ok:    false,
-        error: `Message trop long (maximum ${CHATBOT_LIMITS.maxInputCharacters} caractères).`,
-        code:  'CONTENT_TOO_LONG',
-      }
+      return { ok: false, code: 'CONTENT_TOO_LONG', vars: { max: CHATBOT_LIMITS.maxInputCharacters } }
     }
 
     result.push({ role: messages[i].role, content: normalized })
@@ -191,19 +192,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   /* ── Étape 1 : Feature flag ─────────────────────────────────────── */
   if (!CHATBOT_ENABLED) {
-    return json({
-      error: 'Le chatbot est temporairement indisponible.',
-      code:  'CHATBOT_DISABLED',
-    }, 503)
+    /* Locale pas encore connue à ce stade (body pas encore lu) — défaut fr */
+    return json({ error: apiMessage('CHATBOT_DISABLED', 'fr'), code: 'CHATBOT_DISABLED' }, 503)
   }
 
   /* ── Étape 2 : Content-Type ─────────────────────────────────────── */
   const ct = req.headers.get('content-type') ?? ''
   if (!ct.includes('application/json')) {
-    return json({
-      error: 'Format de requête non pris en charge.',
-      code:  'UNSUPPORTED_MEDIA_TYPE',
-    }, 415)
+    return json({ error: apiMessage('UNSUPPORTED_MEDIA_TYPE', 'fr'), code: 'UNSUPPORTED_MEDIA_TYPE' }, 415)
   }
 
   /* ── Étape 3 : Taille du body ───────────────────────────────────── */
@@ -213,10 +209,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (cl) {
     const bytes = parseInt(cl, 10)
     if (!isNaN(bytes) && bytes > CHATBOT_LIMITS.maxBodyBytes) {
-      return json({
-        error: 'Corps de requête trop volumineux.',
-        code:  'PAYLOAD_TOO_LARGE',
-      }, 413)
+      return json({ error: apiMessage('PAYLOAD_TOO_LARGE', 'fr'), code: 'PAYLOAD_TOO_LARGE' }, 413)
     }
   }
 
@@ -225,33 +218,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     rawBody = await req.text()
   } catch {
-    return json({ error: 'Impossible de lire la requête.', code: 'READ_ERROR' }, 400)
+    return json({ error: apiMessage('READ_ERROR', 'fr'), code: 'READ_ERROR' }, 400)
   }
 
   if (Buffer.byteLength(rawBody, 'utf-8') > CHATBOT_LIMITS.maxBodyBytes) {
-    return json({
-      error: 'Corps de requête trop volumineux.',
-      code:  'PAYLOAD_TOO_LARGE',
-    }, 413)
+    return json({ error: apiMessage('PAYLOAD_TOO_LARGE', 'fr'), code: 'PAYLOAD_TOO_LARGE' }, 413)
   }
 
-  /* ── Étape 4 : JSON + validation schéma ─────────────────────────── */
+  /* ── Étape 4 : JSON + locale + validation schéma ────────────────── */
   let parsed: unknown
   try {
     parsed = JSON.parse(rawBody)
   } catch {
-    return json({ error: 'JSON invalide.', code: 'INVALID_JSON' }, 400)
+    return json({ error: apiMessage('INVALID_JSON', 'fr'), code: 'INVALID_JSON' }, 400)
   }
+
+  /* Locale déclarée par le client — jamais une valeur libre, jamais de
+     confiance aveugle : strictement 'fr' ou 'en', défaut 'fr'. N'affecte
+     que l'affichage (textes, prompt système, sens de réponse) — jamais
+     les guardrails de sécurité, appliqués identiquement aux deux langues. */
+  const locale: ChatbotLocale = parseChatbotLocale(
+    parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>).locale
+      : undefined,
+  )
 
   const schemaResult = validateSchema(parsed)
   if (!schemaResult.ok) {
-    return json({ error: schemaResult.error, code: 'INVALID_SCHEMA' }, 400)
+    return json({ error: apiMessage(schemaResult.code, locale, schemaResult.vars), code: schemaResult.code }, 400)
   }
 
   /* ── Étape 5 : Normalisation ────────────────────────────────────── */
   const normResult = normalizeMessages(schemaResult.messages)
   if (!normResult.ok) {
-    return json({ error: normResult.error, code: normResult.code }, 400)
+    return json({ error: apiMessage(normResult.code, locale, normResult.vars), code: normResult.code }, 400)
   }
   const messages = normResult.messages
 
@@ -260,10 +260,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!identifier) {
     /* Salt absent — fail closed sans appeler Anthropic */
     console.error('[chatbot] CHATBOT_RATE_LIMIT_SALT absent ou invalide')
-    return json({
-      error: 'Le chatbot est temporairement indisponible.',
-      code:  'CHATBOT_UNAVAILABLE',
-    }, 503)
+    return json({ error: apiMessage('CHATBOT_UNAVAILABLE', locale), code: 'CHATBOT_UNAVAILABLE' }, 503)
   }
 
   /* ── Étape 7 : Blocage temporaire ───────────────────────────────── */
@@ -272,17 +269,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     blocked = await isTemporarilyBlocked(identifier)
   } catch {
     console.error('[chatbot] Redis indisponible — blocage non vérifiable')
-    return json({
-      error: 'Le chatbot est temporairement indisponible.',
-      code:  'CHATBOT_UNAVAILABLE',
-    }, 503)
+    return json({ error: apiMessage('CHATBOT_UNAVAILABLE', locale), code: 'CHATBOT_UNAVAILABLE' }, 503)
   }
 
   if (blocked) {
-    return json({
-      error: 'Trop de demandes ont été envoyées. Réessayez plus tard.',
-      code:  'TEMPORARILY_BLOCKED',
-    }, 429, {
+    return json({ error: apiMessage('TEMPORARILY_BLOCKED', locale), code: 'TEMPORARILY_BLOCKED' }, 429, {
       'Retry-After': String(CHATBOT_LIMITS.blockDurationSeconds),
     })
   }
@@ -293,33 +284,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     rlResult = await checkRateLimit(identifier)
   } catch {
     console.error('[chatbot] Redis indisponible — rate limit non applicable')
-    return json({
-      error: 'Le chatbot est temporairement indisponible.',
-      code:  'CHATBOT_UNAVAILABLE',
-    }, 503)
+    return json({ error: apiMessage('CHATBOT_UNAVAILABLE', locale), code: 'CHATBOT_UNAVAILABLE' }, 503)
   }
 
   if (!rlResult.success) {
     const retryAfter = Math.max(1, Math.ceil((rlResult.reset - Date.now()) / 1000))
-    return json({
-      error: 'Trop de demandes ont été envoyées. Réessayez plus tard.',
-      code:  'RATE_LIMITED',
-    }, 429, {
-      'Retry-After':         String(retryAfter),
+    return json({ error: apiMessage('RATE_LIMITED', locale), code: 'RATE_LIMITED' }, 429, {
+      'Retry-After':           String(retryAfter),
       'X-RateLimit-Remaining': '0',
-      'X-RateLimit-Reset':   String(rlResult.reset),
+      'X-RateLimit-Reset':     String(rlResult.reset),
     })
   }
 
   /* ── Étape 9 : Guardrails ───────────────────────────────────────── */
 
-  /* Analyser le dernier message + les derniers messages user combinés */
+  /* Analyser le dernier message + les derniers messages user combinés.
+     Détection toujours bilingue, indépendamment de `locale`. */
   const lastUserMsg     = [...messages].reverse().find(m => m.role === 'user')!
   const recentUserTexts = messages.filter(m => m.role === 'user').slice(-3).map(m => m.content).join(' ')
 
   /* 9a. Salutations — réponse locale immédiate, pas d'Anthropic */
   if (isGreeting(lastUserMsg.content)) {
-    return json({ answer: GREETING_RESPONSE })
+    return json({ answer: GREETING_RESPONSE[locale] })
   }
 
   /* 9b. Injection manifeste */
@@ -329,7 +315,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     } catch (e) {
       console.error('[chatbot] Erreur enregistrement violation:', e instanceof Error ? e.message : String(e))
     }
-    return json({ answer: INJECTION_RESPONSE })
+    return json({ answer: INJECTION_RESPONSE[locale] })
   }
 
   /* 9c. Filtre hors-sujet.
@@ -338,7 +324,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const topicOk = isAllowedClikClakTopic(lastUserMsg.content) ||
     (lastUserMsg.content.length <= 28 && isAllowedClikClakTopic(recentUserTexts))
   if (!topicOk) {
-    return json({ answer: OFF_TOPIC_RESPONSE, blocked: true, reason: 'off_topic' })
+    return json({ answer: OFF_TOPIC_RESPONSE[locale], blocked: true, reason: 'off_topic' })
   }
 
   /* 9d. Résolveur tarifaire déterministe avec contexte multi-tour.
@@ -406,7 +392,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     pricingMatch.status === 'repair_needed' ||
     pricingMatch.status === 'brand_only'
   ) {
-    const { answer, actions } = buildPricingResponse(pricingMatch)
+    const { answer, actions } = buildPricingResponse(pricingMatch, locale)
     if (answer) {
       return json({ answer, actions: actions.length > 0 ? actions : undefined })
     }
@@ -416,13 +402,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     console.error('[chatbot] ANTHROPIC_API_KEY absente')
-    return json({
-      error: 'Le service est temporairement indisponible. Vous pouvez contacter directement ClikClak.',
-      code:  'CHATBOT_UNAVAILABLE',
-    }, 503)
+    return json({ error: apiMessage('CHATBOT_UNAVAILABLE', locale), code: 'CHATBOT_UNAVAILABLE' }, 503)
   }
 
-  const systemPrompt = `${CLIKCLAK_SYSTEM_PROMPT}\n\n${getClikClakSiteContext()}`
+  const systemPrompt = `${getClikClakSystemPrompt(locale)}\n\n${getClikClakSiteContext(locale)}`
   const model        = process.env.ANTHROPIC_MODEL ?? FALLBACK_MODEL
 
   const client = new Anthropic({
@@ -445,7 +428,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     /* ── Étape 12 : Sanitisation de la réponse ───────────────────── */
     const rawText = extractText(response.content)
-    const answer  = sanitizeAssistantAnswer(rawText)
+    const answer  = sanitizeAssistantAnswer(rawText, locale)
 
     return json({ answer })
 
@@ -467,9 +450,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       console.error('[chatbot] Erreur inattendue', { model, duration })
     }
 
-    return json({
-      error: 'Le service est temporairement indisponible. Vous pouvez contacter directement ClikClak.',
-      code:  'CHATBOT_UNAVAILABLE',
-    }, 503)
+    return json({ error: apiMessage('CHATBOT_UNAVAILABLE', locale), code: 'CHATBOT_UNAVAILABLE' }, 503)
   }
 }
