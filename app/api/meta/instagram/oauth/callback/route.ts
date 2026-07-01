@@ -28,6 +28,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Redis }                      from '@upstash/redis'
 
 import { createSupabaseServerClient }  from '@/lib/supabase/server'
+import { getPublicSiteBaseUrl }        from '@/lib/meta/instagram/siteUrl'
 import {
   exchangeInstagramAuthorizationCode,
   exchangeForLongLivedToken,
@@ -55,24 +56,29 @@ function getRedis(): Redis {
   return _redis
 }
 
-function adminRedirect(base: URL, params: Record<string, string>): NextResponse {
-  const url = new URL(ADMIN_INTEGRATION_URL, base)
+function adminRedirect(siteBase: string, params: Record<string, string>): NextResponse {
+  const url = new URL(ADMIN_INTEGRATION_URL, siteBase)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
   return NextResponse.redirect(url.toString())
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const base   = request.nextUrl
-  const params = request.nextUrl.searchParams
+  /*
+   * L'origine des redirections admin provient exclusivement de NEXT_PUBLIC_SITE_URL.
+   * Ne jamais utiliser request.nextUrl comme base : derrière le proxy Infomaniak,
+   * request.nextUrl.origin peut valoir http://localhost:3000.
+   */
+  const siteBase = getPublicSiteBaseUrl()
+  const params   = request.nextUrl.searchParams
 
   /* ── 1. Session admin ───────────────────────────────────────────── */
   let supabase
   try { supabase = await createSupabaseServerClient() } catch {
-    return adminRedirect(base, { error: 'config' })
+    return adminRedirect(siteBase, { error: 'config' })
   }
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.redirect(new URL('/admin/login', base).toString())
+  if (!user) return NextResponse.redirect(`${siteBase}/admin/login`)
 
   const { data: profile } = await supabase
     .from('admin_profiles')
@@ -81,7 +87,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     .single()
 
   if (!profile?.active || !ALLOWED_ROLES.includes(profile.role as typeof ALLOWED_ROLES[number])) {
-    return adminRedirect(base, { error: 'unauthorized' })
+    return adminRedirect(siteBase, { error: 'unauthorized' })
   }
 
   /* ── 2. Erreurs OAuth ───────────────────────────────────────────── */
@@ -90,14 +96,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     /* Ne jamais loguer error_description — peut contenir des données sensibles */
     console.info('[oauth:callback] Erreur OAuth reçue', { error: oauthError })
     const code = oauthError === 'access_denied' ? 'access_denied' : 'oauth_error'
-    return adminRedirect(base, { error: code })
+    return adminRedirect(siteBase, { error: code })
   }
 
   /* ── 3. Validation du state ─────────────────────────────────────── */
   const code          = params.get('code')
   const receivedState = params.get('state')
 
-  if (!receivedState || !code) return adminRedirect(base, { error: 'invalid_request' })
+  if (!receivedState || !code) return adminRedirect(siteBase, { error: 'invalid_request' })
 
   const stateKey = `${STATE_KEY_PREFIX}:${receivedState}`
   let storedUserId: string | null
@@ -105,15 +111,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     storedUserId = await getRedis().get<string>(stateKey)
   } catch {
-    return adminRedirect(base, { error: 'redis_unavailable' })
+    return adminRedirect(siteBase, { error: 'redis_unavailable' })
   }
 
-  if (!storedUserId) return adminRedirect(base, { error: 'state_invalid' })
+  if (!storedUserId) return adminRedirect(siteBase, { error: 'state_invalid' })
 
   /* Vérifier que l'utilisateur du callback est bien celui qui a lancé le flow */
   if (storedUserId !== user.id) {
     await getRedis().del(stateKey).catch(() => undefined)
-    return adminRedirect(base, { error: 'state_invalid' })
+    return adminRedirect(siteBase, { error: 'state_invalid' })
   }
 
   /* ── 4. Invalider le state (usage unique) ───────────────────────── */
@@ -127,7 +133,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('[oauth:callback] Échange code échoué', {
       error: err instanceof Error ? err.message : 'unknown',
     })
-    return adminRedirect(base, { error: 'token_exchange_failed' })
+    return adminRedirect(siteBase, { error: 'token_exchange_failed' })
   }
 
   /* ── 6. Short → long-lived token ───────────────────────────────── */
@@ -141,7 +147,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('[oauth:callback] Échange long-lived échoué', {
       error: err instanceof Error ? err.message : 'unknown',
     })
-    return adminRedirect(base, { error: 'long_token_exchange_failed' })
+    return adminRedirect(siteBase, { error: 'long_token_exchange_failed' })
   }
 
   /* ── 7. Profil Instagram ────────────────────────────────────────── */
@@ -152,7 +158,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('[oauth:callback] Récupération profil échouée', {
       error: err instanceof Error ? err.message : 'unknown',
     })
-    return adminRedirect(base, { error: 'profile_fetch_failed' })
+    return adminRedirect(siteBase, { error: 'profile_fetch_failed' })
   }
 
   /* ── 8→11. Sauvegarde + abonnement via orchestrateur ──────────── */
@@ -186,14 +192,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('[oauth:callback] Orchestration échouée', {
       error: err instanceof Error ? err.message : 'unknown',
     })
-    return adminRedirect(base, { error: 'save_failed' })
+    return adminRedirect(siteBase, { error: 'save_failed' })
   }
 
   if (orchestrationResult.outcome === 'finalize_failed') {
-    return adminRedirect(base, { error: 'finalize_failed' })
+    return adminRedirect(siteBase, { error: 'finalize_failed' })
   }
   if (orchestrationResult.outcome === 'active') {
-    return adminRedirect(base, { success: 'connected' })
+    return adminRedirect(siteBase, { success: 'connected' })
   }
-  return adminRedirect(base, { success: 'connected_no_webhook' })
+  return adminRedirect(siteBase, { success: 'connected_no_webhook' })
 }

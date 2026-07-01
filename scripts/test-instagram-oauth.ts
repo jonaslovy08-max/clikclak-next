@@ -47,22 +47,25 @@ const C = {
 
 /* ── Variables d'environnement de test ───────────────────────────── */
 
-const TEST_APP_ID       = "app-id-test-12345";
-const TEST_APP_SECRET   = "test-app-secret-32chars-exactly-pad";
-const TEST_REDIRECT_URI = "https://clikclak.ch/api/meta/instagram/oauth/callback";
-const TEST_ACCOUNT_ID   = "123456789";
-const TEST_TOKEN        = "IGSUT-TEST-LONG-TOKEN-ABCDEFGHIJ";
-const TEST_SHORT_TOKEN  = "IGSUT-TEST-SHORT-TOKEN-XYZ";
+const TEST_APP_ID        = "app-id-test-12345";
+const TEST_APP_SECRET    = "test-app-secret-32chars-exactly-pad";
+/* Secret distinct utilisé UNIQUEMENT pour les échanges de tokens OAuth */
+const TEST_CLIENT_SECRET = "test-client-secret-for-oauth-exchange";
+const TEST_REDIRECT_URI  = "https://clikclak.ch/api/meta/instagram/oauth/callback";
+const TEST_ACCOUNT_ID    = "123456789";
+const TEST_TOKEN         = "IGSUT-TEST-LONG-TOKEN-ABCDEFGHIJ";
+const TEST_SHORT_TOKEN   = "IGSUT-TEST-SHORT-TOKEN-XYZ";
 
 /* Clé AES-256 de test (32 octets) encodée en base64 */
 const TEST_KEY_B64 = randomBytes(32).toString("base64");
 
-process.env.META_INSTAGRAM_APP_ID             = TEST_APP_ID;
-process.env.META_INSTAGRAM_APP_SECRET         = TEST_APP_SECRET;
-process.env.META_INSTAGRAM_OAUTH_REDIRECT_URI = TEST_REDIRECT_URI;
-process.env.META_INSTAGRAM_ACCOUNT_ID         = TEST_ACCOUNT_ID;
-process.env.META_INSTAGRAM_ACCESS_TOKEN       = "ENV_VAR_TOKEN_FALLBACK";
-process.env.META_GRAPH_API_VERSION            = "v25.0";
+process.env.META_INSTAGRAM_APP_ID              = TEST_APP_ID;
+process.env.META_INSTAGRAM_APP_SECRET          = TEST_APP_SECRET;
+process.env.META_INSTAGRAM_CLIENT_SECRET       = TEST_CLIENT_SECRET;
+process.env.META_INSTAGRAM_OAUTH_REDIRECT_URI  = TEST_REDIRECT_URI;
+process.env.META_INSTAGRAM_ACCOUNT_ID          = TEST_ACCOUNT_ID;
+process.env.META_INSTAGRAM_ACCESS_TOKEN        = "ENV_VAR_TOKEN_FALLBACK";
+process.env.META_GRAPH_API_VERSION             = "v25.0";
 process.env.META_INSTAGRAM_TOKEN_ENCRYPTION_KEY = TEST_KEY_B64;
 
 /* ── Imports après définition des env vars ───────────────────────── */
@@ -93,6 +96,7 @@ import {
   finalizeInstagramOAuthConnection,
   type OAuthFinalizationDeps,
 } from "../lib/meta/instagram/oauthOrchestrator";
+import { getPublicSiteBaseUrl } from "../lib/meta/instagram/siteUrl";
 
 /* ── Mock fetch ──────────────────────────────────────────────────── */
 
@@ -248,7 +252,9 @@ async function main(): Promise<void> {
     const params   = new URLSearchParams(bodyStr);
     assert.equal(params.get("grant_type"), "authorization_code");
     assert.equal(params.get("client_id"), TEST_APP_ID);
-    assert.equal(params.get("client_secret"), TEST_APP_SECRET);
+    /* Vérifie que c'est META_INSTAGRAM_CLIENT_SECRET (pas APP_SECRET) qui est utilisé */
+    assert.equal(params.get("client_secret"), TEST_CLIENT_SECRET);
+    assert.notEqual(params.get("client_secret"), TEST_APP_SECRET);
     assert.equal(params.get("redirect_uri"), TEST_REDIRECT_URI);
     assert.equal(params.get("code"), "AUTH_CODE_TEST_123");
     /* Le code ne doit pas être dans l'URL (côté serveur uniquement) */
@@ -948,6 +954,167 @@ async function main(): Promise<void> {
     type ActionReturnType = void;
     const retType: ActionReturnType = undefined;
     assert.equal(retType, undefined, "Les actions retournent void (pas de payload)");
+  });
+
+  /* ── Secrets séparés + redirections publiques (58-70) ─────────── */
+
+  await test("58. exchangeInstagramAuthorizationCode utilise META_INSTAGRAM_CLIENT_SECRET", async () => {
+    mockFetch({
+      ok:   true,
+      json: () => Promise.resolve({ access_token: TEST_SHORT_TOKEN, token_type: "bearer" }),
+    });
+    await exchangeInstagramAuthorizationCode("AUTH_CODE_TEST");
+    const bodyStr  = fetchCalls[0].body as string;
+    const params   = new URLSearchParams(bodyStr);
+    assert.equal(params.get("client_secret"), TEST_CLIENT_SECRET,
+      "client_secret doit être META_INSTAGRAM_CLIENT_SECRET");
+  });
+
+  await test("59. exchangeInstagramAuthorizationCode n'utilise JAMAIS META_INSTAGRAM_APP_SECRET", async () => {
+    mockFetch({
+      ok:   true,
+      json: () => Promise.resolve({ access_token: TEST_SHORT_TOKEN, token_type: "bearer" }),
+    });
+    await exchangeInstagramAuthorizationCode("CODE_TEST");
+    const bodyStr = fetchCalls[0].body as string;
+    const params  = new URLSearchParams(bodyStr);
+    assert.notEqual(params.get("client_secret"), TEST_APP_SECRET,
+      "META_INSTAGRAM_APP_SECRET ne doit jamais être utilisé pour l'échange OAuth");
+  });
+
+  await test("60. exchangeForLongLivedToken utilise META_INSTAGRAM_CLIENT_SECRET", async () => {
+    mockFetch({
+      ok:   true,
+      json: () => Promise.resolve({ access_token: TEST_TOKEN, token_type: "bearer", expires_in: 5183944 }),
+    });
+    await exchangeForLongLivedToken(TEST_SHORT_TOKEN);
+    const url    = new URL(fetchCalls[0].url);
+    assert.equal(url.searchParams.get("client_secret"), TEST_CLIENT_SECRET,
+      "client_secret dans l'URL doit être META_INSTAGRAM_CLIENT_SECRET");
+    assert.notEqual(url.searchParams.get("client_secret"), TEST_APP_SECRET,
+      "META_INSTAGRAM_APP_SECRET ne doit pas être utilisé ici");
+  });
+
+  await test("61. META_INSTAGRAM_CLIENT_SECRET absent → erreur propre sans valeur dans le message", async () => {
+    const saved = process.env.META_INSTAGRAM_CLIENT_SECRET;
+    delete process.env.META_INSTAGRAM_CLIENT_SECRET;
+    try {
+      let errorMsg = "";
+      try { await exchangeInstagramAuthorizationCode("CODE") } catch (e) {
+        errorMsg = e instanceof Error ? e.message : "";
+      }
+      assert.ok(errorMsg.length > 0, "Une erreur doit être levée si META_INSTAGRAM_CLIENT_SECRET manque");
+      assert.ok(!errorMsg.includes(TEST_CLIENT_SECRET), "La valeur du secret ne doit pas fuiter dans l'erreur");
+      assert.ok(!errorMsg.includes(saved ?? ""), "La valeur du secret ne doit pas fuiter");
+    } finally {
+      process.env.META_INSTAGRAM_CLIENT_SECRET = saved;
+    }
+  });
+
+  await test("62. META_INSTAGRAM_APP_SECRET reste utilisé par la validation des webhooks", () => {
+    /* signedRequest.ts lit META_INSTAGRAM_APP_SECRET — vérification du contrat */
+    const fs      = require("node:fs") as { readFileSync: (p: string, e: string) => string };
+    const path    = require("node:path") as { resolve: (...p: string[]) => string };
+    const content = fs.readFileSync(path.resolve("lib/meta/instagram/signedRequest.ts"), "utf8");
+    assert.ok(content.includes("META_INSTAGRAM_APP_SECRET"),
+      "signedRequest.ts doit lire META_INSTAGRAM_APP_SECRET");
+    assert.ok(!content.includes("META_INSTAGRAM_CLIENT_SECRET"),
+      "signedRequest.ts ne doit pas utiliser META_INSTAGRAM_CLIENT_SECRET");
+  });
+
+  await test("63. META_INSTAGRAM_APP_SECRET reste utilisé par signedRequest.ts (webhook/désautorisation)", () => {
+    const fs      = require("node:fs") as { readFileSync: (p: string, e: string) => string };
+    const path    = require("node:path") as { resolve: (...p: string[]) => string };
+    /* Le webhook route.ts lit APP_SECRET pour vérifier X-Hub-Signature-256 */
+    const webhookContent = fs.readFileSync(
+      path.resolve("app/api/meta/instagram/webhook/route.ts"), "utf8"
+    );
+    assert.ok(webhookContent.includes("META_INSTAGRAM_APP_SECRET"),
+      "Le webhook doit utiliser META_INSTAGRAM_APP_SECRET pour X-Hub-Signature-256");
+  });
+
+  await test("64. getPublicSiteBaseUrl retourne NEXT_PUBLIC_SITE_URL sans slash final", () => {
+    const saved = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://clikclak.ch/";
+    try {
+      const url = getPublicSiteBaseUrl();
+      assert.ok(!url.endsWith("/"), "Pas de slash final");
+      assert.ok(url.startsWith("https://clikclak.ch"), "Doit retourner le domaine de production");
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = saved;
+    }
+  });
+
+  await test("65. getPublicSiteBaseUrl — localhost refusé en production", () => {
+    const savedUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+    try {
+      /* Passer "production" comme param — NODE_ENV est en lecture seule en TS */
+      const url = getPublicSiteBaseUrl("production");
+      assert.ok(!url.includes("localhost"),
+        `localhost ne doit pas être retourné en production, reçu : ${url}`);
+      assert.equal(url, "https://clikclak.ch", "Fallback attendu en production");
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = savedUrl;
+    }
+  });
+
+  await test("66. getPublicSiteBaseUrl — http:// refusé en production, retourne fallback", () => {
+    const savedUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "http://clikclak.ch";
+    try {
+      const url = getPublicSiteBaseUrl("production");
+      assert.equal(url, "https://clikclak.ch");
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = savedUrl;
+    }
+  });
+
+  await test("67. getPublicSiteBaseUrl — URL invalide retourne fallback", () => {
+    const saved = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "not_a_url";
+    try {
+      const url = getPublicSiteBaseUrl();
+      assert.equal(url, "https://clikclak.ch");
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = saved;
+    }
+  });
+
+  await test("68. getPublicSiteBaseUrl — NEXT_PUBLIC_SITE_URL sans slash final reste inchangé", () => {
+    const saved = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://clikclak.ch";
+    try {
+      const url = getPublicSiteBaseUrl();
+      assert.equal(url, "https://clikclak.ch");
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = saved;
+    }
+  });
+
+  await test("69. getPublicSiteBaseUrl — NEXT_PUBLIC_SITE_URL avec slash final supprimé", () => {
+    const saved = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://clikclak.ch/";
+    try {
+      const url = getPublicSiteBaseUrl();
+      assert.equal(url, "https://clikclak.ch");
+      assert.ok(!url.endsWith("/"), "Pas de double slash dans les URLs construites");
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = saved;
+    }
+  });
+
+  await test("70. redirect_uri pour l'échange OAuth reste META_INSTAGRAM_OAUTH_REDIRECT_URI", async () => {
+    mockFetch({
+      ok:   true,
+      json: () => Promise.resolve({ access_token: TEST_SHORT_TOKEN, token_type: "bearer" }),
+    });
+    await exchangeInstagramAuthorizationCode("CODE_REDIRECT_URI_CHECK");
+    const bodyStr    = fetchCalls[0].body as string;
+    const params     = new URLSearchParams(bodyStr);
+    const redirectUri = params.get("redirect_uri");
+    assert.equal(redirectUri, TEST_REDIRECT_URI,
+      "redirect_uri doit être META_INSTAGRAM_OAUTH_REDIRECT_URI, pas une URL reconstruite");
   });
 
   /* ── Résultat ────────────────────────────────────────────────── */
