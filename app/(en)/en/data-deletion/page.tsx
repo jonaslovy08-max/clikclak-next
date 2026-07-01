@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import { SITE_URL } from '@/lib/seo'
+import { getDataDeletionByCode } from '@/lib/meta/instagram/dataDeletion'
 
 export const metadata: Metadata = {
   title: 'Deletion of your data | Clik Clak',
@@ -24,7 +25,43 @@ export const metadata: Metadata = {
   },
 }
 
-export default function DataDeletionPage() {
+const CONFIRMATION_CODE_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—'
+  try {
+    return new Intl.DateTimeFormat('en-CH', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }).format(new Date(iso))
+  } catch { return '—' }
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  processing: 'Processing',
+  completed:  'Deletion confirmed',
+  failed:     'Processing error',
+}
+const STATUS_COLOR: Record<string, string> = {
+  processing: 'rgba(251,191,36,0.8)',
+  completed:  'rgba(74,222,128,0.8)',
+  failed:     'rgba(248,113,113,0.8)',
+}
+
+export default async function DataDeletionPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>
+}) {
+  const sp   = await searchParams
+  const code = typeof sp.confirmation === 'string' ? sp.confirmation : null
+
+  let confirmationStatus: Awaited<ReturnType<typeof getDataDeletionByCode>> = null
+  if (code && CONFIRMATION_CODE_RE.test(code)) {
+    try { confirmationStatus = await getDataDeletionByCode(code) } catch { /* silent */ }
+  }
+
   return (
     <>
       <Header locale="en" />
@@ -51,6 +88,46 @@ export default function DataDeletionPage() {
                 professional Instagram account.
               </p>
             </div>
+
+            {/* ── Deletion status (if confirmation code provided) ── */}
+            {code && (
+              <div
+                className="p-5 rounded-card border"
+                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
+              >
+                <h2 className="text-base font-light mb-4" style={{ color: 'rgba(242,242,242,0.9)' }}>
+                  Request status
+                </h2>
+                {confirmationStatus ? (
+                  <dl className="flex flex-col gap-3 text-sm font-light">
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>Confirmation code</dt>
+                      <dd className="font-mono text-xs" style={{ color: 'rgba(242,242,242,0.6)' }}>{confirmationStatus.confirmation_code}</dd>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>Status</dt>
+                      <dd style={{ color: STATUS_COLOR[confirmationStatus.status] ?? 'rgba(242,242,242,0.7)' }}>
+                        {STATUS_LABEL[confirmationStatus.status] ?? confirmationStatus.status}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>Request date</dt>
+                      <dd style={{ color: 'rgba(242,242,242,0.65)' }}>{formatDate(confirmationStatus.requested_at)}</dd>
+                    </div>
+                    {confirmationStatus.completed_at && (
+                      <div className="flex flex-col gap-0.5">
+                        <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>Deletion completed</dt>
+                        <dd style={{ color: 'rgba(242,242,242,0.65)' }}>{formatDate(confirmationStatus.completed_at)}</dd>
+                      </div>
+                    )}
+                  </dl>
+                ) : (
+                  <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.5)' }}>
+                    This confirmation code was not found or has expired.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* ── Body ── */}
             <div className="flex flex-col gap-10">

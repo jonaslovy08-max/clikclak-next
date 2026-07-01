@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import { SITE_URL } from '@/lib/seo'
+import { getDataDeletionByCode } from '@/lib/meta/instagram/dataDeletion'
 
 export const metadata: Metadata = {
   title: 'Suppression de vos données | Clik Clak',
@@ -24,7 +25,62 @@ export const metadata: Metadata = {
   },
 }
 
-export default function SuppressionDonneesPage() {
+/* ── Validation format code de confirmation (UUID v4) ───────────── */
+
+const CONFIRMATION_CODE_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isValidConfirmationCode(code: string): boolean {
+  return CONFIRMATION_CODE_RE.test(code)
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—'
+  try {
+    return new Intl.DateTimeFormat('fr-CH', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }).format(new Date(iso))
+  } catch {
+    return '—'
+  }
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  processing: 'En cours de traitement',
+  completed:  'Suppression confirmée',
+  failed:     'Erreur de traitement',
+}
+
+const STATUS_COLOR: Record<string, string> = {
+  processing: 'rgba(251,191,36,0.8)',
+  completed:  'rgba(74,222,128,0.8)',
+  failed:     'rgba(248,113,113,0.8)',
+}
+
+export default async function SuppressionDonneesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>
+}) {
+  const sp   = await searchParams
+  const code = typeof sp.confirmation === 'string' ? sp.confirmation : null
+
+  /* ── Statut de suppression si code fourni ───────────────────────── */
+  let confirmationStatus: Awaited<ReturnType<typeof getDataDeletionByCode>> = null
+
+  if (code) {
+    if (isValidConfirmationCode(code)) {
+      try {
+        confirmationStatus = await getDataDeletionByCode(code)
+      } catch {
+        /* Erreur DB silencieuse — afficher message générique */
+        confirmationStatus = null
+      }
+    }
+    /* Code malformé ou inconnu → confirmationStatus reste null */
+  }
+
   return (
     <>
       <Header />
@@ -51,6 +107,65 @@ export default function SuppressionDonneesPage() {
                 avec le compte Instagram professionnel Clik Clak.
               </p>
             </div>
+
+            {/* ── Statut de suppression (si code présent) ─────────────── */}
+            {code && (
+              <div
+                className="p-5 rounded-card border"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  borderColor: 'rgba(255,255,255,0.1)',
+                }}
+              >
+                <h2 className="text-base font-light mb-4" style={{ color: 'rgba(242,242,242,0.9)' }}>
+                  Statut de votre demande
+                </h2>
+
+                {confirmationStatus ? (
+                  <dl className="flex flex-col gap-3 text-sm font-light">
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>
+                        Code de confirmation
+                      </dt>
+                      <dd className="font-mono text-xs" style={{ color: 'rgba(242,242,242,0.6)' }}>
+                        {confirmationStatus.confirmation_code}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>
+                        Statut
+                      </dt>
+                      <dd style={{ color: STATUS_COLOR[confirmationStatus.status] ?? 'rgba(242,242,242,0.7)' }}>
+                        {STATUS_LABEL[confirmationStatus.status] ?? confirmationStatus.status}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>
+                        Date de la demande
+                      </dt>
+                      <dd style={{ color: 'rgba(242,242,242,0.65)' }}>
+                        {formatDate(confirmationStatus.requested_at)}
+                      </dd>
+                    </div>
+                    {confirmationStatus.completed_at && (
+                      <div className="flex flex-col gap-0.5">
+                        <dt className="text-xs uppercase tracking-wider" style={{ color: 'rgba(242,242,242,0.35)' }}>
+                          Suppression effectuée le
+                        </dt>
+                        <dd style={{ color: 'rgba(242,242,242,0.65)' }}>
+                          {formatDate(confirmationStatus.completed_at)}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                ) : (
+                  <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.5)' }}>
+                    Ce code de confirmation n'a pas été trouvé ou a expiré.
+                    Si vous venez de soumettre une demande, le traitement peut prendre quelques instants.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* ── Corps ── */}
             <div className="flex flex-col gap-10">
