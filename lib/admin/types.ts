@@ -5,7 +5,13 @@
   Uniquement utilisé côté serveur (Server Components, Server Actions, lib/admin/).
 */
 
-export type AdminRole = 'admin' | 'editor'
+export type AdminRole = 'admin' | 'editor' | 'instagram_reviewer'
+
+/** Rôles ayant un accès complet à l'administration (catalogue, prix, etc.) */
+export type FullAdminRole = 'admin' | 'editor'
+
+/** Rôles autorisés à gérer l'intégration Instagram uniquement */
+export type InstagramAdminRole = 'admin' | 'editor' | 'instagram_reviewer'
 
 export interface AdminProfile {
   id:    string

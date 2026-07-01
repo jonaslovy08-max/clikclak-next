@@ -52,13 +52,27 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Réparations',
     icon:  <NavIcon d="M2 4h14v10H2zM5 4V2M13 4V2M2 8h14" />,
   },
+  {
+    href:  '/admin/integrations/instagram',
+    label: 'Instagram',
+    icon:  <NavIcon d="M12 2H6C3.8 2 2 3.8 2 6v6c0 2.2 1.8 4 4 4h6c2.2 0 4-1.8 4-4V6c0-2.2-1.8-4-4-4zm-3 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3.7-7.2a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6z" />,
+  },
 ]
 
 interface Props {
   profile: AdminProfile
 }
 
+/** Élément Instagram uniquement */
+const INSTAGRAM_NAV_ITEM = NAV_ITEMS.find(
+  item => item.href === '/admin/integrations/instagram'
+)
+
 export function AdminSidebar({ profile }: Props) {
+  /* instagram_reviewer ne voit que le lien Instagram */
+  const visibleItems = profile.role === 'instagram_reviewer'
+    ? (INSTAGRAM_NAV_ITEM ? [INSTAGRAM_NAV_ITEM] : [])
+    : NAV_ITEMS
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -80,7 +94,7 @@ export function AdminSidebar({ profile }: Props) {
 
       {/* Navigation */}
       <nav className="flex-1 px-2 space-y-0.5" aria-label="Navigation admin">
-        {NAV_ITEMS.map(item => (
+        {visibleItems.map(item => (
           <Link
             key={item.href}
             href={item.href}
