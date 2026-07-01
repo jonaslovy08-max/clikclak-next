@@ -86,13 +86,13 @@ export function createInstagramAuthorizationUrl(state: string): string {
 export async function exchangeInstagramAuthorizationCode(
   code: string,
 ): Promise<ShortLivedTokenResponse> {
-  const appId       = requireInstagramEnv('META_INSTAGRAM_APP_ID')
-  const appSecret   = requireInstagramEnv('META_INSTAGRAM_APP_SECRET')
-  const redirectUri = requireInstagramEnv('META_INSTAGRAM_OAUTH_REDIRECT_URI')
+  const appId        = requireInstagramEnv('META_INSTAGRAM_APP_ID')
+  const clientSecret = requireInstagramEnv('META_INSTAGRAM_CLIENT_SECRET')
+  const redirectUri  = requireInstagramEnv('META_INSTAGRAM_OAUTH_REDIRECT_URI')
 
   const body = new URLSearchParams({
     client_id:     appId,
-    client_secret: appSecret,
+    client_secret: clientSecret,
     grant_type:    'authorization_code',
     redirect_uri:  redirectUri,
     code,
@@ -124,7 +124,7 @@ export async function exchangeInstagramAuthorizationCode(
 export async function exchangeForLongLivedToken(
   shortToken: string,
 ): Promise<LongLivedTokenResponse> {
-  const appSecret = requireInstagramEnv('META_INSTAGRAM_APP_SECRET')
+  const clientSecret = requireInstagramEnv('META_INSTAGRAM_CLIENT_SECRET')
 
   /* L'échange long-lived est un GET selon la spec Instagram.
      client_secret est obligatoire dans les query params (contrainte API Meta).
@@ -132,7 +132,7 @@ export async function exchangeForLongLivedToken(
      Note : les tokens longue durée expirent (~60 jours). Planifier le renouvellement. */
   const params = new URLSearchParams({
     grant_type:    'ig_exchange_token',
-    client_secret: appSecret,
+    client_secret: clientSecret,
     access_token:  shortToken,
   })
 
