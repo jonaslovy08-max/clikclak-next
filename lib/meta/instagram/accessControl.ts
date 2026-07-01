@@ -62,6 +62,24 @@ export function getVisibleAdminNavHrefs(role: string | null | undefined): string
   return []
 }
 
+/**
+ * Retourne la destination de redirection après connexion admin selon le rôle.
+ *
+ * - admin | editor       → '/admin'
+ * - instagram_reviewer   → '/admin/integrations/instagram'
+ * - rôle inconnu/inactif → null (accès refusé)
+ *
+ * Utilisée par la Server Action de connexion et testable indépendamment.
+ */
+export function getAdminLoginDestination(
+  role:   string | null | undefined,
+  active: boolean | null | undefined,
+): string | null {
+  if (!isInstagramAccessAllowed(role, active)) return null
+  if (role === 'instagram_reviewer') return '/admin/integrations/instagram'
+  return '/admin'
+}
+
 /** Valide un UUID v4. */
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export function isValidUuid(id: string): boolean {
