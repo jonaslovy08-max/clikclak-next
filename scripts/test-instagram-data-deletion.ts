@@ -32,7 +32,8 @@ const C = {
 
 /* ── Constantes de test ────────────────────────────────────────────── */
 
-const TEST_SECRET  = "test-secret-for-meta-callbacks-signing";
+const TEST_SECRET         = "test-secret-for-meta-callbacks-signing";
+const TEST_ALT_SECRET     = "alternative-secret-for-compat-test";
 const TEST_USER_ID = "ig_user_12345678";
 const SITE_URL     = "https://clikclak.ch";
 
@@ -68,7 +69,7 @@ function makeDeauthorizeDeps(overrides?: Partial<DeauthorizeDeps>): DeauthorizeD
 } {
   const deletedUserIds: string[] = [];
   return {
-    getAppSecret:  () => TEST_SECRET,
+    getSecrets: () => [TEST_SECRET],
     deleteUserData: async (id) => { deletedUserIds.push(id); },
     ...overrides,
     deletedUserIds,
@@ -82,7 +83,7 @@ function makeDataDeletionDeps(overrides?: Partial<DataDeletionDeps>): DataDeleti
   const deletedUserIds: string[] = [];
   const insertedCodes:  string[] = [];
   return {
-    getAppSecret:    () => TEST_SECRET,
+    getSecrets: () => [TEST_SECRET],
     deleteUserData:  async (id) => { deletedUserIds.push(id); },
     recordCompleted: async () => {
       const code = randomUUID();
@@ -165,7 +166,7 @@ async function main(): Promise<void> {
 
   await test("7.  Secret absent → erreur propre via handleDeauthorizeCallback", async () => {
     const sr   = buildSignedRequest({ user_id: TEST_USER_ID }, TEST_SECRET);
-    const deps = makeDeauthorizeDeps({ getAppSecret: () => undefined });
+    const deps = makeDeauthorizeDeps({ getSecrets: () => [] });
     const res  = await handleDeauthorizeCallback(makeFormBody(sr), "application/x-www-form-urlencoded", deps);
     assert.equal(res.status, 500);
     const body = res.body as { error: string };
@@ -453,6 +454,69 @@ async function main(): Promise<void> {
     /* Seule la table de suivi doit être insérée, jamais de table de messages */
     const messageTables = insertedTables.filter(t => t.includes("message") || t.includes("conversation"));
     assert.equal(messageTables.length, 0, "Aucune table de messages ne doit être insérée");
+  });
+
+  /* ── Multi-secrets signed_request (33-39) ─────────────────────── */
+
+  await test("33. signed_request signé avec secret primaire (CLIENT_SECRET) → accepté", async () => {
+    const sr   = buildSignedRequest({ user_id: TEST_USER_ID }, TEST_SECRET);
+    const deps = makeDeauthorizeDeps({ getSecrets: () => [TEST_SECRET, TEST_ALT_SECRET] });
+    const res  = await handleDeauthorizeCallback(makeFormBody(sr), "application/x-www-form-urlencoded", deps);
+    assert.equal(res.status, 200);
+  });
+
+  await test("34. signed_request signé avec secret secondaire (APP_SECRET) → accepté en compatibilité", async () => {
+    const sr   = buildSignedRequest({ user_id: TEST_USER_ID }, TEST_ALT_SECRET);
+    /* Ordre : TEST_SECRET (primaire) d'abord, TEST_ALT_SECRET (secondaire) en fallback */
+    const deps = makeDeauthorizeDeps({ getSecrets: () => [TEST_SECRET, TEST_ALT_SECRET] });
+    const res  = await handleDeauthorizeCallback(makeFormBody(sr), "application/x-www-form-urlencoded", deps);
+    assert.equal(res.status, 200, "Secret secondaire doit être accepté en compatibilité");
+  });
+
+  await test("35. signed_request signé avec secret inconnu → refusé (401)", async () => {
+    const sr   = buildSignedRequest({ user_id: TEST_USER_ID }, "completely-unknown-secret");
+    const deps = makeDeauthorizeDeps({ getSecrets: () => [TEST_SECRET, TEST_ALT_SECRET] });
+    const res  = await handleDeauthorizeCallback(makeFormBody(sr), "application/x-www-form-urlencoded", deps);
+    assert.equal(res.status, 401);
+  });
+
+  await test("36. Payload modifié après signature → refusé", async () => {
+    const sr   = buildSignedRequest({ user_id: TEST_USER_ID }, TEST_SECRET);
+    /* Remplacer le payload par un payload différent */
+    const [sigPart] = sr.split(".");
+    const altPayload = Buffer.from(JSON.stringify({ user_id: "TAMPERED_ID" }))
+      .toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    const tampered = `${sigPart}.${altPayload}`;
+    const deps     = makeDeauthorizeDeps({ getSecrets: () => [TEST_SECRET] });
+    const res      = await handleDeauthorizeCallback(makeFormBody(tampered), "application/x-www-form-urlencoded", deps);
+    assert.equal(res.status, 401, "Payload modifié doit être refusé");
+  });
+
+  await test("37. signed_request malformé (sans séparateur) → 401", async () => {
+    const deps = makeDeauthorizeDeps({ getSecrets: () => [TEST_SECRET] });
+    const res  = await handleDeauthorizeCallback(
+      makeFormBody("noseparatoratallinthisstring"),
+      "application/x-www-form-urlencoded",
+      deps
+    );
+    assert.equal(res.status, 401);
+  });
+
+  await test("38. Aucun secret configuré → 500 (fail closed)", async () => {
+    const sr   = buildSignedRequest({ user_id: TEST_USER_ID }, TEST_SECRET);
+    const deps = makeDeauthorizeDeps({ getSecrets: () => [] });
+    const res  = await handleDeauthorizeCallback(makeFormBody(sr), "application/x-www-form-urlencoded", deps);
+    assert.equal(res.status, 500, "Aucun secret → fail closed 500");
+  });
+
+  await test("39. Aucun secret, erreur ou signed_request complet dans les logs ou réponses", async () => {
+    const sr    = buildSignedRequest({ user_id: TEST_USER_ID }, "unknown-secret");
+    const deps  = makeDeauthorizeDeps({ getSecrets: () => [TEST_SECRET] });
+    const res   = await handleDeauthorizeCallback(makeFormBody(sr), "application/x-www-form-urlencoded", deps);
+    const text  = JSON.stringify(res.body);
+    assert.ok(!text.includes(TEST_SECRET), "Secret ne doit pas apparaître dans la réponse");
+    assert.ok(!text.includes(sr), "signed_request complet ne doit pas apparaître dans la réponse");
+    assert.ok(!text.includes(TEST_USER_ID), "user_id ne doit pas apparaître dans une réponse d'erreur");
   });
 
   /* ── Résultat ──────────────────────────────────────────────────── */

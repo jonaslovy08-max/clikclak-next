@@ -28,7 +28,10 @@ export async function POST(request: Request): Promise<Response> {
   const contentType = request.headers.get('content-type') ?? ''
 
   const result = await handleDeauthorizeCallback(rawBody, contentType, {
-    getAppSecret:  () => process.env.META_INSTAGRAM_APP_SECRET,
+    getSecrets: () => [
+      process.env.META_INSTAGRAM_CLIENT_SECRET,
+      process.env.META_INSTAGRAM_APP_SECRET,
+    ].filter((s): s is string => Boolean(s)),
     deleteUserData: async (userId) => {
       await deleteInstagramDataByUserId(userId)
       /* Log uniquement un préfixe tronqué — jamais le user_id complet */

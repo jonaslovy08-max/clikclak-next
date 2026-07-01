@@ -1011,15 +1011,19 @@ async function main(): Promise<void> {
     }
   });
 
-  await test("62. META_INSTAGRAM_APP_SECRET reste utilisé par la validation des webhooks", () => {
-    /* signedRequest.ts lit META_INSTAGRAM_APP_SECRET — vérification du contrat */
+  await test("62. signedRequest.ts utilise les deux secrets (CLIENT_SECRET en priorité, APP_SECRET en fallback)", () => {
     const fs      = require("node:fs") as { readFileSync: (p: string, e: string) => string };
     const path    = require("node:path") as { resolve: (...p: string[]) => string };
     const content = fs.readFileSync(path.resolve("lib/meta/instagram/signedRequest.ts"), "utf8");
     assert.ok(content.includes("META_INSTAGRAM_APP_SECRET"),
-      "signedRequest.ts doit lire META_INSTAGRAM_APP_SECRET");
-    assert.ok(!content.includes("META_INSTAGRAM_CLIENT_SECRET"),
-      "signedRequest.ts ne doit pas utiliser META_INSTAGRAM_CLIENT_SECRET");
+      "signedRequest.ts doit inclure META_INSTAGRAM_APP_SECRET (compatibilité)");
+    assert.ok(content.includes("META_INSTAGRAM_CLIENT_SECRET"),
+      "signedRequest.ts doit inclure META_INSTAGRAM_CLIENT_SECRET (priorité 1)");
+    /* L'ordre doit être CLIENT_SECRET avant APP_SECRET */
+    const clientIdx = content.indexOf("META_INSTAGRAM_CLIENT_SECRET");
+    const appIdx    = content.indexOf("META_INSTAGRAM_APP_SECRET");
+    assert.ok(clientIdx < appIdx,
+      "META_INSTAGRAM_CLIENT_SECRET doit apparaître avant META_INSTAGRAM_APP_SECRET");
   });
 
   await test("63. META_INSTAGRAM_APP_SECRET reste utilisé par signedRequest.ts (webhook/désautorisation)", () => {

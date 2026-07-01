@@ -1,4 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
 
 import {
@@ -22,36 +21,44 @@ import {
 } from "@/lib/meta/instagram/conversation";
 import { sendInstagramTextMessage } from "@/lib/meta/instagram/client";
 import { resolveInstagramSendConfig } from "@/lib/meta/instagram/resolver";
+import { verifyHmacAgainstSecrets } from "@/lib/meta/instagram/hmacCore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/* ── Labels des secrets pour les logs (jamais la valeur) ─────── */
+
+const WEBHOOK_SECRET_LABELS = ["instagram_client_secret", "meta_app_secret"] as const;
+
 /* ── Vérification signature HMAC-SHA256 ──────────────────────── */
 
-function verifyMetaSignature(
-  rawBody: Buffer,
+/**
+ * Collecte la liste fermée de secrets approuvés pour le webhook.
+ * Ordre : META_INSTAGRAM_CLIENT_SECRET, puis META_INSTAGRAM_APP_SECRET.
+ * Exclut les valeurs absentes et déduplique les valeurs identiques.
+ */
+function getWebhookSecrets(): string[] {
+  return [
+    process.env.META_INSTAGRAM_CLIENT_SECRET,
+    process.env.META_INSTAGRAM_APP_SECRET,
+  ].filter((s): s is string => Boolean(s));
+}
+
+/**
+ * Vérifie le header X-Hub-Signature-256 contre la liste de secrets.
+ * @returns Index du secret correspondant (0-based), ou null si invalide.
+ */
+function verifyWebhookSignature(
+  rawBody:         Buffer,
   signatureHeader: string | null,
-  appSecret: string
-): boolean {
+  secrets:         string[],
+): number | null {
   if (!signatureHeader?.startsWith("sha256=")) {
-    return false;
+    return null;
   }
 
   const signatureHex = signatureHeader.slice("sha256=".length);
-
-  if (!/^[a-f0-9]{64}$/i.test(signatureHex)) {
-    return false;
-  }
-
-  const receivedSignature = Buffer.from(signatureHex, "hex");
-  const expectedSignature = createHmac("sha256", appSecret)
-    .update(rawBody)
-    .digest();
-
-  return (
-    receivedSignature.length === expectedSignature.length &&
-    timingSafeEqual(receivedSignature, expectedSignature)
-  );
+  return verifyHmacAgainstSecrets(rawBody, signatureHex, secrets);
 }
 
 /* ── Résolution tarifaire multi-tour ──────────────────────────── */
@@ -247,25 +254,32 @@ export async function GET(request: NextRequest): Promise<Response> {
 /* ── POST — Réception sécurisée des événements Instagram ─────── */
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const appSecret = process.env.META_INSTAGRAM_APP_SECRET;
+  /* ── 0. Liste fermée de secrets approuvés ────────────────────── */
+  const secrets = getWebhookSecrets();
 
-  if (!appSecret) {
-    console.error("[instagram:webhook] META_INSTAGRAM_APP_SECRET manquant.");
+  if (secrets.length === 0) {
+    console.error("[instagram:webhook] Aucun secret configuré (META_INSTAGRAM_CLIENT_SECRET / META_INSTAGRAM_APP_SECRET).");
     return new Response("Configuration serveur incomplète.", { status: 500 });
   }
 
-  /* ── 1. Lecture du corps brut ────────────────────────────────── */
+  /* ── 1. Lecture du corps brut (avant JSON.parse) ─────────────── */
   const rawBody   = Buffer.from(await request.arrayBuffer());
   const signature = request.headers.get("x-hub-signature-256");
 
   /* ── 2. Vérification de la signature HMAC-SHA256 ─────────────── */
-  if (!verifyMetaSignature(rawBody, signature, appSecret)) {
-    console.warn("[instagram:webhook] Signature Meta invalide.");
+  const matchIndex = verifyWebhookSignature(rawBody, signature, secrets);
+
+  if (matchIndex === null) {
+    console.warn("[instagram:webhook] Signature invalide.");
     return new Response("Signature invalide.", {
       status: 401,
       headers: { "Cache-Control": "no-store" },
     });
   }
+
+  /* Log du label uniquement — jamais la valeur du secret */
+  const matchLabel = WEBHOOK_SECRET_LABELS[matchIndex] ?? "secret_inconnu";
+  console.info("[instagram:webhook] Signature valide.", { source: matchLabel });
 
   /* ── 3. Parsing JSON ─────────────────────────────────────────── */
   let payload: unknown;
