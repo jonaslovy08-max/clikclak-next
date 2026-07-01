@@ -88,6 +88,7 @@ import {
   isInstagramAccessAllowed,
   isFullAdminAllowed,
   getVisibleAdminNavHrefs,
+  getAdminLoginDestination,
   isValidUuid,
   FULL_ADMIN_ROLES,
   INSTAGRAM_ROLES,
@@ -1119,6 +1120,53 @@ async function main(): Promise<void> {
     const redirectUri = params.get("redirect_uri");
     assert.equal(redirectUri, TEST_REDIRECT_URI,
       "redirect_uri doit être META_INSTAGRAM_OAUTH_REDIRECT_URI, pas une URL reconstruite");
+  });
+
+  /* ── Connexion admin — getAdminLoginDestination (71-78) ──────── */
+
+  await test("71. admin actif → destination /admin", () => {
+    assert.equal(getAdminLoginDestination("admin", true), "/admin");
+  });
+
+  await test("72. editor actif → destination /admin", () => {
+    assert.equal(getAdminLoginDestination("editor", true), "/admin");
+  });
+
+  await test("73. instagram_reviewer actif → destination /admin/integrations/instagram", () => {
+    assert.equal(
+      getAdminLoginDestination("instagram_reviewer", true),
+      "/admin/integrations/instagram"
+    );
+  });
+
+  await test("74. instagram_reviewer inactif → null (refus)", () => {
+    assert.equal(getAdminLoginDestination("instagram_reviewer", false), null);
+  });
+
+  await test("75. Rôle inconnu actif → null (refus)", () => {
+    assert.equal(getAdminLoginDestination("super_admin", true), null);
+    assert.equal(getAdminLoginDestination(null, true), null);
+    assert.equal(getAdminLoginDestination(undefined, true), null);
+  });
+
+  await test("76. Profil absent (null role et active) → null (refus)", () => {
+    assert.equal(getAdminLoginDestination(null, null), null);
+    assert.equal(getAdminLoginDestination(undefined, undefined), null);
+  });
+
+  await test("77. instagram_reviewer exclue de isFullAdminAllowed", () => {
+    assert.ok(!isFullAdminAllowed("instagram_reviewer", true),
+      "instagram_reviewer ne doit pas avoir accès complet admin");
+    assert.ok(isInstagramAccessAllowed("instagram_reviewer", true),
+      "instagram_reviewer doit avoir accès Instagram");
+  });
+
+  await test("78. Navigation instagram_reviewer limitée à /admin/integrations/instagram", () => {
+    const nav = getVisibleAdminNavHrefs("instagram_reviewer");
+    assert.deepEqual(nav, ["/admin/integrations/instagram"]);
+    assert.ok(!nav.includes("/admin/modeles"));
+    assert.ok(!nav.includes("/admin/reparations"));
+    assert.ok(!nav.includes("/admin/marques"));
   });
 
   /* ── Résultat ────────────────────────────────────────────────── */
