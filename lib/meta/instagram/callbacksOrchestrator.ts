@@ -5,11 +5,15 @@
   de suppression des données.
   SANS import "server-only" : importables par les scripts de test tsx.
 
+  Validation du signed_request contre une liste ordonnée de secrets approuvés :
+    1. META_INSTAGRAM_CLIENT_SECRET
+    2. META_INSTAGRAM_APP_SECRET
+
   Les routes (deauthorize/route.ts et data-deletion/route.ts) sont des
   wrappers minces qui fournissent les dépendances réelles.
 */
 
-import { parseAndVerifySignedRequestWithSecret } from './signedRequestCore'
+import { parseAndVerifySignedRequestWithSecrets } from './signedRequestCore'
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -19,19 +23,19 @@ export interface CallbackResponse {
 }
 
 export interface DeauthorizeDeps {
-  /** Lire META_INSTAGRAM_APP_SECRET depuis l'environnement. */
-  getAppSecret: () => string | undefined
+  /** Retourne la liste ordonnée de secrets approuvés pour la validation. */
+  getSecrets: () => string[]
   /** Supprimer toutes les données Instagram pour un user_id. */
   deleteUserData: (userId: string) => Promise<void>
 }
 
 export interface DataDeletionDeps {
-  getAppSecret:  () => string | undefined
-  deleteUserData: (userId: string) => Promise<void>
+  getSecrets:      () => string[]
+  deleteUserData:  (userId: string) => Promise<void>
   /** Créer un enregistrement de demande complétée. Retourne le code UUID. */
   recordCompleted: () => Promise<string>
   /** URL de base du site (sans trailing slash). */
-  siteUrl: string
+  siteUrl:         string
 }
 
 /* ── Extraction du signed_request depuis le corps ─────────────────── */
@@ -76,15 +80,15 @@ export async function handleDeauthorizeCallback(
     return { status: 400, body: { error: 'signed_request manquant.' } }
   }
 
-  /* 2. Validation de la signature */
-  const secret = deps.getAppSecret()
-  if (!secret) {
+  /* 2. Validation multi-secrets */
+  const secrets = deps.getSecrets().filter(Boolean)
+  if (secrets.length === 0) {
     return { status: 500, body: { error: 'Configuration serveur incomplète.' } }
   }
 
   let userId: string
   try {
-    const parsed = parseAndVerifySignedRequestWithSecret(signedRequestRaw, secret)
+    const parsed = parseAndVerifySignedRequestWithSecrets(signedRequestRaw, secrets)
     userId = parsed.user_id
   } catch (err) {
     const isAlgo = err instanceof Error && err.message.includes('Algorithme')
@@ -122,14 +126,14 @@ export async function handleDataDeletionCallback(
     return { status: 400, body: { error: 'signed_request manquant.' } }
   }
 
-  const secret = deps.getAppSecret()
-  if (!secret) {
+  const secrets = deps.getSecrets().filter(Boolean)
+  if (secrets.length === 0) {
     return { status: 500, body: { error: 'Configuration serveur incomplète.' } }
   }
 
   let userId: string
   try {
-    userId = parseAndVerifySignedRequestWithSecret(signedRequestRaw, secret).user_id
+    userId = parseAndVerifySignedRequestWithSecrets(signedRequestRaw, secrets).user_id
   } catch {
     return { status: 401, body: { error: 'Signature invalide.' } }
   }

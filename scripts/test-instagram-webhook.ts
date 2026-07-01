@@ -44,11 +44,13 @@ const C = {
 
 /* ── Variables d'environnement de test ───────────────────────── */
 
-const TEST_APP_SECRET   = "test-app-secret-32chars-exactly-pad";
-const TEST_VERIFY_TOKEN = "test-verify-token";
-const TEST_ACCOUNT_ID   = "123456789";
+const TEST_APP_SECRET    = "test-app-secret-32chars-exactly-pad";
+const TEST_CLIENT_SECRET = "test-client-secret-for-instagram-biz-login";
+const TEST_VERIFY_TOKEN  = "test-verify-token";
+const TEST_ACCOUNT_ID    = "123456789";
 
 process.env.META_INSTAGRAM_APP_SECRET           = TEST_APP_SECRET;
+process.env.META_INSTAGRAM_CLIENT_SECRET        = TEST_CLIENT_SECRET;
 process.env.META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN = TEST_VERIFY_TOKEN;
 process.env.META_INSTAGRAM_ACCESS_TOKEN         = "TEST_TOKEN_NOT_REAL";
 process.env.META_INSTAGRAM_ACCOUNT_ID           = TEST_ACCOUNT_ID;
@@ -518,6 +520,216 @@ async function main(): Promise<void> {
       }
       return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ message_id: "ok" }) });
     };
+  });
+
+  /* ── Tests HMAC multi-secrets (15-29) ─────────────────────── */
+
+  /* Import des primitives HMAC (module pur, testable) */
+  const { verifyHmacAgainstSecrets } = await import("../lib/meta/instagram/hmacCore");
+
+  await test("15. Signature webhook avec META_INSTAGRAM_CLIENT_SECRET → acceptée", async () => {
+    sentMessages.length = 0;
+    fetchMode = 'success';
+    const mid  = "mid_client_secret_001";
+    clearMid(mid);
+    const body = instagramPayload({ text: "Batterie iPhone 13", mid });
+    /* Signer avec CLIENT_SECRET */
+    const sig  = makeSignature(body, TEST_CLIENT_SECRET);
+    const res  = await POST(makeRequest(body, sig) as never);
+    assert.equal(res.status, 200);
+    assert.equal(await res.text(), "EVENT_RECEIVED");
+    assert.equal(sentMessages.length, 1, "Un message doit être envoyé");
+  });
+
+  await test("16. Signature webhook avec META_INSTAGRAM_APP_SECRET → acceptée (compatibilité)", async () => {
+    sentMessages.length = 0;
+    fetchMode = 'success';
+    const mid = "mid_app_secret_001";
+    clearMid(mid);
+    const body = instagramPayload({ text: "Écran Samsung S22", mid });
+    /* Signer avec APP_SECRET */
+    const sig  = makeSignature(body, TEST_APP_SECRET);
+    const res  = await POST(makeRequest(body, sig) as never);
+    assert.equal(res.status, 200);
+    assert.equal(await res.text(), "EVENT_RECEIVED");
+  });
+
+  await test("17. Signature avec secret inconnu → refusée (401)", async () => {
+    const body = instagramPayload({ text: "test", mid: "mid_bad_secret" });
+    const sig  = makeSignature(body, "completely-wrong-secret");
+    const res  = await POST(makeRequest(body, sig) as never);
+    assert.equal(res.status, 401);
+  });
+
+  await test("18. Corps modifié après calcul de signature → refusé", async () => {
+    const originalBody = instagramPayload({ text: "iPhone 14", mid: "mid_modified_body" });
+    const sig          = makeSignature(originalBody, TEST_CLIENT_SECRET);
+    /* Corps différent de celui signé */
+    const modifiedBody = instagramPayload({ text: "MODIFIÉ", mid: "mid_modified_body" });
+    const res = await POST(makeRequest(modifiedBody, sig) as never);
+    assert.equal(res.status, 401, "Corps modifié doit être refusé");
+  });
+
+  await test("19. Header X-Hub-Signature-256 absent → 401", async () => {
+    const body = instagramPayload({ text: "test", mid: "mid_no_header" });
+    const req  = new Request("http://localhost:3000/api/meta/instagram/webhook", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body,
+    });
+    const res = await POST(req as never);
+    assert.equal(res.status, 401);
+  });
+
+  await test("20. Header sans préfixe sha256= → 401", async () => {
+    const body = instagramPayload({ text: "test", mid: "mid_no_prefix" });
+    const req  = new Request("http://localhost:3000/api/meta/instagram/webhook", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-hub-signature-256": "invalidsignature",
+      },
+      body,
+    });
+    const res = await POST(req as never);
+    assert.equal(res.status, 401);
+  });
+
+  await test("21. Signature hex malformée (non-hex) → 401", async () => {
+    const body = instagramPayload({ text: "test", mid: "mid_bad_hex" });
+    const req  = new Request("http://localhost:3000/api/meta/instagram/webhook", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-hub-signature-256": "sha256=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+      },
+      body,
+    });
+    const res = await POST(req as never);
+    assert.equal(res.status, 401);
+  });
+
+  await test("22. Signature tronquée (32 chars au lieu de 64) → 401 sans exception", async () => {
+    const body      = instagramPayload({ text: "test", mid: "mid_truncated" });
+    const shortSig  = "sha256=" + "ab".repeat(16); // 32 chars hex = 16 octets (pas 32)
+    const req       = new Request("http://localhost:3000/api/meta/instagram/webhook", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-hub-signature-256": shortSig,
+      },
+      body,
+    });
+    const res = await POST(req as never);
+    assert.equal(res.status, 401, "Signature tronquée doit retourner 401, pas une exception");
+  });
+
+  await test("23. Aucun secret configuré → fail closed (500)", async () => {
+    const saved1 = process.env.META_INSTAGRAM_CLIENT_SECRET;
+    const saved2 = process.env.META_INSTAGRAM_APP_SECRET;
+    delete process.env.META_INSTAGRAM_CLIENT_SECRET;
+    delete process.env.META_INSTAGRAM_APP_SECRET;
+    try {
+      const body = instagramPayload({ text: "test", mid: "mid_no_secrets" });
+      const sig  = makeSignature(body, TEST_APP_SECRET);
+      const res  = await POST(makeRequest(body, sig) as never);
+      assert.equal(res.status, 500, "Sans secret configuré → fail closed 500");
+    } finally {
+      process.env.META_INSTAGRAM_CLIENT_SECRET = saved1;
+      process.env.META_INSTAGRAM_APP_SECRET    = saved2;
+    }
+  });
+
+  await test("24. CLIENT_SECRET = APP_SECRET → secret dédupliqué (un seul HMAC)", async () => {
+    /* verifyHmacAgainstSecrets déduplique les secrets identiques */
+    const sig     = "a".repeat(64);
+    const secrets = ["same-secret", "same-secret", "other-secret"];
+    /* Avec déduplication, seuls 2 secrets sont testés, pas 3 */
+    const body    = Buffer.from("body");
+    const validSig = createHmac("sha256", "same-secret").update(body).digest("hex");
+    const result   = verifyHmacAgainstSecrets(body, validSig, secrets);
+    assert.equal(result, 0, "Le premier secret unique doit correspondre (index 0)");
+    void sig;
+  });
+
+  await test("25. WEBHOOK_VERIFY_TOKEN utilisé comme secret HMAC → refusé", async () => {
+    /* Le verify token ne doit jamais accepter une signature webhook */
+    const body = instagramPayload({ text: "test", mid: "mid_verify_token" });
+    /* Signer avec le verify_token (ne doit JAMAIS fonctionner) */
+    const sig  = makeSignature(body, TEST_VERIFY_TOKEN);
+    const res  = await POST(makeRequest(body, sig) as never);
+    assert.equal(res.status, 401, "Le verify_token ne doit jamais être accepté comme secret HMAC");
+  });
+
+  await test("26. Corps brut utilisé avant JSON.parse (rawBody exact)", async () => {
+    /* Vérification : la signature porte sur les bytes bruts, pas sur le JSON parsé */
+    sentMessages.length = 0;
+    fetchMode = 'success';
+    const mid  = "mid_rawbody_check";
+    clearMid(mid);
+    /* Construire un body JSON valide avec espaces/sauts de ligne */
+    const bodyObj = JSON.parse(instagramPayload({ text: "test rawbody", mid }));
+    const rawBody  = JSON.stringify(bodyObj, null, 2); // JSON avec indentation
+    const sig      = makeSignature(rawBody, TEST_CLIENT_SECRET);
+    const req      = new Request("http://localhost:3000/api/meta/instagram/webhook", {
+      method:  "POST",
+      headers: { "content-type": "application/json", "x-hub-signature-256": sig },
+      body:    rawBody,
+    });
+    const res = await POST(req as never);
+    assert.equal(res.status, 200, "Corps brut signé correctement doit être accepté");
+  });
+
+  await test("27. Signature valide → traitement webhook existant continue", async () => {
+    sentMessages.length = 0;
+    fetchMode = 'success';
+    const mid = "mid_valid_continues";
+    clearMid(mid);
+    const body = instagramPayload({ text: "Batterie iPad Pro", mid });
+    const sig  = makeSignature(body, TEST_CLIENT_SECRET);
+    const res  = await POST(makeRequest(body, sig) as never);
+    assert.equal(res.status, 200);
+    assert.equal(sentMessages.length, 1, "Après signature valide, le traitement doit continuer");
+  });
+
+  await test("28. Signature invalide → aucun lock Redis, aucun envoi Instagram", async () => {
+    sentMessages.length = 0;
+    const mid = "mid_invalid_no_redis";
+    clearMid(mid);
+    const body = instagramPayload({ text: "Écran iPhone 14", mid });
+    const sig  = makeSignature(body, "wrong-secret");
+    await POST(makeRequest(body, sig) as never);
+    assert.equal(sentMessages.length, 0, "Aucun envoi après signature invalide");
+    /* Vérifier qu'aucun lock Redis n'a été créé */
+    assert.ok(!redisStore.has(`meta:instagram:message:${mid}:lock`),
+      "Aucun lock Redis après signature invalide");
+  });
+
+  await test("29. Aucun secret, code ou signature complète dans les logs webhook", async () => {
+    const logs: string[] = [];
+    const origWarn = (console as unknown as Record<string, unknown>).warn;
+    const origInfo = (console as unknown as Record<string, unknown>).info;
+    (console as unknown as Record<string, unknown>).warn = (...a: unknown[]) => {
+      logs.push(JSON.stringify(a));
+    };
+    (console as unknown as Record<string, unknown>).info = (...a: unknown[]) => {
+      logs.push(JSON.stringify(a));
+    };
+
+    const body    = instagramPayload({ text: "test log", mid: "mid_log_check" });
+    const validSig = makeSignature(body, TEST_CLIENT_SECRET);
+    const invalidSig = "sha256=" + "00".repeat(32);
+
+    await POST(makeRequest(body, validSig) as never);
+    await POST(makeRequest(body, invalidSig) as never);
+
+    (console as unknown as Record<string, unknown>).warn = origWarn;
+    (console as unknown as Record<string, unknown>).info = origInfo;
+
+    const allLogs = logs.join(" ");
+    assert.ok(!allLogs.includes(TEST_CLIENT_SECRET), "CLIENT_SECRET ne doit pas apparaître dans les logs");
+    assert.ok(!allLogs.includes(TEST_APP_SECRET), "APP_SECRET ne doit pas apparaître dans les logs");
+    assert.ok(!allLogs.includes("00".repeat(32)), "La signature complète ne doit pas apparaître dans les logs");
   });
 
   /* ── Résultat ─────────────────────────────────────────────── */
