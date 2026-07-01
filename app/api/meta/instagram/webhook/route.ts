@@ -21,6 +21,7 @@ import {
   type StoredUserMessage,
 } from "@/lib/meta/instagram/conversation";
 import { sendInstagramTextMessage } from "@/lib/meta/instagram/client";
+import { resolveInstagramSendConfig } from "@/lib/meta/instagram/resolver";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,15 +55,6 @@ function verifyMetaSignature(
 }
 
 /* ── Résolution tarifaire multi-tour ──────────────────────────── */
-
-/*
-  Stratégie identique au chatbot site (app/api/chatbot/route.ts) :
-  1. Résoudre depuis le dernier message seul.
-  2. Si incomplet, résoudre depuis le contexte combiné (historique + message).
-  3. Si le message contient un numéro de modèle sans marque, augmenter
-     avec la marque et la réparation trouvées dans le contexte.
-  Aucun appel Anthropic — uniquement resolveRepairPricing().
-*/
 
 const STATUS_PRIORITY: Record<string, number> = {
   found:         5,
@@ -122,15 +114,23 @@ const DEFAULT_RESPONSE =
 
 type ProcessResult = 'ok' | 'skipped' | 'failed'
 
+/**
+ * Options permettant d'injecter des dépendances pour les tests.
+ * Jamais utilisé en production — uniquement dans les scripts de test.
+ */
+export interface ProcessMessageOpts {
+  _connectionLookup?: (recipientId: string) => Promise<import('@/lib/meta/instagram/connections').InstagramSendConfig | null>
+}
+
 async function processMessage(
-  senderId: string,
-  mid:      string,
-  text:     string,
+  senderId:    string,
+  recipientId: string,
+  mid:         string,
+  text:        string,
+  opts?:       ProcessMessageOpts,
 ): Promise<ProcessResult> {
 
-  /* ── Étape 1 : revendiquer le traitement (claim) ─────────────
-     Vérifie d'abord :done (succès antérieur) puis tente d'acquérir :lock.
-     Lance si Redis est indisponible — traité comme échec en amont.       */
+  /* ── Étape 1 : revendiquer le traitement (claim) ─────────────── */
   const claimed = await claimInstagramMessage(mid);
 
   if (!claimed) {
@@ -140,19 +140,34 @@ async function processMessage(
     return 'skipped';
   }
 
-  /* ── Étape 2 : chargement du contexte (best-effort) ─────────── */
+  /* ── Étape 2 : résoudre la configuration d'envoi ─────────────── */
+  let sendConfig: import('@/lib/meta/instagram/connections').InstagramSendConfig | null
+
+  if (opts?._connectionLookup) {
+    sendConfig = await opts._connectionLookup(recipientId)
+  } else {
+    sendConfig = await resolveInstagramSendConfig(recipientId)
+  }
+
+  if (!sendConfig) {
+    /* Compte non configuré — libérer le verrou pour retry */
+    await releaseInstagramMessageClaim(mid)
+    return 'failed'
+  }
+
+  /* ── Étape 3 : chargement du contexte (best-effort) ─────────── */
   let history: StoredUserMessage[] = [];
   try {
     history = await loadConversation(senderId);
   } catch {
-    /* Contexte indisponible — on traite quand même le message courant */
+    /* Contexte indisponible — traiter quand même le message courant */
   }
 
-  /* ── Étape 3 : résolution tarifaire ─────────────────────────── */
+  /* ── Étape 4 : résolution tarifaire ─────────────────────────── */
   const recentContext = buildRecentContext(history, text);
   const match         = resolveWithContext(text, recentContext);
 
-  /* ── Étape 4 : formatage de la réponse ──────────────────────── */
+  /* ── Étape 5 : formatage de la réponse ──────────────────────── */
   let responseText: string;
   if (
     match.status === "found"         ||
@@ -167,23 +182,21 @@ async function processMessage(
     responseText = DEFAULT_RESPONSE;
   }
 
-  /* ── Étape 5 : envoi Instagram ───────────────────────────────── */
-  const sent = await sendInstagramTextMessage(senderId, responseText);
+  /* ── Étape 6 : envoi Instagram avec la config résolue ────────── */
+  const sent = await sendInstagramTextMessage(senderId, responseText, sendConfig);
 
   if (!sent) {
-    /* Libérer le verrou pour permettre une nouvelle tentative */
     await releaseInstagramMessageClaim(mid);
     return 'failed';
   }
 
-  /* ── Étape 6 : persistance du contexte + marquage done ───────── */
+  /* ── Étape 7 : persistance du contexte + marquage done ───────── */
   try {
     await appendAndSaveConversation(senderId, history, text);
   } catch (err) {
     console.error("[instagram:webhook] Impossible de sauvegarder le contexte", {
       error: err instanceof Error ? err.message : "unknown",
     });
-    /* Non bloquant : la réponse est déjà envoyée */
   }
 
   try {
@@ -192,7 +205,6 @@ async function processMessage(
     console.error("[instagram:webhook] Impossible de marquer le message traité", {
       error: err instanceof Error ? err.message : "unknown",
     });
-    /* Le verrou expirera dans 2 min au plus — pas de réponse en double */
   }
 
   return 'ok';
@@ -204,9 +216,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   const verifyToken = process.env.META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN;
 
   if (!verifyToken) {
-    console.error(
-      "[instagram:webhook] META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN manquant."
-    );
+    console.error("[instagram:webhook] META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN manquant.");
     return new Response("Configuration serveur incomplète.", { status: 500 });
   }
 
@@ -284,7 +294,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   for (const msg of messages) {
     let result: ProcessResult;
     try {
-      result = await processMessage(msg.senderId, msg.mid, msg.text);
+      result = await processMessage(msg.senderId, msg.recipientId, msg.mid, msg.text);
     } catch (err) {
       console.error("[instagram:webhook] Erreur traitement message", {
         error: err instanceof Error ? err.message.slice(0, 100) : "unknown",
@@ -294,17 +304,10 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     if (result === 'failed') {
       hasFailure = true;
-      /* On continue pour traiter les autres messages du même payload */
     }
   }
 
   /* ── 6. Réponse ──────────────────────────────────────────────── */
-  /*
-    200 EVENT_RECEIVED   : tous les messages utiles traités ou légitimement ignorés.
-    500 EVENT_PROCESSING_FAILED : au moins un message n'a pas pu être envoyé.
-      → Meta relivrera le payload ; les messages déjà marqués :done seront ignorés
-        et seuls les messages échoués pourront être retraités.
-  */
   if (hasFailure) {
     return new Response("EVENT_PROCESSING_FAILED", {
       status: 500,

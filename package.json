@@ -19,6 +19,8 @@
     "check:english-content": "tsx scripts/check-english-content.ts",
     "check:chatbot-context": "tsx scripts/check-chatbot-context.ts",
     "test:instagram": "tsx scripts/test-instagram-webhook.ts",
+    "test:instagram-oauth": "tsx scripts/test-instagram-oauth.ts",
+    "test:instagram-data-deletion": "tsx scripts/test-instagram-data-deletion.ts",
     "supabase:check": "tsx scripts/check-supabase-connection.ts",
     "supabase:migrate:dry-run": "tsx scripts/migrate-repairs-to-supabase.ts --dry-run",
     "supabase:import:prepare": "tsx scripts/prepare-repair-import.ts",

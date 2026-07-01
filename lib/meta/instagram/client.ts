@@ -4,16 +4,16 @@
   Envoi de messages texte via l'Instagram API with Instagram Login.
 
   API utilisée :
-    https://graph.instagram.com/{VERSION}/{META_INSTAGRAM_ACCOUNT_ID}/messages
+    https://graph.instagram.com/{VERSION}/{ACCOUNT_ID}/messages
 
   Permissions requises sur l'application Meta :
     instagram_business_basic
     instagram_business_manage_messages
 
-  Variables d'environnement :
-  - META_INSTAGRAM_ACCESS_TOKEN  (obligatoire)
-  - META_INSTAGRAM_ACCOUNT_ID    (obligatoire — ID du compte Instagram Business)
-  - META_GRAPH_API_VERSION       (optionnel — défaut v25.0)
+  La configuration de connexion (accountId, accessToken) est passée
+  explicitement — jamais lue depuis les variables d'environnement ici.
+  L'appelant est responsable de la résolution dynamique du bon token
+  (connexion DB ou fallback env vars, via resolveInstagramSendConfig).
 
   Règles de sécurité :
   - Le token n'est jamais journalisé.
@@ -25,28 +25,34 @@
 const DEFAULT_GRAPH_VERSION = 'v25.0'
 const SEND_TIMEOUT_MS       = 8_000
 
+export interface InstagramSendConfig {
+  accountId:    string
+  accessToken:  string
+  graphVersion?: string
+}
+
 /**
  * Envoie un message texte à un utilisateur Instagram.
  *
  * @param recipientId  Instagram-scoped ID du destinataire (sender.id du webhook).
  * @param text         Texte à envoyer (≤ 1000 caractères recommandé par Meta).
+ * @param config       Connexion Instagram : accountId, accessToken, graphVersion optionnel.
  * @returns            true si l'envoi a réussi (response.ok), false sinon.
  */
 export async function sendInstagramTextMessage(
   recipientId: string,
   text:        string,
+  config:      InstagramSendConfig,
 ): Promise<boolean> {
-  const token = process.env.META_INSTAGRAM_ACCESS_TOKEN
-  if (!token) {
-    console.error('[instagram:client] META_INSTAGRAM_ACCESS_TOKEN manquant')
+  const { accountId, accessToken } = config
+  const graphVersion = config.graphVersion ?? DEFAULT_GRAPH_VERSION
+
+  if (!accessToken) {
+    console.error('[instagram:client] accessToken manquant dans la configuration')
     return false
   }
-
-  const graphVersion = process.env.META_GRAPH_API_VERSION ?? DEFAULT_GRAPH_VERSION
-  const accountId    = process.env.META_INSTAGRAM_ACCOUNT_ID
-
   if (!accountId) {
-    console.error('[instagram:client] META_INSTAGRAM_ACCOUNT_ID manquant')
+    console.error('[instagram:client] accountId manquant dans la configuration')
     return false
   }
 
@@ -65,7 +71,7 @@ export async function sendInstagramTextMessage(
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
       body,
       signal: controller.signal,
