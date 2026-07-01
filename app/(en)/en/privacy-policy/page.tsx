@@ -39,7 +39,7 @@ export default function EnPrivacyPolicyPage() {
                 <span className="text-accent">policy</span>
               </h1>
               <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
-                CLIK CLAK SàRL — Last updated: to be completed
+                CLIK CLAK SàRL — Last updated: 1 July 2026
               </p>
             </div>
 
@@ -264,6 +264,53 @@ export default function EnPrivacyPolicyPage() {
                 </ul>
                 <p>
                   This data remains on the user's device and is not transmitted to CLIK CLAK SàRL or third parties. It can be deleted at any time from browser settings.
+                </p>
+              </Article>
+
+              <Article n="17" title="Automated Instagram messaging">
+                <p>
+                  CLIK CLAK SàRL uses an application connected to Meta's Instagram API to
+                  receive and reply to private messages sent to the Clik Clak professional
+                  account.
+                </p>
+                <p>
+                  When a person contacts Clik Clak on Instagram, the data required to process
+                  the conversation may include:
+                </p>
+                <ul>
+                  <li>the sender's technical Instagram identifier;</li>
+                  <li>the technical message identifier;</li>
+                  <li>the message content;</li>
+                  <li>information provided about the device and the requested repair.</li>
+                </ul>
+                <p>
+                  This data is used solely to understand the request, retrieve available
+                  information or prices from Clik Clak's data, and send a reply to the customer.
+                </p>
+                <p>
+                  A limited history containing only information useful to the conversation may
+                  be stored temporarily for up to 30 minutes in order to maintain context
+                  between messages.
+                </p>
+                <p>
+                  Technical identifiers used to prevent duplicate replies may be retained for
+                  up to 24 hours.
+                </p>
+                <p>
+                  Messages are transmitted through Meta's services. Temporary technical storage
+                  is provided through Upstash Redis to maintain context and prevent duplicate
+                  processing.
+                </p>
+                <p>CLIK CLAK SàRL does not sell this data and does not use it for targeted advertising.</p>
+                <p>
+                  A person may request information, access to, or deletion of their personal
+                  data using the contact details provided in the Contact section.{' '}
+                  <a
+                    href="/en/data-deletion"
+                    className="hover:text-accent transition-colors duration-200 underline underline-offset-2"
+                  >
+                    Request deletion of my data
+                  </a>
                 </p>
               </Article>
 

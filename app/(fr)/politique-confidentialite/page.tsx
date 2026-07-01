@@ -35,7 +35,7 @@ export default function PolitiqueConfidentialitePage() {
                 <span className="text-accent">confidentialité</span>
               </h1>
               <p className="text-sm font-light" style={{ color: 'rgba(242,242,242,0.4)' }}>
-                CLIK CLAK SàRL — Dernière mise à jour : à compléter
+                CLIK CLAK SàRL — Dernière mise à jour : 1er juillet 2026
               </p>
             </div>
 
@@ -319,7 +319,56 @@ export default function PolitiqueConfidentialitePage() {
                 </p>
               </Article>
 
-              <Article n="17" title="Contact">
+              <Article n="17" title="Messagerie Instagram automatisée">
+                <p>
+                  CLIK CLAK SàRL utilise une application reliée à l'API Instagram de Meta afin
+                  de recevoir et de répondre aux messages privés adressés au compte
+                  professionnel Clik Clak.
+                </p>
+                <p>
+                  Lorsqu'une personne contacte Clik Clak sur Instagram, les données nécessaires
+                  au traitement de la conversation peuvent comprendre&nbsp;:
+                </p>
+                <ul>
+                  <li>l'identifiant technique Instagram de l'expéditeur&nbsp;;</li>
+                  <li>l'identifiant technique du message&nbsp;;</li>
+                  <li>le contenu du message&nbsp;;</li>
+                  <li>les informations communiquées au sujet de l'appareil et de la réparation recherchée.</li>
+                </ul>
+                <p>
+                  Ces données sont utilisées uniquement pour comprendre la demande, rechercher
+                  les informations ou tarifs disponibles dans les données Clik Clak et envoyer
+                  une réponse au client.
+                </p>
+                <p>
+                  Un historique limité aux informations utiles à la conversation peut être
+                  conservé temporairement pendant une durée maximale de 30 minutes afin de
+                  maintenir le contexte entre plusieurs messages.
+                </p>
+                <p>
+                  Les identifiants techniques utilisés pour prévenir les réponses en double
+                  peuvent être conservés pendant une durée maximale de 24 heures.
+                </p>
+                <p>
+                  Les échanges transitent par les services de Meta. Un stockage technique
+                  temporaire est assuré au moyen d'Upstash Redis pour maintenir le contexte et
+                  prévenir les doublons.
+                </p>
+                <p>CLIK CLAK SàRL ne vend pas ces données et ne les utilise pas à des fins de publicité ciblée.</p>
+                <p>
+                  Une personne peut demander des informations, l'accès ou la suppression des
+                  données la concernant en utilisant les coordonnées indiquées dans la section
+                  Contact.{' '}
+                  <a
+                    href="/suppression-donnees"
+                    className="hover:text-accent transition-colors duration-200 underline underline-offset-2"
+                  >
+                    Demander la suppression de mes données
+                  </a>
+                </p>
+              </Article>
+
+              <Article n="18" title="Contact">
                 <p>
                   Pour toute question relative à la protection des données, le client peut contacter
                   CLIK CLAK SàRL via les coordonnées indiquées sur le site.
