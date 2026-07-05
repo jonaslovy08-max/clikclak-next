@@ -132,7 +132,7 @@ export default async function DataDeletionPage({
             {/* ── Body ── */}
             <div className="flex flex-col gap-10">
 
-              <Article n="1" title="Data concerned">
+              <Article n="1" title="Data concerned and purpose">
                 <p>
                   In the context of the automated Instagram messaging service, the data that may
                   be processed by CLIK CLAK SàRL includes in particular:
@@ -145,14 +145,27 @@ export default async function DataDeletionPage({
                   <li>temporary technical data used to maintain conversation context and prevent
                     duplicate replies.</li>
                 </ul>
+                <p>
+                  This data is used <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    solely for customer support and pricing assistance
+                  </strong>. It is not sold and is not used for advertising or profiling.
+                  It may be processed by Meta and by the technical service providers solely to
+                  the extent necessary for the operation, security and hosting of the service.
+                </p>
               </Article>
 
-              <Article n="2" title="Automatic deletion">
+              <Article n="2" title="Retention periods and automatic deletion">
                 <p>
-                  Part of the data is deleted automatically once the following technical retention
-                  periods expire:
+                  Messaging data is retained for the following periods:
                 </p>
                 <ul>
+                  <li>
+                    <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>inbox messages</strong> are excluded
+                    from display as soon as they reach their expiration date, set{' '}
+                    <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>30 days</strong> after they are recorded. They are permanently
+                    deleted during the next cleanup operation, triggered by normal service
+                    operations and by a scheduled task;
+                  </li>
                   <li>
                     the temporary technical history used to maintain conversation context expires
                     after at most{' '}
@@ -167,6 +180,11 @@ export default async function DataDeletionPage({
                 <p>
                   These periods apply to technical storage controlled by Clik Clak. They do not
                   cover messages retained directly in the Instagram inbox or data held by Meta.
+                </p>
+                <p>
+                  Upon a deletion request: deleting a participant's data removes their conversations
+                  and all associated messages retained by Clik Clak, as well as the technical Redis
+                  context.
                 </p>
               </Article>
 

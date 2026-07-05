@@ -73,6 +73,8 @@ export function parseInstagramMessages(payload: unknown): ParsedInstagramMessage
         recipientId: recipient.id,
         mid:         message.mid,
         text:        message.text.trim(),
+        /* timestamp en ms depuis epoch, si présent dans le payload */
+        timestamp:   typeof item.timestamp === 'number' ? item.timestamp : undefined,
       })
     }
   }

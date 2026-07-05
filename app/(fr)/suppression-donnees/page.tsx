@@ -170,7 +170,7 @@ export default async function SuppressionDonneesPage({
             {/* ── Corps ── */}
             <div className="flex flex-col gap-10">
 
-              <Article n="1" title="Données concernées">
+              <Article n="1" title="Données concernées et finalité">
                 <p>
                   Dans le cadre de la messagerie Instagram automatisée, les données pouvant être
                   traitées par CLIK CLAK SàRL comprennent notamment&nbsp;:
@@ -183,14 +183,28 @@ export default async function SuppressionDonneesPage({
                   <li>les données techniques temporaires utilisées pour maintenir le contexte et
                     empêcher les réponses en double.</li>
                 </ul>
+                <p>
+                  Ces données sont utilisées <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>
+                    uniquement à des fins d'assistance client et de réponses tarifaires
+                  </strong>. Elles ne sont pas vendues et ne sont pas utilisées pour la publicité
+                  ou le profilage. Elles peuvent être traitées par Meta et par les prestataires
+                  techniques du service uniquement dans la mesure nécessaire au fonctionnement,
+                  à la sécurité et à l'hébergement.
+                </p>
               </Article>
 
-              <Article n="2" title="Suppression automatique">
+              <Article n="2" title="Durées de conservation et suppression automatique">
                 <p>
-                  Une partie des données est supprimée automatiquement après expiration des durées
-                  techniques suivantes&nbsp;:
+                  Les données de messagerie sont conservées selon les durées suivantes&nbsp;:
                 </p>
                 <ul>
+                  <li>
+                    les <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>messages de la boîte de réception</strong> sont exclus
+                    de l'affichage dès leur date d'expiration, fixée à{' '}
+                    <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>30 jours</strong> après leur enregistrement. Leur suppression
+                    définitive intervient lors de la prochaine opération de nettoyage, déclenchée
+                    par les opérations courantes du service et par une tâche planifiée&nbsp;;
+                  </li>
                   <li>
                     l'historique technique temporaire utile au contexte de conversation expire
                     au plus tard après <strong className="font-normal" style={{ color: 'rgba(242,242,242,0.85)' }}>30 minutes</strong>&nbsp;;
@@ -204,6 +218,11 @@ export default async function SuppressionDonneesPage({
                   Ces durées concernent le stockage technique contrôlé par Clik Clak. Elles ne
                   couvrent pas les messages conservés directement dans la boîte de réception
                   Instagram ni les données détenues par Meta.
+                </p>
+                <p>
+                  En cas de demande de suppression&nbsp;: la suppression des données d'un participant
+                  efface ses conversations et l'ensemble des messages associés conservés par Clik
+                  Clak, ainsi que l'historique technique Redis.
                 </p>
               </Article>
 

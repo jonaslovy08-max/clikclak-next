@@ -57,7 +57,7 @@ const CONV_KEY_PREFIX = 'meta:instagram:conversation'
 export async function deleteInstagramDataByUserId(userId: string): Promise<void> {
   const db = await getAdminDb()
 
-  /* 1. Suppression dans instagram_connections */
+  /* 1. Suppression dans instagram_connections (si ce compte était connecté en tant que compte pro) */
   const { error } = await db
     .from('instagram_connections')
     .delete()
@@ -67,7 +67,18 @@ export async function deleteInstagramDataByUserId(userId: string): Promise<void>
     throw new Error(`[dataDeletion] Suppression connexion échouée: ${error.message.slice(0, 80)}`)
   }
 
-  /* 2. Suppression de l'historique de conversation Redis (best-effort) */
+  /* 2. Suppression des conversations dont ce userId est le participant (client).
+     Les messages associés sont supprimés en cascade (FK ON DELETE CASCADE). */
+  try {
+    await db
+      .from('instagram_conversations')
+      .delete()
+      .eq('participant_id', userId)
+  } catch {
+    /* Best-effort — la table peut ne pas encore exister en local avant migration */
+  }
+
+  /* 3. Suppression de l'historique de conversation Redis (best-effort) */
   try {
     await getRedis().del(`${CONV_KEY_PREFIX}:${userId}`)
   } catch {
