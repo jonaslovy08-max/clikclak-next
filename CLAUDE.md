@@ -153,6 +153,46 @@ Menu : Réparation > Ordinateur → /reparation-ordinateur-express
 
 ```
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-NEXT_PUBLIC_GA_ID
+NEXT_PUBLIC_ANALYTICS_ENABLED   ← "true" uniquement en production Infomaniak
+NEXT_PUBLIC_GA_MEASUREMENT_ID   ← ID GA4 (remplace NEXT_PUBLIC_GA_ID, déprécié)
 NEXT_PUBLIC_GOOGLE_ADS_ID
 ```
+
+---
+
+## Google Analytics 4 — Configuration et modèle de consentement
+
+### Réglage GA4 obligatoire (anti-doublon page_view)
+
+Dans GA4 Admin → Flux de données → [clikclak.ch] → Mesure améliorée → ⚙️ :
+**Désactiver** "Modifications de pages basées sur les événements de l'historique du navigateur"
+(Enhanced Measurement > Page views > "Page changes based on browser history events")
+
+Raison : GaNavTracker est le seul émetteur de page_view sur les navigations SPA.
+Si Enhanced Measurement est actif sur ce point, chaque navigation produit deux page_view.
+gtag('config', ..., {send_page_view:false}) supprime l'automatique au chargement initial ;
+le page_view initial est réémis explicitement dans s.onload de GoogleTags.
+
+### Modèle de consentement : Consent Mode v2 AVANCÉ
+
+Ce projet utilise le Consent Mode v2 en mode **avancé** :
+
+- `analytics_storage:'denied'` → cookies Analytics bloqués tant que l'utilisateur n'a pas accepté.
+- `ad_storage:'denied'` / `ad_user_data:'denied'` / `ad_personalization:'denied'` → idem pour Ads.
+- **Mais** : des signaux sans cookies (*cookieless pings*) peuvent être transmis à Google pour
+  le modelling de conversion, même sans consentement explicite. C'est le comportement standard
+  du Consent Mode v2 avancé — prévu par Google pour alimenter les modèles statistiques.
+
+Pour passer en mode **basique** (zéro transmission avant consentement) :
+ne charger gtag.js qu'après acceptation explicite — modification majeure, ne pas appliquer
+sans validation préalable.
+
+### Fichiers Analytics
+
+| Fichier | Rôle |
+|---|---|
+| `components/GoogleTags.tsx` | Consent Mode v2, chargement gtag.js, config GA4/Ads, page_view initial |
+| `components/GaNavTracker.tsx` | Suivi navigations App Router (usePathname) |
+| `components/layout/RootProviders.tsx` | Point de montage — une seule instance, partagée FR/EN |
+| `lib/cookieConsent.ts` | Lecture/écriture consentement, applyConsent() pour mise à jour gtag |
+| `components/CookieConsent.tsx` | Bannière bilingue FR/EN, appel applyConsent() |

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Rubik } from 'next/font/google'
 import '../globals.css'
 import RootProviders from '@/components/layout/RootProviders'
+import ConsentModeDefaults from '@/components/layout/ConsentModeDefaults'
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -38,6 +39,10 @@ export const metadata: Metadata = {
 export default function EnLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* Consent Mode v2 defaults — doit s'exécuter avant gtag.js */}
+        <ConsentModeDefaults />
+      </head>
       <body className={rubik.variable}>
         <RootProviders showChatbot locale="en">
           {children}

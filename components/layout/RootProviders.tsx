@@ -2,9 +2,11 @@
   RootProviders — logique partagée entre les root layouts FR et EN.
   Ne contient pas <html> ni <body> — ces balises restent dans chaque layout.
   Utilisé par app/(fr)/layout.tsx et app/(en)/layout.tsx.
+  GoogleTags + GaNavTracker : chargés une seule fois ici, partagés FR/EN.
 */
 
 import GoogleTags from '@/components/GoogleTags'
+import GaNavTracker from '@/components/GaNavTracker'
 import CookieConsent from '@/components/CookieConsent'
 import Preloader from '@/components/Preloader'
 import PageTransitionWrapper from '@/components/PageTransitionWrapper'
@@ -28,6 +30,7 @@ export default function RootProviders({ children, showChatbot = true, locale = '
     <CartProvider>
       <ChatbotProvider>
         <GoogleTags />
+        <GaNavTracker />
         <Preloader />
         <SmoothAnchorLinks />
         <AppHeight />

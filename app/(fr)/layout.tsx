@@ -3,6 +3,7 @@ import { DEFAULT_OG_IMAGE } from '@/lib/seo'
 import { Rubik } from 'next/font/google'
 import '../globals.css'
 import RootProviders from '@/components/layout/RootProviders'
+import ConsentModeDefaults from '@/components/layout/ConsentModeDefaults'
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -60,6 +61,10 @@ export const metadata: Metadata = {
 export default function FrLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
+      <head>
+        {/* Consent Mode v2 defaults — doit s'exécuter avant gtag.js */}
+        <ConsentModeDefaults />
+      </head>
       <body className={rubik.variable}>
         <RootProviders showChatbot locale="fr">
           {children}
