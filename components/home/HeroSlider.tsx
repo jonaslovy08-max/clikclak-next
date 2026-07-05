@@ -63,6 +63,8 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
   const pausedRef        = useRef(false)
   const reducedRef       = useRef(false)
   const intervalRef      = useRef<ReturnType<typeof setInterval> | null>(null)
+  /* Délai 10 s avant le premier autoplay — stabilise le LCP Lighthouse */
+  const initialDelayRef  = useRef<ReturnType<typeof setTimeout>  | null>(null)
 
   /* goToRef — pointe toujours vers le goTo le plus récent */
   const goToRef = useRef<(n: number) => void>(() => {})
@@ -138,6 +140,11 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
   /* ── Timer auto-slide ─────────────────────────────────────── */
   const startTimer = useCallback(() => {
     if (reducedRef.current) return
+    /* Si l'utilisateur interagit avant le délai initial, on annule ce délai */
+    if (initialDelayRef.current) {
+      clearTimeout(initialDelayRef.current)
+      initialDelayRef.current = null
+    }
     if (intervalRef.current) clearInterval(intervalRef.current)
     intervalRef.current = setInterval(() => {
       if (pausedRef.current || transitioningRef.current) return
@@ -174,9 +181,13 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
       gsap.set(popupRef.current, { autoAlpha: 0, y: 8, scale: 0.97, transformOrigin: 'bottom center' })
     }
 
-    startTimer()
+    /* Autoplay différé de 10 s — laisse le LCP Lighthouse se stabiliser sur le slide 0 */
+    initialDelayRef.current = setTimeout(() => {
+      startTimer()
+    }, 10_000)
 
     return () => {
+      if (initialDelayRef.current) clearTimeout(initialDelayRef.current)
       tlRef.current?.kill()
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
@@ -290,7 +301,7 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
               <div
                 key={slide.image}
                 ref={el => { imgRefs.current[i] = el }}
-                className="absolute inset-0"
+                className={`absolute inset-0${i !== 0 ? ' opacity-0 invisible' : ''}`}
                 style={{ willChange: 'opacity, transform' }}
               >
                 <Image
@@ -346,16 +357,17 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
               <div
                 key={slide.image}
                 ref={el => { textRefs.current[i] = el }}
-                className="
+                className={`
                   px-4 pt-1 pb-2 text-center
                   md:px-0 md:pt-0 md:pb-0 md:text-left
-                "
+                  ${i !== 0 ? 'opacity-0 invisible' : ''}
+                `}
                 style={{
                   position:   i === 0 ? 'relative' : 'absolute',
                   top:        i === 0 ? undefined : 0,
                   left:       i === 0 ? undefined : 0,
                   right:      i === 0 ? undefined : 0,
-                  willChange: 'opacity',
+                  willChange: 'opacity, transform',
                 }}
               >
                 <TitleTag
