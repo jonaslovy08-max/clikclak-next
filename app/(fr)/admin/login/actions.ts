@@ -5,10 +5,19 @@
   Server Action pour la connexion admin.
   Ne journalise jamais le mot de passe.
   Retourne un message d'erreur générique pour tous les cas d'échec.
+
+  Rôles autorisés :
+  - admin          → /admin
+  - editor         → /admin
+  - instagram_reviewer → /admin/integrations/instagram
+
+  La logique de redirection est centralisée dans
+  lib/meta/instagram/accessControl.getAdminLoginDestination().
 */
 
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getAdminLoginDestination } from '@/lib/meta/instagram/accessControl'
 
 export interface SignInState {
   error?: string
@@ -36,7 +45,6 @@ export async function signIn(
     return { error: 'Connexion impossible. Vérifiez vos identifiants.' }
   }
 
-  // Vérifier que le profil admin existe et est actif
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'Connexion impossible. Vérifiez vos identifiants.' }
@@ -48,10 +56,15 @@ export async function signIn(
     .eq('id', user.id)
     .single()
 
-  if (!profile || !profile.active || !['admin', 'editor'].includes(profile.role)) {
+  const destination = getAdminLoginDestination(
+    profile?.role   as string | null,
+    profile?.active as boolean | null,
+  )
+
+  if (!destination) {
     await supabase.auth.signOut()
     return { error: 'Connexion impossible. Vérifiez vos identifiants.' }
   }
 
-  redirect('/admin')
+  redirect(destination)
 }

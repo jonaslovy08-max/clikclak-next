@@ -4,7 +4,7 @@ export const SITE_LOCALE  = 'fr_CH'
 export const SITE_ADDRESS = 'Rue du Petit-Chêne 9b, 1003 Lausanne'
 
 /** Image OG par défaut — utilisée comme fallback sur toutes les pages sans image spécifique */
-export const DEFAULT_OG_IMAGE = '/assets/images/homepage/service-sections/reparation-smartphone.webp'
+export const DEFAULT_OG_IMAGE = '/assets/images/seo/clikclak-og-home.jpg'
 
 /** Construit l'URL canonique absolue avec trailing slash garantie */
 export function canonical(path: string): string {

@@ -2,23 +2,38 @@
   middleware.ts
 
   1. Routes /admin/* → protection Supabase SSR (comportement original conservé)
-  2. Toutes les autres routes → x-pathname sur les headers de requête
+  2. Toutes les routes → x-pathname injecté dans les headers de requête
 
-  x-pathname est utilisé par i18n/request.ts (next-intl) pour charger
-  les bons fichiers de messages (fr.json ou en.json) selon la locale.
-  Il n'est plus utilisé pour déterminer html lang (géré par les route groups).
+  x-pathname est utilisé par :
+  - i18n/request.ts (next-intl) pour charger les messages FR/EN ;
+  - app/(fr)/admin/(dashboard)/layout.tsx pour détecter la page courante
+    du rôle instagram_reviewer.
 
-  Sécurité : x-pathname est toujours écrasé depuis request.nextUrl.pathname
-  — jamais depuis une valeur envoyée par le navigateur.
+  Sécurité : createRequestHeaders() supprime systématiquement toute valeur
+  x-pathname envoyée par le navigateur et recalcule depuis nextUrl.pathname.
+  Cela s'applique désormais aussi aux routes /admin/* (correction du bug
+  de page vide pour le rôle instagram_reviewer).
+
+  Cookies Supabase : dans handleAdminRoute, la recréation de supabaseResponse
+  dans setAll appelle createRequestHeaders(request) APRÈS que
+  request.cookies.set() a mis à jour les headers Cookie sous-jacents.
+  Les cookies fraîchement rafraîchis sont donc bien inclus dans la réponse.
 */
 
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createRequestHeaders } from '@/lib/middleware/pathname'
 
 const ADMIN_PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password']
 
 async function handleAdminRoute(request: NextRequest): Promise<NextResponse> {
-  let supabaseResponse = NextResponse.next({ request })
+  /*
+   * Initialiser supabaseResponse avec les headers sûrs (x-pathname inclus).
+   * L'option { request: { headers } } transmet ces headers aux Server Components.
+   */
+  let supabaseResponse = NextResponse.next({
+    request: { headers: createRequestHeaders(request) },
+  })
 
   const url    = process.env.NEXT_PUBLIC_SUPABASE_URL
   const pubKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
@@ -29,8 +44,17 @@ async function handleAdminRoute(request: NextRequest): Promise<NextResponse> {
     cookies: {
       getAll() { return request.cookies.getAll() },
       setAll(cookiesToSet) {
+        /*
+         * 1. request.cookies.set() met à jour l'état interne ET le header
+         *    Cookie sous-jacent de request.headers.
+         * 2. createRequestHeaders(request) est appelé APRÈS, donc il copie
+         *    les cookies mis à jour en plus d'injecter x-pathname.
+         * 3. Les cookies sont ensuite écrits sur la response via .cookies.set().
+         */
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-        supabaseResponse = NextResponse.next({ request })
+        supabaseResponse = NextResponse.next({
+          request: { headers: createRequestHeaders(request) },
+        })
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         )
@@ -63,14 +87,12 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return handleAdminRoute(request)
   }
 
-  // Injecter x-pathname dans les headers de REQUÊTE pour i18n/request.ts.
-  // Supprime toute valeur éventuellement envoyée par le navigateur (sécurité).
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.delete('x-pathname')
-  requestHeaders.set('x-pathname', pathname)
-
+  /*
+   * Routes non-admin : injecter x-pathname pour i18n/request.ts.
+   * Même protection : toute valeur envoyée par le navigateur est écrasée.
+   */
   return NextResponse.next({
-    request: { headers: requestHeaders },
+    request: { headers: createRequestHeaders(request) },
   })
 }
 
