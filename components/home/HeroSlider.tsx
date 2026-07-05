@@ -298,6 +298,7 @@ export default function HeroSlider({ slides, locale = 'fr' }: Props) {
                   alt={slide.imageAlt}
                   fill
                   priority={i === 0}
+                  fetchPriority={i === 0 ? 'high' : 'auto'}
                   className="object-contain object-center md:object-right"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
