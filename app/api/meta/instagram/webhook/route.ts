@@ -23,6 +23,45 @@ import { sendInstagramTextMessage } from "@/lib/meta/instagram/client";
 import { resolveInstagramSendConfig } from "@/lib/meta/instagram/resolver";
 import { verifyHmacAgainstSecrets } from "@/lib/meta/instagram/hmacCore";
 
+/* Persistance inbox — best-effort, importée dynamiquement pour ne pas casser
+   les tests existants si Supabase est indisponible. */
+async function tryPersistInbound(
+  sendConfig: { accountId: string },
+  senderId:   string,
+  mid:        string,
+  text:       string,
+  timestamp?: number,
+): Promise<string | null> {
+  try {
+    const { findOrCreateInstagramConversation, recordInboundInstagramMessage }
+      = await import("@/lib/meta/instagram/messages");
+    const occurredAt = timestamp ? new Date(timestamp) : new Date();
+    const conv = await findOrCreateInstagramConversation(sendConfig.accountId, senderId, occurredAt);
+    await recordInboundInstagramMessage(conv.id, mid, text, occurredAt);
+    return conv.id;
+  } catch {
+    return null;
+  }
+}
+
+async function tryPersistOutbound(
+  conversationId: string | null,
+  responseText:   string,
+  replyToMid:     string,
+  timestamp?:     number,
+): Promise<void> {
+  if (!conversationId) return;
+  try {
+    const { recordOutboundInstagramMessage } = await import("@/lib/meta/instagram/messages");
+    const occurredAt = timestamp ? new Date(timestamp + 1) : new Date();
+    await recordOutboundInstagramMessage(conversationId, responseText, 'auto_reply', occurredAt, {
+      replyToMid,
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -135,6 +174,7 @@ async function processMessage(
   mid:         string,
   text:        string,
   opts?:       ProcessMessageOpts,
+  timestamp?:  number,
 ): Promise<ProcessResult> {
 
   /* ── Étape 1 : revendiquer le traitement (claim) ─────────────── */
@@ -189,6 +229,9 @@ async function processMessage(
     responseText = DEFAULT_RESPONSE;
   }
 
+  /* ── Étape 5b : persistance du message entrant (best-effort) ─── */
+  const conversationId = await tryPersistInbound(sendConfig, senderId, mid, text, timestamp);
+
   /* ── Étape 6 : envoi Instagram avec la config résolue ────────── */
   const sent = await sendInstagramTextMessage(senderId, responseText, sendConfig);
 
@@ -196,6 +239,9 @@ async function processMessage(
     await releaseInstagramMessageClaim(mid);
     return 'failed';
   }
+
+  /* ── Étape 6b : persistance de la réponse automatique (best-effort) */
+  await tryPersistOutbound(conversationId, responseText, mid, timestamp);
 
   /* ── Étape 7 : persistance du contexte + marquage done ───────── */
   try {
@@ -308,7 +354,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   for (const msg of messages) {
     let result: ProcessResult;
     try {
-      result = await processMessage(msg.senderId, msg.recipientId, msg.mid, msg.text);
+      result = await processMessage(msg.senderId, msg.recipientId, msg.mid, msg.text, undefined, msg.timestamp);
     } catch (err) {
       console.error("[instagram:webhook] Erreur traitement message", {
         error: err instanceof Error ? err.message.slice(0, 100) : "unknown",

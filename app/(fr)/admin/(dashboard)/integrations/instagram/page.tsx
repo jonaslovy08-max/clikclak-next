@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /*
   app/admin/(dashboard)/integrations/instagram/page.tsx
   → /admin/integrations/instagram
@@ -16,9 +17,20 @@ import type { Metadata }         from 'next'
 import { requireInstagramAccess } from '@/lib/admin/auth'
 import { listInstagramConnections, type InstagramConnectionPublic } from '@/lib/meta/instagram/connections'
 import {
+  listInstagramConversations,
+  getInstagramConversation,
+  listInstagramMessages,
+  type ConversationRow,
+  type MessageRow,
+} from '@/lib/meta/instagram/messages'
+import { isValidUuid } from '@/lib/meta/instagram/accessControl'
+import { isWithin24Hours } from '@/lib/meta/instagram/inboxOrchestrator'
+import {
   retryWebhookSubscription,
   disconnectInstagramAccount,
+  sendManualInstagramReply,
 } from './actions'
+import { ReplyForm, RefreshButton, AutoRefresh } from './InboxClient'
 
 export const metadata: Metadata = { title: 'Intégration Instagram' }
 
@@ -168,6 +180,32 @@ function ConnectionCard({ conn }: { conn: InstagramConnectionPublic }) {
 
 /* ── Page principale ─────────────────────────────────────────────── */
 
+/* ── Helpers inbox ───────────────────────────────────────────────── */
+
+function maskParticipantId(id: string): string {
+  return id.length > 6 ? `…${id.slice(-4)}` : id
+}
+
+function formatDateTime(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat('fr-CH', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }).format(new Date(iso))
+  } catch { return '—' }
+}
+
+const SOURCE_BADGE: Record<MessageRow['source'], string> = {
+  instagram:    'Client',
+  auto_reply:   'Réponse auto',
+  manual_reply: 'Réponse manuelle',
+}
+const SOURCE_COLOR: Record<MessageRow['source'], string> = {
+  instagram:    'text-foreground/50 bg-white/5',
+  auto_reply:   'text-blue-300/80 bg-blue-400/10',
+  manual_reply: 'text-accent/80 bg-accent/10',
+}
+
 export default async function InstagramIntegrationPage({
   searchParams,
 }: {
@@ -175,9 +213,15 @@ export default async function InstagramIntegrationPage({
 }) {
   await requireInstagramAccess()
 
-  const sp      = await searchParams
-  const success = sp.success ?? null
-  const error   = sp.error   ?? null
+  const sp             = await searchParams
+  const success        = sp.success        ?? null
+  const error          = sp.error          ?? null
+  const replySuccess   = sp.reply_success  ?? null
+  const replyError     = sp.reply_error    ?? null
+
+  /* conversation sélectionnée depuis query param — validée serveur */
+  const rawConvId      = sp.conversation   ?? null
+  const selectedConvId = rawConvId && isValidUuid(rawConvId) ? rawConvId : null
 
   let connections: InstagramConnectionPublic[] = []
   let loadError: string | null = null
@@ -186,6 +230,36 @@ export default async function InstagramIntegrationPage({
   } catch {
     loadError = 'Impossible de charger les connexions. Vérifier la configuration Supabase.'
   }
+
+  /* Conversations — agrège tous les comptes connectés */
+  let allConversations: ConversationRow[] = []
+  for (const conn of connections) {
+    try {
+      const convs = await listInstagramConversations(conn.instagram_user_id)
+      allConversations = [...allConversations, ...convs]
+    } catch { /* best-effort */ }
+  }
+  allConversations.sort(
+    (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+  )
+
+  /* Conversation + messages sélectionnés */
+  let selectedConversation: ConversationRow | null = null
+  let messages: MessageRow[] = []
+  if (selectedConvId) {
+    try {
+      selectedConversation = await getInstagramConversation(selectedConvId)
+      if (selectedConversation) {
+        messages = await listInstagramMessages(selectedConvId)
+      }
+    } catch { /* best-effort */ }
+  }
+
+  /* Vérification fenêtre 24h pour le formulaire de réponse */
+  const lastInbound = selectedConversation?.last_inbound_at
+    ? new Date(selectedConversation.last_inbound_at)
+    : null
+  const canReply = isWithin24Hours(lastInbound)
 
   return (
     <div className="space-y-8">
@@ -261,6 +335,26 @@ export default async function InstagramIntegrationPage({
         </div>
       )}
 
+      {/* Feedback réponse manuelle */}
+      {replySuccess && (
+        <div className="flex items-start gap-3 p-3 rounded-card bg-green-500/[0.08] border border-green-500/20">
+          <p className="text-sm font-rubik text-green-300">
+            {replySuccess === 'sent' ? 'Réponse envoyée.' : 'Réponse envoyée (non persistée).'}
+          </p>
+        </div>
+      )}
+      {replyError && (
+        <div className="flex items-start gap-3 p-3 rounded-card bg-red-500/[0.08] border border-red-500/20">
+          <p className="text-sm font-rubik text-red-300">
+            {replyError === 'window_expired'
+              ? "Fenêtre de 24 h expirée. Impossible d'envoyer."
+              : replyError === 'rate_limited'
+                ? "Trop d'envois. Réessayez dans une minute."
+                : 'Envoi échoué. Réessayez.'}
+          </p>
+        </div>
+      )}
+
       {/* Liste des connexions */}
       <section>
         <h2 className="text-xs font-rubik font-semibold text-foreground/35 uppercase tracking-wider mb-3">
@@ -269,9 +363,7 @@ export default async function InstagramIntegrationPage({
 
         {connections.length === 0 && !loadError ? (
           <div className="p-6 rounded-card bg-white/[0.02] border border-white/6 text-center">
-            <p className="text-sm font-rubik text-foreground/40">
-              Aucun compte Instagram connecté.
-            </p>
+            <p className="text-sm font-rubik text-foreground/40">Aucun compte Instagram connecté.</p>
             <p className="text-xs font-rubik text-foreground/25 mt-1">
               Utilisez le bouton ci-dessus pour connecter un compte professionnel.
             </p>
@@ -281,6 +373,130 @@ export default async function InstagramIntegrationPage({
             {connections.map(conn => (
               <ConnectionCard key={conn.id} conn={conn} />
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── Boîte de réception Instagram ──────────────────────────── */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-rubik font-semibold text-foreground/35 uppercase tracking-wider">
+            Messages Instagram
+          </h2>
+          <div className="flex items-center gap-2">
+            <AutoRefresh intervalMs={5000} />
+            <RefreshButton />
+          </div>
+        </div>
+
+        {allConversations.length === 0 ? (
+          <div className="p-6 rounded-card bg-white/[0.02] border border-white/6 text-center">
+            <p className="text-sm font-rubik text-foreground/40">
+              Aucune conversation. Les messages entrants apparaîtront ici dès réception.
+            </p>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-5 gap-4">
+            {/* Colonne conversations */}
+            <div className="lg:col-span-2 flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto rounded-card border border-white/8 p-2">
+              {allConversations.map(conv => {
+                const isSelected = conv.id === selectedConvId
+                return (
+                  <a
+                    key={conv.id}
+                    href={`/admin/integrations/instagram?conversation=${encodeURIComponent(conv.id)}`}
+                    className={`
+                      block p-3 rounded-btn transition-colors
+                      ${isSelected
+                        ? 'bg-white/[0.10] border border-white/15'
+                        : 'hover:bg-white/[0.05] border border-transparent'}
+                    `}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <span className="text-xs font-rubik font-mono text-foreground/60 truncate">
+                        {maskParticipantId(conv.participant_id)}
+                      </span>
+                      <span className="text-[10px] font-rubik text-foreground/30 shrink-0">
+                        {formatDateTime(conv.last_message_at)}
+                      </span>
+                    </div>
+                    {conv.last_message_preview && (
+                      <p className="text-xs font-rubik text-foreground/40 truncate">
+                        {conv.last_message_preview}
+                      </p>
+                    )}
+                  </a>
+                )
+              })}
+            </div>
+
+            {/* Colonne messages */}
+            <div className="lg:col-span-3 flex flex-col rounded-card border border-white/8 p-4 min-h-[300px]">
+              {!selectedConversation ? (
+                <p className="m-auto text-sm font-rubik text-foreground/30">
+                  Sélectionnez une conversation.
+                </p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/8">
+                    <span className="text-xs font-rubik text-foreground/50 font-mono">
+                      {maskParticipantId(selectedConversation.participant_id)}
+                    </span>
+                    {!canReply && lastInbound && (
+                      <span className="text-xs font-rubik text-amber-400/70">
+                        Fenêtre 24 h expirée
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Fil de messages */}
+                  <div className="flex-1 flex flex-col gap-3 overflow-y-auto max-h-[40vh] mb-3">
+                    {messages.length === 0 ? (
+                      <p className="text-xs font-rubik text-foreground/30 text-center mt-4">
+                        Aucun message visible (les messages s'effacent après 30 jours).
+                      </p>
+                    ) : messages.map(msg => {
+                      const isInbound = msg.direction === 'inbound'
+                      return (
+                        <div key={msg.id} className={`flex ${isInbound ? 'justify-start' : 'justify-end'}`}>
+                          <div className={`
+                            max-w-[80%] rounded-card px-3 py-2
+                            ${isInbound
+                              ? 'bg-white/[0.06] border border-white/8'
+                              : 'bg-accent/10 border border-accent/20'}
+                          `}>
+                            <p className="text-sm font-rubik text-foreground/80 whitespace-pre-wrap break-words">
+                              {msg.text}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className={`text-[10px] font-rubik px-1.5 py-0.5 rounded ${SOURCE_COLOR[msg.source]}`}>
+                                {SOURCE_BADGE[msg.source]}
+                              </span>
+                              <span className="text-[10px] font-rubik text-foreground/25">
+                                {formatDateTime(msg.occurred_at)}
+                              </span>
+                              {msg.status === 'failed' && (
+                                <span className="text-[10px] font-rubik text-red-400">Échec</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Composer */}
+                  <ReplyForm
+                    conversationId={selectedConvId!}
+                    windowExpired={!canReply}
+                    sendAction={
+                      sendManualInstagramReply.bind(null, selectedConvId!) as
+                        (text: string, fd: FormData) => Promise<void>
+                    }
+                  />
+                </>
+              )}
+            </div>
           </div>
         )}
       </section>

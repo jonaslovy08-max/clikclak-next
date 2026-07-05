@@ -51,4 +51,6 @@ export interface ParsedInstagramMessage {
   recipientId: string
   mid:         string
   text:        string
+  /** Horodatage Unix en millisecondes extrait du payload webhook (peut être absent). */
+  timestamp?:  number
 }
