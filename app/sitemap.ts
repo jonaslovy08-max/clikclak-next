@@ -28,6 +28,7 @@ const EN_STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: `${BASE}/en/`,                                          priority: 1.0, changeFrequency: 'weekly'  },
   { url: `${BASE}/en/contact/`,                                  priority: 0.6, changeFrequency: 'monthly' },
   { url: `${BASE}/en/repair/`,                                   priority: 0.8, changeFrequency: 'weekly'  },
+  { url: `${BASE}/en/services/business/`,                        priority: 0.7, changeFrequency: 'monthly' },
 
   /* Repair — type */
   { url: `${BASE}/en/services/smartphone-repair/`,               priority: 0.9, changeFrequency: 'weekly'  },
@@ -145,6 +146,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     /* ── Services spécialisés ───────────────────────────────── */
     { url: `${BASE}/services/recuperation-donnees/`,           priority: 0.7, changeFrequency: 'monthly' },
+    { url: `${BASE}/services/entreprises/`,                    priority: 0.7, changeFrequency: 'monthly' },
     { url: `${BASE}/services/depannage-reparation-domicile/`,  priority: 0.7, changeFrequency: 'monthly' },
     { url: `${BASE}/service-de-coursier/`,                     priority: 0.6, changeFrequency: 'monthly' },
     { url: `${BASE}/services/transfert-donnees/`,              priority: 0.5, changeFrequency: 'monthly' },
