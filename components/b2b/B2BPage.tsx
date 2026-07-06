@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import B2BContactForm from './B2BContactForm'
+
+const B2B_IMAGE = '/assets/images/homepage/service-sections/b2b-repair.webp'
 
 /* ── GA4 helper ────────────────────────────────────────────────── */
 function trackEvent(name: string, params?: Record<string, string>) {
@@ -336,39 +339,78 @@ export default function B2BPage({ locale = 'fr' }: { locale?: 'fr' | 'en' }) {
         className="px-6 md:px-14 lg:px-20 py-20 border-t border-white/10"
         aria-labelledby="b2b-hero-title"
       >
-        <div className="w-full max-w-6xl mx-auto flex flex-col gap-8 max-w-3xl">
-          <h1
-            id="b2b-hero-title"
-            className="font-light leading-tight"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
-          >
-            {c.hero.h1a}{' '}
-            <span style={{ color: '#ccff33' }}>{c.hero.h1b}</span>
-          </h1>
-          <p
-            className="font-light leading-relaxed max-w-2xl"
-            style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
-          >
-            {c.hero.subtitle}
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <a
-              href="#b2b-form"
-              onClick={scrollToForm}
-              className="inline-flex items-center px-7 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              style={{ background: '#ccff33', color: '#191919' }}
+        <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center">
+
+          {/* ── Texte ── */}
+          <div className="flex-1 flex flex-col gap-7">
+            <h1
+              id="b2b-hero-title"
+              className="font-light leading-tight"
+              style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
             >
-              {c.hero.cta1}
-            </a>
-            <a
-              href="tel:+41213204477"
-              onClick={handlePhoneClick}
-              className="inline-flex items-center gap-2 text-sm font-light px-5 py-3 rounded-lg transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
-              style={{ border: '1px solid rgba(242,242,242,0.2)', color: 'rgba(242,242,242,0.75)' }}
+              {c.hero.h1a}{' '}
+              <span style={{ color: '#ccff33' }}>{c.hero.h1b}</span>
+            </h1>
+
+            {/* Image mobile — entre le H1 et le sous-titre */}
+            <div className="block md:hidden -mx-6 w-screen overflow-hidden">
+              <Image
+                src={B2B_IMAGE}
+                alt={locale === 'fr'
+                  ? "Prise en charge d'appareils professionnels par Clik Clak"
+                  : 'Professional device repair service by Clik Clak'}
+                width={1672}
+                height={941}
+                className="w-full h-auto"
+                priority
+                sizes="100vw"
+              />
+            </div>
+
+            <p
+              className="font-light leading-relaxed max-w-2xl"
+              style={{ fontSize: 'clamp(15px, 1.5vw, 19px)', color: 'rgba(242,242,242,0.65)' }}
             >
-              {c.hero.cta2}
-            </a>
+              {c.hero.subtitle}
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <a
+                href="#b2b-form"
+                onClick={scrollToForm}
+                className="inline-flex items-center px-7 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                style={{ background: '#ccff33', color: '#191919' }}
+              >
+                {c.hero.cta1}
+              </a>
+              <a
+                href="tel:+41213204477"
+                onClick={handlePhoneClick}
+                className="inline-flex items-center gap-2 text-sm font-light px-5 py-3 rounded-lg transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                style={{ border: '1px solid rgba(242,242,242,0.2)', color: 'rgba(242,242,242,0.75)' }}
+              >
+                {c.hero.cta2}
+              </a>
+            </div>
           </div>
+
+          {/* ── Image desktop ── */}
+          <div
+            className="hidden md:block w-[45%] shrink-0 rounded-xl overflow-hidden"
+            style={{ border: '1px solid rgba(242,242,242,0.1)' }}
+          >
+            <Image
+              src={B2B_IMAGE}
+              alt={locale === 'fr'
+                ? "Prise en charge d'appareils professionnels par Clik Clak"
+                : 'Professional device repair service by Clik Clak'}
+              width={1672}
+              height={941}
+              className="w-full h-auto"
+              priority
+              sizes="45vw"
+            />
+          </div>
+
         </div>
       </section>
 
