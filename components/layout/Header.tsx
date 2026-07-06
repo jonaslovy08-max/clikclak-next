@@ -42,6 +42,7 @@ const navLinksFr: NavLink[] = [
       { label: 'Dépannage 7/7',           href: '/services/depannage-reparation-domicile' },
       { label: 'Service de coursier',     href: '/service-de-coursier'                    },
       { label: "Dégâts d'eau",            href: '/reparation-degat-eau-lausanne'           },
+      { label: 'Entreprises',             href: '/services/entreprises'                   },
     ],
   },
 ]
@@ -72,6 +73,7 @@ const navLinksEn: NavLink[] = [
       { label: 'Home repair service', href: '/en/services/home-repair-service' },
       { label: 'Courier service',     href: '/en/courier-service'              },
       { label: 'Water damage repair', href: '/en/water-damage-repair-lausanne' },
+      { label: 'Business',            href: '/en/services/business'            },
     ],
   },
 ]

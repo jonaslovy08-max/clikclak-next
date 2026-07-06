@@ -18,7 +18,8 @@ export function getActiveSection(pathname: string): NavSection | null {
     pathname.startsWith('/services/rachat-de-votre-smartphone') ||
     pathname.startsWith('/services/depannage-reparation-domicile') ||
     pathname.startsWith('/service-de-coursier') ||
-    pathname.startsWith('/reparation-degat-eau-lausanne')
+    pathname.startsWith('/reparation-degat-eau-lausanne') ||
+    pathname.startsWith('/services/entreprises')
   ) return 'services'
   if (
     pathname.startsWith('/reparation') ||
@@ -37,7 +38,8 @@ export function getActiveSection(pathname: string): NavSection | null {
     pathname.startsWith('/en/services/sell-your-device') ||
     pathname.startsWith('/en/services/home-repair-service') ||
     pathname.startsWith('/en/courier-service') ||
-    pathname.startsWith('/en/water-damage-repair-lausanne')
+    pathname.startsWith('/en/water-damage-repair-lausanne') ||
+    pathname.startsWith('/en/services/business')
   ) return 'services'
   if (
     pathname.startsWith('/en/repair') ||

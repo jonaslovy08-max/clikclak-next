@@ -12,6 +12,7 @@ import { checkContactRateLimit }  from '@/lib/contact/rateLimiter'
     CONTACT_BUYBACK_EMAIL   : (optionnel) rachat → si absent, CONTACT_TO_EMAIL
     CONTACT_COURIER_EMAIL   : (optionnel) coursier → si absent, CONTACT_TO_EMAIL
     CONTACT_DEPANNAGE_EMAIL : (optionnel) dépannage → si absent, CONTACT_TO_EMAIL
+    CONTACT_B2B_EMAIL       : (optionnel) B2B entreprises → si absent, CONTACT_TO_EMAIL
 
   Sécurité :
     - Validation Content-Type (415)
@@ -46,6 +47,8 @@ interface ContactPayload {
   serviceLabel?:     string
   brandModel?:       string
   selectedServices?: string[]
+  /* B2B */
+  companyName?:      string
   /* Adresse dépannage */
   addrStreet?:  string
   addrNumber?:  string
@@ -118,6 +121,7 @@ const FIELD_MAX: Record<string, number> = {
   brandModel:   200,
   serviceLabel: 100,
   requestType:  100,
+  companyName:  200,
   deviceCapacity:    50,
   conditionGeneral: 200,
   conditionScreen:  200,
@@ -150,9 +154,10 @@ function addrStr(...parts: (string | undefined)[]): string | undefined {
 function getToEmail(serviceLabel?: string): string {
   const fallback = process.env.CONTACT_TO_EMAIL ?? ''
   if (!serviceLabel) return fallback
-  if (serviceLabel === 'Estimation rachat appareil') return process.env.CONTACT_BUYBACK_EMAIL  ?? fallback
+  if (serviceLabel === 'Estimation rachat appareil') return process.env.CONTACT_BUYBACK_EMAIL   ?? fallback
   if (serviceLabel === 'Service de coursier')         return process.env.CONTACT_COURIER_EMAIL   ?? fallback
   if (serviceLabel === 'Dépannage à domicile')        return process.env.CONTACT_DEPANNAGE_EMAIL ?? fallback
+  if (serviceLabel === 'Contact B2B')                 return process.env.CONTACT_B2B_EMAIL       ?? fallback
   return fallback
 }
 
@@ -259,6 +264,7 @@ function buildAdminEmail(data: ContactPayload, ref?: string): string {
       ${ref ? `<p style="margin:-12px 0 20px;font-size:13px;color:#888">Référence : <strong style="color:#ccff33;font-weight:400">${esc(ref)}</strong></p>` : ''}
       <table style="border-collapse:collapse;width:100%;background:rgba(255,255,255,0.04);border-radius:8px;overflow:hidden">
         <tr><td colspan="2" style="padding:14px 12px 4px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Client</td></tr>
+        ${row('Entreprise', data.companyName)}
         ${row('Prénom', data.firstName)}
         ${row('Nom', data.lastName)}
         ${!data.firstName ? row('Nom', clientName) : ''}
@@ -429,6 +435,7 @@ export async function POST(req: NextRequest) {
     address:       sanitize(parsed.address,       200),
     pickupAddress: sanitize(parsed.pickupAddress, 200),
     returnAddress: sanitize(parsed.returnAddress, 200),
+    companyName:   sanitize(parsed.companyName,   FIELD_MAX.companyName),
   }
 
   /* 5. Honeypot — avant Turnstile pour filtrer les bots bon marché.
