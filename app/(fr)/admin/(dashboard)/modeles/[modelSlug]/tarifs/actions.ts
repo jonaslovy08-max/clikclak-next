@@ -98,7 +98,7 @@ export async function bulkUpdateOffersAction(
   const supabase = await createSupabaseServerClient()
   const { error } = await supabase.rpc('admin_bulk_update_model_offers', {
     p_model_id: modelId,
-    p_offers:   JSON.stringify(offersJson),
+    p_offers:   offersJson,
   })
 
   if (error) {
