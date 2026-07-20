@@ -14,16 +14,16 @@ export const metadata: Metadata = {
   description:
     'Tablet repair in Lausanne: iPad, screen, glass, battery, charging port and diagnostic at ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/express-tablet-repair/`,
+    canonical: `${SITE_URL}/en/express-tablet-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/reparation-tablette-express/`,
-      'en-CH':     `${SITE_URL}/en/express-tablet-repair/`,
-      'x-default': `${SITE_URL}/reparation-tablette-express/`,
+      'fr-CH':     `${SITE_URL}/reparation-tablette-express`,
+      'en-CH':     `${SITE_URL}/en/express-tablet-repair`,
+      'x-default': `${SITE_URL}/reparation-tablette-express`,
     },
   },
   openGraph: {
     title: 'Tablet Repair Lausanne — ClikClak',
-    url: `${SITE_URL}/en/express-tablet-repair/`,
+    url: `${SITE_URL}/en/express-tablet-repair`,
     locale: 'en_CH',
     type: 'website',
   },

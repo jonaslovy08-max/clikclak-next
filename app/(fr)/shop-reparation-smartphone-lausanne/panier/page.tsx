@@ -10,7 +10,7 @@ import { SHOP_ENABLED } from '@/lib/config/features'
 export const metadata: Metadata = SHOP_ENABLED ? {
   title: 'Panier — Shop ClikClak Lausanne',
   robots: { index: false },
-  alternates: { canonical: `${SITE_URL}/shop-reparation-smartphone-lausanne/panier/` },
+  alternates: { canonical: `${SITE_URL}/shop-reparation-smartphone-lausanne/panier` },
 } : {
   title: 'Boutique en construction | ClikClak',
   robots: { index: false, follow: true },

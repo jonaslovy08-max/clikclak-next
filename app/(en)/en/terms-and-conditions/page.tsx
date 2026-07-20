@@ -8,17 +8,17 @@ export const metadata: Metadata = {
   title: 'Terms and Conditions — Clik Clak Repair',
   description: 'General terms and conditions for repair services provided by Clik Clak SàRL, Lausanne.',
   alternates: {
-    canonical: `${SITE_URL}/en/terms-and-conditions/`,
+    canonical: `${SITE_URL}/en/terms-and-conditions`,
     languages: {
-      'fr-CH':     `${SITE_URL}/cgv/`,
-      'en-CH':     `${SITE_URL}/en/terms-and-conditions/`,
-      'x-default': `${SITE_URL}/cgv/`,
+      'fr-CH':     `${SITE_URL}/cgv`,
+      'en-CH':     `${SITE_URL}/en/terms-and-conditions`,
+      'x-default': `${SITE_URL}/cgv`,
     },
   },
   robots: { index: false, follow: true },
   openGraph: {
     title: 'Terms and Conditions — Clik Clak Repair',
-    url: `${SITE_URL}/en/terms-and-conditions/`,
+    url: `${SITE_URL}/en/terms-and-conditions`,
     locale: 'en_CH',
     type: 'website',
   },

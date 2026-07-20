@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   title: 'Changement batterie smartphone Lausanne | iPhone, Samsung & Android | ClikClak',
   description:
     'Batterie qui se vide vite, smartphone qui s\'éteint ou charge instable ? ClikClak remplace les batteries de smartphones à Lausanne selon le modèle et la disponibilité des pièces.',
-  alternates: { canonical: `${SITE_URL}/services/changement-batterie/` },
+  alternates: { canonical: `${SITE_URL}/services/changement-batterie` },
   openGraph: {
     title: 'Changement batterie smartphone Lausanne — ClikClak',
     description: 'Remplacement de batterie à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia. Tarif selon modèle.',
-    url: `${SITE_URL}/services/changement-batterie/`,
+    url: `${SITE_URL}/services/changement-batterie`,
     locale: 'fr_CH', type: 'website',
   },
 }

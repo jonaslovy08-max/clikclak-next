@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   title: 'Transfert de données Lausanne — Clik Clak Repair',
   description: 'Transfert de données à Lausanne, smartphone, tablette, ordinateur. Service rapide et sécurisé.',
   alternates: {
-    canonical: `${SITE_URL}/services/transfert-donnees/`,
+    canonical: `${SITE_URL}/services/transfert-donnees`,
   },
   openGraph: {
     title: 'Transfert de données Lausanne — Clik Clak Repair',
-    url: `${SITE_URL}/services/transfert-donnees/`,
+    url: `${SITE_URL}/services/transfert-donnees`,
     locale: 'fr_CH',
     type: 'website',
   },

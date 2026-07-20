@@ -9,17 +9,17 @@ export const metadata: Metadata = {
   title: 'Suppression de vos données | Clik Clak',
   description: "Comment demander la suppression des données personnelles traitées par l'application Clik Clak Support dans le cadre des échanges privés Instagram.",
   alternates: {
-    canonical: `${SITE_URL}/suppression-donnees/`,
+    canonical: `${SITE_URL}/suppression-donnees`,
     languages: {
-      'fr-CH':     `${SITE_URL}/suppression-donnees/`,
-      'en-CH':     `${SITE_URL}/en/data-deletion/`,
-      'x-default': `${SITE_URL}/suppression-donnees/`,
+      'fr-CH':     `${SITE_URL}/suppression-donnees`,
+      'en-CH':     `${SITE_URL}/en/data-deletion`,
+      'x-default': `${SITE_URL}/suppression-donnees`,
     },
   },
   robots: { index: false, follow: true },
   openGraph: {
     title: 'Suppression de vos données | Clik Clak',
-    url: `${SITE_URL}/suppression-donnees/`,
+    url: `${SITE_URL}/suppression-donnees`,
     locale: 'fr_CH',
     type: 'website',
   },

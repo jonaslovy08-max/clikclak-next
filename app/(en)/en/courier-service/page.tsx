@@ -14,17 +14,17 @@ export const metadata: Metadata = {
   description:
     'ClikClak offers a courier service in Lausanne and nearby areas: device pickup, workshop drop-off and return delivery after repair.',
   alternates: {
-    canonical: `${SITE_URL}/en/courier-service/`,
+    canonical: `${SITE_URL}/en/courier-service`,
     languages: {
-      'fr-CH':     `${SITE_URL}/service-de-coursier/`,
-      'en-CH':     `${SITE_URL}/en/courier-service/`,
-      'x-default': `${SITE_URL}/service-de-coursier/`,
+      'fr-CH':     `${SITE_URL}/service-de-coursier`,
+      'en-CH':     `${SITE_URL}/en/courier-service`,
+      'x-default': `${SITE_URL}/service-de-coursier`,
     },
   },
   openGraph: {
     title: 'Courier Repair Service Lausanne — ClikClak',
     description: 'Device pickup and return in Lausanne. CHF 40 round trip, repair not included.',
-    url: `${SITE_URL}/en/courier-service/`,
+    url: `${SITE_URL}/en/courier-service`,
     locale: 'en_CH',
     type: 'website',
   },

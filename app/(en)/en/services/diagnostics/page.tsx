@@ -7,16 +7,16 @@ export const metadata: Metadata = {
   description:
     'ClikClak performs diagnostics on smartphones, tablets, iPads, computers and MacBooks in Lausanne to identify the cause of a fault before repair.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/diagnostics/`,
+    canonical: `${SITE_URL}/en/services/diagnostics`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/diagnostic/`,
-      'en-CH':     `${SITE_URL}/en/services/diagnostics/`,
-      'x-default': `${SITE_URL}/services/diagnostic/`,
+      'fr-CH':     `${SITE_URL}/services/diagnostic`,
+      'en-CH':     `${SITE_URL}/en/services/diagnostics`,
+      'x-default': `${SITE_URL}/services/diagnostic`,
     },
   },
   openGraph: {
     title: 'Diagnostic Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/diagnostics/`,
+    url: `${SITE_URL}/en/services/diagnostics`,
     locale: 'en_CH',
     type: 'website',
   },

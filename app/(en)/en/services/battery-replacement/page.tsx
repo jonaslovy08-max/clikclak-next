@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     'Battery draining fast or phone shutting down? ClikClak replaces smartphone batteries in Lausanne based on your model and parts availability.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/battery-replacement/`,
+    canonical: `${SITE_URL}/en/services/battery-replacement`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/changement-batterie/`,
-      'en-CH':     `${SITE_URL}/en/services/battery-replacement/`,
-      'x-default': `${SITE_URL}/services/changement-batterie/`,
+      'fr-CH':     `${SITE_URL}/services/changement-batterie`,
+      'en-CH':     `${SITE_URL}/en/services/battery-replacement`,
+      'x-default': `${SITE_URL}/services/changement-batterie`,
     },
   },
   openGraph: {
     title: 'Battery Replacement Lausanne — ClikClak',
     description: 'Battery replacement in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia. Price varies by model.',
-    url: `${SITE_URL}/en/services/battery-replacement/`,
+    url: `${SITE_URL}/en/services/battery-replacement`,
     locale: 'en_CH',
     type: 'website',
   },

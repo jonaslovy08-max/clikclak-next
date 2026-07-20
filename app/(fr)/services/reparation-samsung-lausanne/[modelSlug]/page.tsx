@@ -23,11 +23,11 @@ export async function generateMetadata({
   return {
     title:       `Réparation ${model.label} Lausanne | Prix écran, batterie | ClikClak`,
     description: `Consultez les prix de réparation ${model.label} à Lausanne : écran, batterie, caméra, connecteur de charge et diagnostic chez ClikClak.`,
-    alternates:  { canonical: `${SITE_URL}${BASE_HREF}/${modelSlug}/` },
+    alternates:  { canonical: `${SITE_URL}${BASE_HREF}/${modelSlug}` },
     openGraph: {
       title:       `Réparation ${model.label} Lausanne — ClikClak`,
       description: `Prix de réparation ${model.label} à Lausanne. Écran, batterie, caméra et plus. Pièces de qualité, garantie incluse.`,
-      url:         `${SITE_URL}${BASE_HREF}/${modelSlug}/`,
+      url:         `${SITE_URL}${BASE_HREF}/${modelSlug}`,
       locale:      'fr_CH',
       type:        'website',
     },

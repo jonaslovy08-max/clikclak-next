@@ -25,11 +25,11 @@ export async function generateMetadata(
   return {
     title:       `${meta.title} — ClikClak Lausanne`,
     description: meta.description,
-    alternates:  { canonical: `${SITE_URL}/blog/${meta.slug}/` },
+    alternates:  { canonical: `${SITE_URL}/blog/${meta.slug}` },
     openGraph: {
       title:       meta.title,
       description: meta.description,
-      url:         `${SITE_URL}/blog/${meta.slug}/`,
+      url:         `${SITE_URL}/blog/${meta.slug}`,
       locale:      'fr_CH',
       type:        'article',
       ...(meta.image ? { images: [{ url: `${SITE_URL}${meta.image}` }] } : {}),
@@ -63,7 +63,7 @@ export default async function BlogArticlePage(
     dateModified:      meta.updatedAt,
     author:            { '@type': 'Organization', name: meta.author },
     publisher:         { '@type': 'Organization', name: 'ClikClak', url: SITE_URL },
-    mainEntityOfPage:  { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${meta.slug}/` },
+    mainEntityOfPage:  { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${meta.slug}` },
     ...(meta.image ? { image: `${SITE_URL}${meta.image}` } : {}),
   }
 

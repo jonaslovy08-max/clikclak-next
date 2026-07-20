@@ -9,17 +9,17 @@ export const metadata: Metadata = {
   description:
     'Screen, battery, charging port — Clik Clak Repair in Lausanne fixes your Samsung Galaxy. Original parts, 2-year warranty. Express service.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/samsung-repair/`,
+    canonical: `${SITE_URL}/en/services/samsung-repair`,
     languages: {
-      'fr-CH':    `${SITE_URL}/services/reparation-samsung-lausanne/`,
-      'en-CH':    `${SITE_URL}/en/services/samsung-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-samsung-lausanne/`,
+      'fr-CH':    `${SITE_URL}/services/reparation-samsung-lausanne`,
+      'en-CH':    `${SITE_URL}/en/services/samsung-repair`,
+      'x-default': `${SITE_URL}/services/reparation-samsung-lausanne`,
     },
   },
   openGraph: {
     title: 'Samsung Repair Lausanne — Clik Clak Repair',
     description: 'Screen, battery, charging port — we fix your Samsung Galaxy with original parts.',
-    url: `${SITE_URL}/en/services/samsung-repair/`,
+    url: `${SITE_URL}/en/services/samsung-repair`,
     locale: 'en_CH',
     type: 'website',
   },

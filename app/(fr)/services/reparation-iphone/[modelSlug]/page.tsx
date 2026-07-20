@@ -22,17 +22,17 @@ export async function generateMetadata({
     title: `Réparation ${model.label} Lausanne | Prix écran, batterie | ClikClak`,
     description: `Consultez les prix de réparation pour ${model.label} à Lausanne : écran, batterie, caméra, connecteur de charge et diagnostic chez ClikClak.`,
     alternates: {
-      canonical: `${SITE_URL}/services/reparation-iphone/${modelSlug}/`,
+      canonical: `${SITE_URL}/services/reparation-iphone/${modelSlug}`,
       languages: {
-        'fr-CH':     `${SITE_URL}/services/reparation-iphone/${modelSlug}/`,
-        'en-CH':     `${SITE_URL}/en/services/iphone-repair/${modelSlug}/`,
-        'x-default': `${SITE_URL}/services/reparation-iphone/${modelSlug}/`,
+        'fr-CH':     `${SITE_URL}/services/reparation-iphone/${modelSlug}`,
+        'en-CH':     `${SITE_URL}/en/services/iphone-repair/${modelSlug}`,
+        'x-default': `${SITE_URL}/services/reparation-iphone/${modelSlug}`,
       },
     },
     openGraph: {
       title: `Réparation ${model.label} Lausanne — ClikClak`,
       description: `Prix de réparation ${model.label} à Lausanne. Écran, batterie, caméra et plus. Pièces de qualité, garantie incluse.`,
-      url: `${SITE_URL}/services/reparation-iphone/${modelSlug}/`,
+      url: `${SITE_URL}/services/reparation-iphone/${modelSlug}`,
       locale: 'fr_CH',
       type: 'website',
     },

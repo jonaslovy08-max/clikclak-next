@@ -10,16 +10,16 @@ export const metadata: Metadata = {
   title: 'Smartphone Repair Lausanne — Clik Clak Repair',
   description: 'Smartphone repair in Lausanne, all brands. Express service in 20 minutes. Quality parts and warranty included.',
   alternates: {
-    canonical: `${SITE_URL}/en/repair/`,
+    canonical: `${SITE_URL}/en/repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/reparation/`,
-      'en-CH':     `${SITE_URL}/en/repair/`,
-      'x-default': `${SITE_URL}/reparation/`,
+      'fr-CH':     `${SITE_URL}/reparation`,
+      'en-CH':     `${SITE_URL}/en/repair`,
+      'x-default': `${SITE_URL}/reparation`,
     },
   },
   openGraph: {
     title: 'Smartphone Repair Lausanne — Clik Clak Repair',
-    url: `${SITE_URL}/en/repair/`,
+    url: `${SITE_URL}/en/repair`,
     locale: 'en_CH',
     type: 'website',
   },

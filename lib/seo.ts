@@ -6,9 +6,10 @@ export const SITE_ADDRESS = 'Rue du Petit-Chêne 9b, 1003 Lausanne'
 /** Image OG par défaut — utilisée comme fallback sur toutes les pages sans image spécifique */
 export const DEFAULT_OG_IMAGE = '/assets/images/seo/clikclak-og-home.jpg'
 
-/** Construit l'URL canonique absolue avec trailing slash garantie */
+/** Construit l'URL canonique absolue sans trailing slash (sauf racine /) */
 export function canonical(path: string): string {
-  const normalized = path.endsWith('/') ? path : `${path}/`
+  const clean = path.startsWith('/') ? path : `/${path}`
+  const normalized = clean === '/' ? '/' : clean.replace(/\/+$/, '')
   return `${SITE_URL}${normalized}`
 }
 

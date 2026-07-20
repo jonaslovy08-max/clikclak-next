@@ -13,13 +13,13 @@ export const metadata: Metadata = {
   description:
     'Récupération de données à Lausanne sur iPhone, smartphone Android, MacBook, PC, disque dur, SSD, clé USB, carte SD, RAID et supports endommagés. Diagnostic, devis clair et transfert sécurisé.',
   alternates: {
-    canonical: `${SITE_URL}/services/recuperation-donnees/`,
+    canonical: `${SITE_URL}/services/recuperation-donnees`,
   },
   openGraph: {
     title: 'Récupération de données Lausanne — ClikClak',
     description:
       'Récupération de données à Lausanne sur iPhone, Android, MacBook, PC, disque dur, SSD, RAID et supports endommagés.',
-    url: `${SITE_URL}/services/recuperation-donnees/`,
+    url: `${SITE_URL}/services/recuperation-donnees`,
     locale: 'fr_CH',
     type: 'website',
   },

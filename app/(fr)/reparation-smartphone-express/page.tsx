@@ -13,16 +13,16 @@ export const metadata: Metadata = {
   title: 'Réparation smartphone express Lausanne — Clik Clak Repair',
   description: 'Clik Clak Repair — Réparation smartphone express et au meilleur prix. Dépannage 7/7 sur rendez-vous. Réparation Natel à Lausanne.',
   alternates: {
-    canonical: `${SITE_URL}/reparation-smartphone-express/`,
+    canonical: `${SITE_URL}/reparation-smartphone-express`,
     languages: {
-      'fr-CH':    `${SITE_URL}/reparation-smartphone-express/`,
-      'en-CH':    `${SITE_URL}/en/services/smartphone-repair/`,
-      'x-default': `${SITE_URL}/reparation-smartphone-express/`,
+      'fr-CH':    `${SITE_URL}/reparation-smartphone-express`,
+      'en-CH':    `${SITE_URL}/en/services/smartphone-repair`,
+      'x-default': `${SITE_URL}/reparation-smartphone-express`,
     },
   },
   openGraph: {
     title: 'Réparation smartphone express Lausanne — Clik Clak Repair',
-    url: `${SITE_URL}/reparation-smartphone-express/`,
+    url: `${SITE_URL}/reparation-smartphone-express`,
     locale: 'fr_CH',
     type: 'website',
   },

@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   title: 'Réparation Sony Xperia Lausanne | Écran, batterie | ClikClak',
   description:
     'Réparation Sony Xperia à Lausanne : écran, batterie, connecteur de charge. Contactez ClikClak pour un devis selon votre modèle.',
-  alternates: { canonical: `${SITE_URL}/services/reparation-sony-xperia/` },
+  alternates: { canonical: `${SITE_URL}/services/reparation-sony-xperia` },
   openGraph: {
     title: 'Réparation Sony Xperia Lausanne — ClikClak',
-    url: `${SITE_URL}/services/reparation-sony-xperia/`,
+    url: `${SITE_URL}/services/reparation-sony-xperia`,
     locale: 'fr_CH',
     type: 'website',
   },

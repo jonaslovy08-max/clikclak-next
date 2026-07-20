@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     'Check Huawei repair prices in Lausanne: screen, battery, charging port for P30, P20, Mate 20, Honor and more at ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/huawei-repair/`,
+    canonical: `${SITE_URL}/en/services/huawei-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-huawei-lausanne/`,
-      'en-CH':     `${SITE_URL}/en/services/huawei-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-huawei-lausanne/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-huawei-lausanne`,
+      'en-CH':     `${SITE_URL}/en/services/huawei-repair`,
+      'x-default': `${SITE_URL}/services/reparation-huawei-lausanne`,
     },
   },
   openGraph: {
     title: 'Huawei Repair Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/huawei-repair/`,
+    url: `${SITE_URL}/en/services/huawei-repair`,
     locale: 'en_CH',
     type: 'website',
   },

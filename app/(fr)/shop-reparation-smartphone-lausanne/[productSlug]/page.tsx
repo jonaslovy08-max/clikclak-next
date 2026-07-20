@@ -65,12 +65,12 @@ export async function generateMetadata(
     title,
     description,
     alternates: {
-      canonical: `${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}/`,
+      canonical: `${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}`,
     },
     openGraph: {
       title,
       description: ogDesc,
-      url:    `${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}/`,
+      url:    `${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}`,
       locale: 'fr_CH',
       type:   'website',
       images: [{ url: ogImage }],
@@ -355,7 +355,7 @@ export default async function ProductPage(
                 <ShareButton
                   title={`${product.name} — ClikClak Lausanne`}
                   text={`${product.name}${product.grade ? ` — Grade ${product.grade}` : ''}${product.price != null ? `. CHF ${product.price.toFixed(0)}` : ''}. Disponible chez ClikClak Lausanne.`}
-                  url={`${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}/`}
+                  url={`${SITE_URL}/shop-reparation-smartphone-lausanne/${product.slug}`}
                 />
               </div>
             </div>

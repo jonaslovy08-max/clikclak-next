@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: 'Tablet repair in Lausanne. Diagnostic and quote on request.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/en/services/tablet-repair/`,
+    canonical: `${SITE_URL}/en/services/tablet-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-tablette/`,
-      'en-CH':     `${SITE_URL}/en/services/tablet-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-tablette/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-tablette`,
+      'en-CH':     `${SITE_URL}/en/services/tablet-repair`,
+      'x-default': `${SITE_URL}/services/reparation-tablette`,
     },
   },
 }

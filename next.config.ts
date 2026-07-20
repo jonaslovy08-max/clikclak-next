@@ -34,61 +34,46 @@ const nextConfig: NextConfig = {
   // ================================================================
   async redirects() {
     return [
-      /* §4.7 — Redirection permanente ancienne URL récupération de données */
-      {
-        source:      '/r-cup-ration-de-donn-es',
-        destination: '/services/recuperation-donnees',
-        permanent:   true,
-      },
-      {
-        source:      '/r-cup-ration-de-donn-es/',
-        destination: '/services/recuperation-donnees',
-        permanent:   true,
-      },
+      /* §4.7 — Ancienne URL récupération de données (encodée WP) */
+      { source: '/r-cup-ration-de-donn-es',  destination: '/services/recuperation-donnees', permanent: true },
+      { source: '/r-cup-ration-de-donn-es/', destination: '/services/recuperation-donnees', permanent: true },
+
       /* /services/depannage → /services/depannage-reparation-domicile */
-      {
-        source:      '/services/depannage',
-        destination: '/services/depannage-reparation-domicile',
-        permanent:   true,
-      },
-      {
-        source:      '/services/depannage/',
-        destination: '/services/depannage-reparation-domicile',
-        permanent:   true,
-      },
+      { source: '/services/depannage',  destination: '/services/depannage-reparation-domicile', permanent: true },
+      { source: '/services/depannage/', destination: '/services/depannage-reparation-domicile', permanent: true },
+
       /* §2.2 — /contact → /contact-clik-clak-lausanne */
-      {
-        source:      '/contact',
-        destination: '/contact-clik-clak-lausanne',
-        permanent:   true,
-      },
-      {
-        source:      '/contact/',
-        destination: '/contact-clik-clak-lausanne',
-        permanent:   true,
-      },
+      { source: '/contact',  destination: '/contact-clik-clak-lausanne', permanent: true },
+      { source: '/contact/', destination: '/contact-clik-clak-lausanne', permanent: true },
+
       /* §2.5 — /shop → /shop-reparation-smartphone-lausanne */
-      {
-        source:      '/shop',
-        destination: '/shop-reparation-smartphone-lausanne',
-        permanent:   true,
-      },
-      {
-        source:      '/shop/',
-        destination: '/shop-reparation-smartphone-lausanne',
-        permanent:   true,
-      },
+      { source: '/shop',  destination: '/shop-reparation-smartphone-lausanne', permanent: true },
+      { source: '/shop/', destination: '/shop-reparation-smartphone-lausanne', permanent: true },
+
       /* §4.2 — /services → /reparation */
-      {
-        source:      '/services',
-        destination: '/reparation',
-        permanent:   true,
-      },
-      {
-        source:      '/services/',
-        destination: '/reparation',
-        permanent:   true,
-      },
+      { source: '/services',  destination: '/reparation', permanent: true },
+      { source: '/services/', destination: '/reparation', permanent: true },
+
+      /* ── Legacy WordPress — ajoutées Phase 3 SEO ─────────────────── */
+      /* Ancienne page contact */
+      { source: '/contact-reparation-smartphone-lausanne-clik-clak-repair',  destination: '/contact-clik-clak-lausanne', permanent: true },
+      { source: '/contact-reparation-smartphone-lausanne-clik-clak-repair/', destination: '/contact-clik-clak-lausanne', permanent: true },
+
+      /* Ancienne page "Qui sommes-nous" */
+      { source: '/qui-sommes-nous',  destination: '/clik-clak-repair-lausanne', permanent: true },
+      { source: '/qui-sommes-nous/', destination: '/clik-clak-repair-lausanne', permanent: true },
+
+      /* Dégâts d'eau — plusieurs variantes WP */
+      { source: '/degat-eau',                       destination: '/reparation-degat-eau-lausanne', permanent: true },
+      { source: '/degat-eau/',                      destination: '/reparation-degat-eau-lausanne', permanent: true },
+      { source: '/reparation-degat-deau-a-lausanne',  destination: '/reparation-degat-eau-lausanne', permanent: true },
+      { source: '/reparation-degat-deau-a-lausanne/', destination: '/reparation-degat-eau-lausanne', permanent: true },
+      { source: '/reparation-degat-deau',           destination: '/reparation-degat-eau-lausanne', permanent: true },
+      { source: '/reparation-degat-deau/',          destination: '/reparation-degat-eau-lausanne', permanent: true },
+
+      /* Ancien service coursier WP */
+      { source: '/reparation-smartphone-par-coursier',  destination: '/service-de-coursier', permanent: true },
+      { source: '/reparation-smartphone-par-coursier/', destination: '/service-de-coursier', permanent: true },
     ]
   },
 

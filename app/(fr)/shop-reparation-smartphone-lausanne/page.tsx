@@ -18,13 +18,13 @@ export const metadata: Metadata = SHOP_ENABLED ? {
   description:
     "Découvrez le shop ClikClak à Lausanne : smartphones neufs ou d'occasion, accessoires et pièces détachées pour réparation selon disponibilité.",
   alternates: {
-    canonical: `${SITE_URL}/shop-reparation-smartphone-lausanne/`,
+    canonical: `${SITE_URL}/shop-reparation-smartphone-lausanne`,
   },
   openGraph: {
     title: 'Shop ClikClak Lausanne | Smartphones, accessoires et pièces détachées',
     description:
       "Smartphones, tablettes, ordinateurs, pièces détachées et accessoires sélectionnés selon disponibilité. Boutique ClikClak à Lausanne.",
-    url:    `${SITE_URL}/shop-reparation-smartphone-lausanne/`,
+    url:    `${SITE_URL}/shop-reparation-smartphone-lausanne`,
     locale: 'fr_CH',
     type:   'website',
     images: [{ url: DEFAULT_OG_IMAGE }],

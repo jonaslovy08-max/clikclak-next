@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: 'Réparation smartphone Google Pixel à Lausanne, service express. Clik Clak Repair, Petit-Chêne 9b.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/services/reparation-google-pixel/`,
+    canonical: `${SITE_URL}/services/reparation-google-pixel`,
   },
   openGraph: {
     title: 'Réparation Google Pixel Lausanne — Clik Clak Repair',
-    url: `${SITE_URL}/services/reparation-google-pixel/`,
+    url: `${SITE_URL}/services/reparation-google-pixel`,
     locale: 'fr_CH',
     type: 'website',
   },

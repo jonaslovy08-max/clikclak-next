@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: 'Réparation smartphone Xiaomi à Lausanne. Service express, pièces de qualité, technicien certifié.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/services/reparation-xiaomi/`,
+    canonical: `${SITE_URL}/services/reparation-xiaomi`,
   },
   openGraph: {
     title: 'Réparation Xiaomi Lausanne — Clik Clak Repair',
-    url: `${SITE_URL}/services/reparation-xiaomi/`,
+    url: `${SITE_URL}/services/reparation-xiaomi`,
     locale: 'fr_CH',
     type: 'website',
   },

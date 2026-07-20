@@ -15,12 +15,12 @@ export const metadata: Metadata = {
   description:
     'ClikClak propose un service de coursier à Lausanne et environs proches : collecte de votre smartphone, tablette ou ordinateur, dépôt en atelier puis livraison retour après réparation.',
   alternates: {
-    canonical: `${SITE_URL}/service-de-coursier/`,
+    canonical: `${SITE_URL}/service-de-coursier`,
   },
   openGraph: {
     title: 'Service de coursier réparation Lausanne — ClikClak',
     description: 'Collecte et retour de votre appareil à Lausanne. CHF 40 l\'aller-retour, hors réparation.',
-    url: `${SITE_URL}/service-de-coursier/`,
+    url: `${SITE_URL}/service-de-coursier`,
     locale: 'fr_CH',
     type: 'website',
   },

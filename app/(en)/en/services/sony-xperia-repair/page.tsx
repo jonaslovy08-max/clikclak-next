@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     'Check Sony Xperia repair prices in Lausanne: screen, battery, charging port and diagnostic at ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/sony-xperia-repair/`,
+    canonical: `${SITE_URL}/en/services/sony-xperia-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-sony-xperia/`,
-      'en-CH':     `${SITE_URL}/en/services/sony-xperia-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-sony-xperia/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-sony-xperia`,
+      'en-CH':     `${SITE_URL}/en/services/sony-xperia-repair`,
+      'x-default': `${SITE_URL}/services/reparation-sony-xperia`,
     },
   },
   openGraph: {
     title: 'Sony Xperia Repair Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/sony-xperia-repair/`,
+    url: `${SITE_URL}/en/services/sony-xperia-repair`,
     locale: 'en_CH',
     type: 'website',
   },

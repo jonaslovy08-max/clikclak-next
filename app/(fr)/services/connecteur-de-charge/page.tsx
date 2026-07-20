@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   title: 'Réparation connecteur de charge Lausanne | iPhone, Samsung & Android | ClikClak',
   description:
     'Votre smartphone ne charge plus ou le câble tient mal ? ClikClak répare les connecteurs de charge à Lausanne selon le modèle : iPhone, Samsung, OPPO, Huawei et autres appareils.',
-  alternates: { canonical: `${SITE_URL}/services/connecteur-de-charge/` },
+  alternates: { canonical: `${SITE_URL}/services/connecteur-de-charge` },
   openGraph: {
     title: 'Réparation connecteur de charge Lausanne — ClikClak',
     description: 'Réparation connecteur de charge à Lausanne : iPhone, Samsung, OPPO, Huawei. Tarif selon modèle.',
-    url: `${SITE_URL}/services/connecteur-de-charge/`,
+    url: `${SITE_URL}/services/connecteur-de-charge`,
     locale: 'fr_CH', type: 'website',
   },
 }

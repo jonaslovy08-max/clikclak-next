@@ -9,16 +9,16 @@ export const metadata: Metadata = {
   description:
     'Consultez les prix de réparation Samsung à Lausanne : écran, batterie, face arrière, caméra, connecteur de charge et diagnostic chez ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/services/reparation-samsung-lausanne/`,
+    canonical: `${SITE_URL}/services/reparation-samsung-lausanne`,
     languages: {
-      'fr-CH':    `${SITE_URL}/services/reparation-samsung-lausanne/`,
-      'en-CH':    `${SITE_URL}/en/services/samsung-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-samsung-lausanne/`,
+      'fr-CH':    `${SITE_URL}/services/reparation-samsung-lausanne`,
+      'en-CH':    `${SITE_URL}/en/services/samsung-repair`,
+      'x-default': `${SITE_URL}/services/reparation-samsung-lausanne`,
     },
   },
   openGraph: {
     title: 'Réparation Samsung Lausanne — ClikClak',
-    url: `${SITE_URL}/services/reparation-samsung-lausanne/`,
+    url: `${SITE_URL}/services/reparation-samsung-lausanne`,
     locale: 'fr_CH',
     type: 'website',
   },

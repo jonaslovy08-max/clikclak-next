@@ -8,17 +8,17 @@ export const metadata: Metadata = {
   title: 'Privacy Policy | ClikClak',
   description: 'Information on the collection and use of personal data by ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/privacy-policy/`,
+    canonical: `${SITE_URL}/en/privacy-policy`,
     languages: {
-      'fr-CH':     `${SITE_URL}/politique-confidentialite/`,
-      'en-CH':     `${SITE_URL}/en/privacy-policy/`,
-      'x-default': `${SITE_URL}/politique-confidentialite/`,
+      'fr-CH':     `${SITE_URL}/politique-confidentialite`,
+      'en-CH':     `${SITE_URL}/en/privacy-policy`,
+      'x-default': `${SITE_URL}/politique-confidentialite`,
     },
   },
   robots: { index: false, follow: true },
   openGraph: {
     title: 'Privacy Policy | ClikClak',
-    url: `${SITE_URL}/en/privacy-policy/`,
+    url: `${SITE_URL}/en/privacy-policy`,
     locale: 'en_CH',
     type: 'website',
   },

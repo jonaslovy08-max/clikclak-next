@@ -10,11 +10,11 @@ export const metadata: Metadata = {
   title: 'Conseils & guides smartphone — ClikClak Lausanne',
   description:
     "Guides pratiques et conseils de ClikClak Lausanne : dégâts d'eau, batterie, identification de modèle et entretien de votre smartphone.",
-  alternates: { canonical: `${SITE_URL}/blog/` },
+  alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
     title: 'Conseils & guides — ClikClak Lausanne',
     description: "Guides pratiques pour smartphones : dégâts d'eau, batterie, modèle iPhone et plus.",
-    url: `${SITE_URL}/blog/`,
+    url: `${SITE_URL}/blog`,
     locale: 'fr_CH',
     type: 'website',
   },

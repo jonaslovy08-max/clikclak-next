@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   title: 'Réparation dégât d\'eau smartphone Lausanne | Oxydation & diagnostic | ClikClak',
   description:
     'Smartphone tombé dans l\'eau ou touché par l\'humidité ? ClikClak réalise un diagnostic d\'oxydation à Lausanne et intervient selon l\'état de l\'appareil.',
-  alternates: { canonical: `${SITE_URL}/reparation-degat-eau-lausanne/` },
+  alternates: { canonical: `${SITE_URL}/reparation-degat-eau-lausanne` },
   openGraph: {
     title: 'Réparation dégât d\'eau smartphone Lausanne — ClikClak',
     description: 'Diagnostic d\'oxydation et intervention selon l\'état de l\'appareil. iPhone, Samsung et autres smartphones.',
-    url: `${SITE_URL}/reparation-degat-eau-lausanne/`,
+    url: `${SITE_URL}/reparation-degat-eau-lausanne`,
     locale: 'fr_CH', type: 'website',
   },
 }

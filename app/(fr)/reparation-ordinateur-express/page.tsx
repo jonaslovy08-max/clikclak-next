@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   description:
     'Diagnostic et réparation d\'ordinateurs à Lausanne : MacBook, PC portable, charge, batterie, écran, surchauffe, connectique et récupération de données.',
   alternates: {
-    canonical: `${SITE_URL}/reparation-ordinateur-express/`,
+    canonical: `${SITE_URL}/reparation-ordinateur-express`,
   },
   openGraph: {
     title: 'Réparation ordinateur Lausanne — ClikClak',
-    url: `${SITE_URL}/reparation-ordinateur-express/`,
+    url: `${SITE_URL}/reparation-ordinateur-express`,
     locale: 'fr_CH',
     type: 'website',
   },
