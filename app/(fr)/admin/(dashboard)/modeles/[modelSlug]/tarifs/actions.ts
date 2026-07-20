@@ -95,12 +95,17 @@ export async function bulkUpdateOffersAction(
     }
   })
 
+  const supabase = await createSupabaseServerClient()
+
+  const { data, error } = await supabase.rpc("rpc_echo_jsonb", {
+    input: offersJson,
+  })
+
   return {
     success: false,
     message: JSON.stringify({
-      isArray: Array.isArray(offersJson),
-      type: typeof offersJson,
-      offersJson,
+      error,
+      data,
     }),
   }
 
