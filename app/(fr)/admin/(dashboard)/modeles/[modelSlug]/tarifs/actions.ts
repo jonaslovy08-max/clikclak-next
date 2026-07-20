@@ -96,10 +96,17 @@ export async function bulkUpdateOffersAction(
   })
 
   const supabase = await createSupabaseServerClient()
-  const { error } = await supabase.rpc('admin_bulk_update_model_offers', {
+  console.log('[bulkUpdateOffersAction] offersJson =', JSON.stringify(offersJson, null, 2))
+  console.log('[bulkUpdateOffersAction] Array.isArray =', Array.isArray(offersJson))
+  console.log('[bulkUpdateOffersAction] typeof =', typeof offersJson)
+
+  const { data, error } = await supabase.rpc('admin_bulk_update_model_offers', {
     p_model_id: modelId,
     p_offers:   offersJson,
   })
+
+  console.log('[bulkUpdateOffersAction] rpc data =', data)
+  console.log('[bulkUpdateOffersAction] rpc error =', error)
 
   if (error) {
     const parsed = parseRpcError(error.message)
