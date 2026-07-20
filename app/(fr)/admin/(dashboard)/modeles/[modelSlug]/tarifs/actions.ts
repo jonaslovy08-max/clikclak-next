@@ -97,16 +97,24 @@ export async function bulkUpdateOffersAction(
 
   const supabase = await createSupabaseServerClient()
 
-  const { data, error } = await supabase.rpc("rpc_echo_jsonb", {
-    input: offersJson,
-  })
+  const { error } = await supabase.rpc(
+    "admin_bulk_update_model_offers",
+    {
+      p_model_id: modelId,
+      p_offers: offersJson,
+    }
+  )
+
+  if (error) {
+    return {
+      success: false,
+      message: error.message,
+    }
+  }
 
   return {
-    success: false,
-    message: JSON.stringify({
-      error,
-      data,
-    }),
+    success: true,
+    message: "Tarifs enregistrés avec succès.",
   }
 
   revalidatePath(`/admin/modeles`, 'layout')
