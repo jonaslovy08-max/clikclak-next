@@ -1,0 +1,27 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    # Tous les jours à 03:00 UTC
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call ClikClak keepalive endpoint
+        run: |
+          HTTP_CODE=$(curl \
+            --silent \
+            --show-error \
+            --write-out "%{http_code}" \
+            --output response.json \
+            -H "x-keepalive-secret: ${{ secrets.KEEPALIVE_SECRET }}" \
+            https://clikclak.ch/api/internal/supabase-keepalive)
+
+          echo "HTTP: $HTTP_CODE"
+          cat response.json
+
+          test "$HTTP_CODE" = "200"
