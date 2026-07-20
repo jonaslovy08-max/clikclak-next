@@ -11,10 +11,19 @@ import { requireAdminProfile }        from '@/lib/admin/auth'
 import { parsePriceCHF }              from '@/lib/admin/validation/repairOffer'
 import { archiveModelSchema }         from '@/lib/admin/validation/deviceModel'
 
+export interface SavedOffer {
+  offer_id:        string
+  updated_at:      string
+  is_new:          boolean
+  repair_type_id?: string
+  variant_key?:    string
+}
+
 export interface TarifsActionResult {
-  success:   boolean
-  message:   string
-  conflict?: boolean
+  success:      boolean
+  message:      string
+  conflict?:    boolean
+  savedOffers?: SavedOffer[]
 }
 
 /* ── Payload d'une offre dans la mise à jour groupée ───── */
@@ -97,7 +106,7 @@ export async function bulkUpdateOffersAction(
 
   const supabase = await createSupabaseServerClient()
 
-  const { error } = await supabase.rpc(
+  const { data, error } = await supabase.rpc(
     "admin_bulk_update_model_offers",
     {
       p_model_id: modelId,
@@ -112,7 +121,8 @@ export async function bulkUpdateOffersAction(
 
   revalidatePath(`/admin/modeles`, 'layout')
 
-  return { success: true, message: 'Modifications enregistrées.' }
+  const saved = (data as { offers: SavedOffer[] } | null)?.offers ?? []
+  return { success: true, message: 'Modifications enregistrées.', savedOffers: saved }
 }
 
 /* ── Archivage du modèle ─────────────────────────────────── */

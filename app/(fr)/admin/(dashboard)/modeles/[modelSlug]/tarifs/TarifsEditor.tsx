@@ -21,6 +21,7 @@ import {
   bulkUpdateOffersAction,
   archiveModelAction,
   type OfferPayload,
+  type SavedOffer,
 } from './actions'
 
 /* ── Types ───────────────────────────────────────────────── */
@@ -400,6 +401,58 @@ export function TarifsEditor({ model, initialOffers, missingTypes, repairTypeIdM
       const result = await bulkUpdateOffersAction(model.id, payload)
       if (result.success) {
         setSaveSuccess(true)
+
+        if (result.savedOffers && result.savedOffers.length > 0) {
+          // Sépare les offres mises à jour des offres nouvellement créées
+          const updatedMap = new Map<string, string>()
+          const createdMap = new Map<string, { offerId: string; updatedAt: string }>()
+
+          for (const o of result.savedOffers as SavedOffer[]) {
+            if (o.is_new && o.repair_type_id) {
+              createdMap.set(
+                `${o.repair_type_id}:${o.variant_key ?? 'standard'}`,
+                { offerId: o.offer_id, updatedAt: o.updated_at },
+              )
+            } else {
+              updatedMap.set(o.offer_id, o.updated_at)
+            }
+          }
+
+          // Promeut les nouvelles lignes en offres réelles (id + updatedAt)
+          const promoted: RowState[] = []
+          const remainingNew: RowState[] = []
+          const promotedTypeIds = new Set<string>()
+
+          for (const r of newRows) {
+            const saved = createdMap.get(`${r.repairTypeId}:${r.variantKey || 'standard'}`)
+            if (saved) {
+              promoted.push({ ...r, id: saved.offerId, updatedAt: saved.updatedAt, isNew: false, isDirty: false })
+              promotedTypeIds.add(r.repairTypeId)
+            } else {
+              remainingNew.push(r)
+            }
+          }
+
+          // Met à jour updatedAt dans les lignes existantes + ajoute les promues
+          setRows(prev => {
+            const refreshed = prev.map(r =>
+              r.id && updatedMap.has(r.id)
+                ? { ...r, isDirty: false, updatedAt: updatedMap.get(r.id)! }
+                : r
+            )
+            return [...refreshed, ...promoted]
+          })
+          setNewRows(remainingNew)
+
+          if (promotedTypeIds.size > 0) {
+            setCheckedMissing(prev => {
+              const next = new Set(prev)
+              for (const id of promotedTypeIds) next.delete(id)
+              return next
+            })
+          }
+        }
+
         router.refresh()
       } else {
         setGlobalError(result.message)
