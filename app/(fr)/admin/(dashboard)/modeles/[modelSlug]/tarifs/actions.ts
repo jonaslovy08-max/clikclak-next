@@ -106,15 +106,8 @@ export async function bulkUpdateOffersAction(
   )
 
   if (error) {
-    return {
-      success: false,
-      message: error.message,
-    }
-  }
-
-  return {
-    success: true,
-    message: "Tarifs enregistrés avec succès.",
+    const parsed = parseRpcError(error.message)
+    return { success: false, ...parsed }
   }
 
   revalidatePath(`/admin/modeles`, 'layout')
