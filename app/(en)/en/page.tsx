@@ -10,10 +10,10 @@ export const metadata: Metadata = {
   description:
     'Screen cracked? Clik Clak Repair in Lausanne fixes your smartphone, iPhone, Samsung, MacBook. 2-year warranty on original parts from CHF 29.',
   alternates: {
-    canonical: `${SITE_URL}/en/`,
+    canonical: `${SITE_URL}/en`,
     languages: {
       'fr-CH':    `${SITE_URL}/`,
-      'en-CH':    `${SITE_URL}/en/`,
+      'en-CH':    `${SITE_URL}/en`,
       'x-default': `${SITE_URL}/`,
     },
   },
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     siteName: SITE_NAME,
-    url: `${SITE_URL}/en/`,
+    url: `${SITE_URL}/en`,
     locale: 'en_CH',
     type: 'website',
     images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: TITLE }],

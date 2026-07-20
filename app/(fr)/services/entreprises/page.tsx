@@ -7,7 +7,7 @@ import { SITE_URL, SITE_NAME } from '@/lib/seo'
 const TITLE       = 'Services aux entreprises — Réparation & maintenance IT à Lausanne | ClikClak'
 const DESCRIPTION =
   'ClikClak propose ses services de réparation de smartphones, tablettes et ordinateurs aux entreprises et PME de la région lausannoise. Prise en charge rapide, confidentialité assurée, disponible 7j/7.'
-const PATH        = '/services/entreprises/'
+const PATH        = '/services/entreprises'
 const CANONICAL   = `${SITE_URL}${PATH}`
 
 export const metadata: Metadata = {

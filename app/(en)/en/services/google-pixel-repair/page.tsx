@@ -11,11 +11,11 @@ export const metadata: Metadata = {
   description: 'Google Pixel repair in Lausanne: diagnostic and quote on request at ClikClak.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/en/services/google-pixel-repair/`,
+    canonical: `${SITE_URL}/en/services/google-pixel-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-google-pixel/`,
-      'en-CH':     `${SITE_URL}/en/services/google-pixel-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-google-pixel/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-google-pixel`,
+      'en-CH':     `${SITE_URL}/en/services/google-pixel-repair`,
+      'x-default': `${SITE_URL}/services/reparation-google-pixel`,
     },
   },
 }

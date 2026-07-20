@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     'Dropped your phone in water or exposed to humidity? ClikClak performs oxidation diagnostics in Lausanne and intervenes based on the device condition.',
   alternates: {
-    canonical: `${SITE_URL}/en/water-damage-repair-lausanne/`,
+    canonical: `${SITE_URL}/en/water-damage-repair-lausanne`,
     languages: {
-      'fr-CH':     `${SITE_URL}/reparation-degat-eau-lausanne/`,
-      'en-CH':     `${SITE_URL}/en/water-damage-repair-lausanne/`,
-      'x-default': `${SITE_URL}/reparation-degat-eau-lausanne/`,
+      'fr-CH':     `${SITE_URL}/reparation-degat-eau-lausanne`,
+      'en-CH':     `${SITE_URL}/en/water-damage-repair-lausanne`,
+      'x-default': `${SITE_URL}/reparation-degat-eau-lausanne`,
     },
   },
   openGraph: {
     title: 'Water Damage Smartphone Repair Lausanne — ClikClak',
     description: 'Oxidation diagnostic and intervention based on the device condition. iPhone, Samsung and other smartphones.',
-    url: `${SITE_URL}/en/water-damage-repair-lausanne/`,
+    url: `${SITE_URL}/en/water-damage-repair-lausanne`,
     locale: 'en_CH',
     type: 'website',
   },

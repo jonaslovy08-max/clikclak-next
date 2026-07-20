@@ -8,24 +8,24 @@ const MAPS_URL =
   'https://www.google.com/maps/search/?api=1&query=Clik%20Clak%20Repair%20Rue%20du%20Petit-Ch%C3%AAne%209b%201003%20Lausanne'
 
 const navLinksFr = [
-  { label: 'Accueil',                 href: '/'                                },
-  { label: 'Réparation',              href: '/reparation/'                     },
-  { label: 'Récupération de données', href: '/services/recuperation-donnees/'  },
-  { label: 'Entreprises',             href: '/services/entreprises/'           },
-  { label: 'Conseils',                href: '/blog'                            },
-  { label: 'CGV',                     href: '/cgv'                             },
-  { label: 'Confidentialité',         href: '/politique-confidentialite'       },
+  { label: 'Accueil',                 href: '/'                               },
+  { label: 'Réparation',              href: '/reparation'                     },
+  { label: 'Récupération de données', href: '/services/recuperation-donnees'  },
+  { label: 'Entreprises',             href: '/services/entreprises'           },
+  { label: 'Conseils',                href: '/blog'                           },
+  { label: 'CGV',                     href: '/cgv'                            },
+  { label: 'Confidentialité',         href: '/politique-confidentialite'      },
 ]
 
 const navLinksEn = [
-  { label: 'Home',             href: '/en'                                },
-  { label: 'iPhone Repair',    href: '/en/services/iphone-repair'         },
-  { label: 'Samsung Repair',   href: '/en/services/samsung-repair'        },
-  { label: 'Sell your device', href: '/en/services/sell-your-device'      },
-  { label: 'Business',         href: '/en/services/business/'             },
-  { label: 'Contact',          href: '/en/contact'                        },
-  { label: 'Terms',            href: '/en/terms-and-conditions'           },
-  { label: 'Privacy',          href: '/en/privacy-policy'                 },
+  { label: 'Home',             href: '/en'                               },
+  { label: 'iPhone Repair',    href: '/en/services/iphone-repair'        },
+  { label: 'Samsung Repair',   href: '/en/services/samsung-repair'       },
+  { label: 'Sell your device', href: '/en/services/sell-your-device'     },
+  { label: 'Business',         href: '/en/services/business'             },
+  { label: 'Contact',          href: '/en/contact'                       },
+  { label: 'Terms',            href: '/en/terms-and-conditions'          },
+  { label: 'Privacy',          href: '/en/privacy-policy'                },
 ]
 
 /*

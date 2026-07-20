@@ -102,7 +102,7 @@ export const samsungBrandData: RepairBrandData = {
   h1Brand:            'Samsung',
   brandIcon:          '/assets/icons/icon-samsung.svg',
   breadcrumbLabel:    'Réparation Samsung Lausanne',
-  breadcrumbHref:     '/reparation-smartphone-express/',
+  breadcrumbHref:     '/reparation-smartphone-express',
   initialFamilyCount: 6,
   repairNote:         'La plupart des réparations Samsung sont réalisées en boutique à Lausanne. Délai estimé selon la disponibilité des pièces.',
   searchPlaceholder:  'Rechercher mon Samsung...',

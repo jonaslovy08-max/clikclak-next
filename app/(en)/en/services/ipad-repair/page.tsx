@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     'Check iPad repair prices in Lausanne: glass, screen, battery, charging port and diagnostic at ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/ipad-repair/`,
+    canonical: `${SITE_URL}/en/services/ipad-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-ipad/`,
-      'en-CH':     `${SITE_URL}/en/services/ipad-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-ipad/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-ipad`,
+      'en-CH':     `${SITE_URL}/en/services/ipad-repair`,
+      'x-default': `${SITE_URL}/services/reparation-ipad`,
     },
   },
   openGraph: {
     title: 'iPad Repair Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/ipad-repair/`,
+    url: `${SITE_URL}/en/services/ipad-repair`,
     locale: 'en_CH',
     type: 'website',
   },

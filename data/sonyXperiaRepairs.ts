@@ -35,7 +35,7 @@ export const sonyXperiaBrandData: RepairBrandData = {
   h1Brand:           'Sony Xperia',
   brandIcon:         '/assets/icons/icon-sony-xperia.svg',
   breadcrumbLabel:   'Réparation Sony Xperia Lausanne',
-  breadcrumbHref:    '/reparation-smartphone-express/',
+  breadcrumbHref:    '/reparation-smartphone-express',
   repairNote:        'Les tarifs Sony Xperia sont indicatifs et peuvent varier selon la disponibilité des pièces et l\'état de l\'appareil.',
   searchPlaceholder: 'Rechercher mon Sony Xperia...',
 

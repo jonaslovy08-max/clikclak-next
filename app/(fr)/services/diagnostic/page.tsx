@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   title: 'Diagnostic smartphone, tablette et ordinateur à Lausanne | ClikClak',
   description:
     'ClikClak réalise le diagnostic de smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne pour identifier l\'origine d\'une panne avant réparation.',
-  alternates: { canonical: `${SITE_URL}/services/diagnostic/` },
+  alternates: { canonical: `${SITE_URL}/services/diagnostic` },
   openGraph: {
     title: 'Diagnostic smartphone, tablette et ordinateur à Lausanne — ClikClak',
     description: 'Diagnostic smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne : panne inconnue, écran noir, batterie, charge. Estimation avant intervention.',
-    url: `${SITE_URL}/services/diagnostic/`,
+    url: `${SITE_URL}/services/diagnostic`,
     locale: 'fr_CH', type: 'website',
   },
 }

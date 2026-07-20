@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: 'Réparation tablette à Lausanne : iPad, Surface Pro, Samsung Tab. Service express, pièces originales.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/services/reparation-tablette/`,
+    canonical: `${SITE_URL}/services/reparation-tablette`,
   },
   openGraph: {
     title: 'Réparation tablette iPad Surface Pro Lausanne — Clik Clak',
-    url: `${SITE_URL}/services/reparation-tablette/`,
+    url: `${SITE_URL}/services/reparation-tablette`,
     locale: 'fr_CH',
     type: 'website',
   },

@@ -13,16 +13,16 @@ export const metadata: Metadata = {
   description:
     'Express smartphone repair at the best price in Lausanne. On-call service 7 days a week. iPhone, Samsung, Huawei repair in Lausanne.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/smartphone-repair/`,
+    canonical: `${SITE_URL}/en/services/smartphone-repair`,
     languages: {
-      'fr-CH':    `${SITE_URL}/reparation-smartphone-express/`,
-      'en-CH':    `${SITE_URL}/en/services/smartphone-repair/`,
-      'x-default': `${SITE_URL}/reparation-smartphone-express/`,
+      'fr-CH':    `${SITE_URL}/reparation-smartphone-express`,
+      'en-CH':    `${SITE_URL}/en/services/smartphone-repair`,
+      'x-default': `${SITE_URL}/reparation-smartphone-express`,
     },
   },
   openGraph: {
     title: 'Express Smartphone Repair Lausanne — Clik Clak Repair',
-    url: `${SITE_URL}/en/services/smartphone-repair/`,
+    url: `${SITE_URL}/en/services/smartphone-repair`,
     locale: 'en_CH',
     type: 'website',
   },

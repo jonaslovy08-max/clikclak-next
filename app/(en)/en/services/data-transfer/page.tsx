@@ -6,16 +6,16 @@ export const metadata: Metadata = {
   title: 'Data Transfer Lausanne — ClikClak',
   description: 'Data transfer in Lausanne: smartphone, tablet, computer. Fast and secure service.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/data-transfer/`,
+    canonical: `${SITE_URL}/en/services/data-transfer`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/transfert-donnees/`,
-      'en-CH':     `${SITE_URL}/en/services/data-transfer/`,
-      'x-default': `${SITE_URL}/services/transfert-donnees/`,
+      'fr-CH':     `${SITE_URL}/services/transfert-donnees`,
+      'en-CH':     `${SITE_URL}/en/services/data-transfer`,
+      'x-default': `${SITE_URL}/services/transfert-donnees`,
     },
   },
   openGraph: {
     title: 'Data Transfer Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/data-transfer/`,
+    url: `${SITE_URL}/en/services/data-transfer`,
     locale: 'en_CH',
     type: 'website',
   },

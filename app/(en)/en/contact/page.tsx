@@ -13,17 +13,17 @@ export const metadata: Metadata = {
   description:
     'Contact ClikClak in Lausanne for smartphone, iPhone, Samsung, iPad, MacBook repair, data recovery or diagnostic. Send your request with a photo.',
   alternates: {
-    canonical: `${SITE_URL}/en/contact/`,
+    canonical: `${SITE_URL}/en/contact`,
     languages: {
-      'fr-CH':    `${SITE_URL}/contact-clik-clak-lausanne/`,
-      'en-CH':    `${SITE_URL}/en/contact/`,
-      'x-default': `${SITE_URL}/contact-clik-clak-lausanne/`,
+      'fr-CH':    `${SITE_URL}/contact-clik-clak-lausanne`,
+      'en-CH':    `${SITE_URL}/en/contact`,
+      'x-default': `${SITE_URL}/contact-clik-clak-lausanne`,
     },
   },
   openGraph: {
     title: 'Contact ClikClak Lausanne | Smartphone, iPad, MacBook Repair',
     description: 'Contact ClikClak in Lausanne for repairs or diagnostics. Send your request with a photo.',
-    url: `${SITE_URL}/en/contact/`,
+    url: `${SITE_URL}/en/contact`,
     locale: 'en_CH',
     type: 'website',
   },

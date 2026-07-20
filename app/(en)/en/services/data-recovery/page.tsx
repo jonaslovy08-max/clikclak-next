@@ -11,17 +11,17 @@ export const metadata: Metadata = {
   description:
     'Data recovery in Lausanne on iPhone, Android, MacBook, PC, hard drive, SSD, USB, SD card, RAID and damaged media. Diagnostic, clear quote and secure transfer.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/data-recovery/`,
+    canonical: `${SITE_URL}/en/services/data-recovery`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/recuperation-donnees/`,
-      'en-CH':     `${SITE_URL}/en/services/data-recovery/`,
-      'x-default': `${SITE_URL}/services/recuperation-donnees/`,
+      'fr-CH':     `${SITE_URL}/services/recuperation-donnees`,
+      'en-CH':     `${SITE_URL}/en/services/data-recovery`,
+      'x-default': `${SITE_URL}/services/recuperation-donnees`,
     },
   },
   openGraph: {
     title: 'Data Recovery Lausanne — ClikClak',
     description: 'Data recovery in Lausanne on iPhone, Android, MacBook, PC, hard drive, SSD, RAID and damaged media.',
-    url: `${SITE_URL}/en/services/data-recovery/`,
+    url: `${SITE_URL}/en/services/data-recovery`,
     locale: 'en_CH',
     type: 'website',
   },

@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title: 'Réparation écran smartphone Lausanne | iPhone, Samsung & Android | ClikClak',
   description:
     'Écran fissuré, tactile défectueux ou affichage noir ? ClikClak répare les écrans de smartphones à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia et autres modèles.',
-  alternates: { canonical: `${SITE_URL}/services/reparation-ecran/` },
+  alternates: { canonical: `${SITE_URL}/services/reparation-ecran` },
   openGraph: {
     title: 'Réparation écran smartphone Lausanne — ClikClak',
     description: 'Réparation d\'écran à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia. Tarif selon modèle.',
-    url: `${SITE_URL}/services/reparation-ecran/`,
+    url: `${SITE_URL}/services/reparation-ecran`,
     locale: 'fr_CH', type: 'website',
   },
 }

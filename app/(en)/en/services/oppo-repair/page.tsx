@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     'Check OPPO repair prices in Lausanne: screen, battery, charging port and diagnostic at ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/oppo-repair/`,
+    canonical: `${SITE_URL}/en/services/oppo-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-oppo/`,
-      'en-CH':     `${SITE_URL}/en/services/oppo-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-oppo/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-oppo`,
+      'en-CH':     `${SITE_URL}/en/services/oppo-repair`,
+      'x-default': `${SITE_URL}/services/reparation-oppo`,
     },
   },
   openGraph: {
     title: 'OPPO Repair Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/oppo-repair/`,
+    url: `${SITE_URL}/en/services/oppo-repair`,
     locale: 'en_CH',
     type: 'website',
   },

@@ -15,12 +15,12 @@ export const metadata: Metadata = {
   description:
     'Besoin d\'un dépannage 7/7 à Lausanne ? ClikClak vous accompagne pour smartphone, tablette, ordinateur, configuration, transfert de données, diagnostic et panne urgente selon disponibilité.',
   alternates: {
-    canonical: `${SITE_URL}/services/depannage-reparation-domicile/`,
+    canonical: `${SITE_URL}/services/depannage-reparation-domicile`,
   },
   openGraph: {
     title: 'Dépannage 7/7 Lausanne — ClikClak',
     description: 'Dépannage 7/7 à Lausanne : diagnostic, configuration, transfert de données, accompagnement technique selon disponibilité.',
-    url: `${SITE_URL}/services/depannage-reparation-domicile/`,
+    url: `${SITE_URL}/services/depannage-reparation-domicile`,
     locale: 'fr_CH',
     type: 'website',
   },

@@ -25,17 +25,17 @@ export async function generateMetadata({
     title:       `${model.label} Repair Lausanne | Screen, Battery | ClikClak`,
     description: `Check ${model.label} repair prices in Lausanne: screen, battery, camera, charging port and diagnostic at ClikClak.`,
     alternates: {
-      canonical: `${SITE_URL}${BASE_HREF_EN}/${modelSlug}/`,
+      canonical: `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
       languages: {
-        'fr-CH':     `${SITE_URL}${BASE_HREF_FR}/${modelSlug}/`,
-        'en-CH':     `${SITE_URL}${BASE_HREF_EN}/${modelSlug}/`,
-        'x-default': `${SITE_URL}${BASE_HREF_FR}/${modelSlug}/`,
+        'fr-CH':     `${SITE_URL}${BASE_HREF_FR}${modelSlug}`,
+        'en-CH':     `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
+        'x-default': `${SITE_URL}${BASE_HREF_FR}${modelSlug}`,
       },
     },
     openGraph: {
       title:       `${model.label} Repair Lausanne — ClikClak`,
       description: `${model.label} repair prices in Lausanne. Screen, battery, camera and more. Quality parts, warranty included.`,
-      url:         `${SITE_URL}${BASE_HREF_EN}/${modelSlug}/`,
+      url:         `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
       locale:      'en_CH',
       type:        'website',
     },

@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     'Cracked screen, faulty touch or black display? ClikClak repairs smartphone screens in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia and other models.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/screen-repair/`,
+    canonical: `${SITE_URL}/en/services/screen-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-ecran/`,
-      'en-CH':     `${SITE_URL}/en/services/screen-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-ecran/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-ecran`,
+      'en-CH':     `${SITE_URL}/en/services/screen-repair`,
+      'x-default': `${SITE_URL}/services/reparation-ecran`,
     },
   },
   openGraph: {
     title: 'Screen Repair Lausanne — ClikClak',
     description: 'Screen repair in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia. Price varies by model.',
-    url: `${SITE_URL}/en/services/screen-repair/`,
+    url: `${SITE_URL}/en/services/screen-repair`,
     locale: 'en_CH',
     type: 'website',
   },

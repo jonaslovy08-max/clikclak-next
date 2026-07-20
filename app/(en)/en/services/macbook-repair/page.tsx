@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     'Check MacBook repair prices in Lausanne: screen, battery, keyboard, trackpad, charging and diagnostic at ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/macbook-repair/`,
+    canonical: `${SITE_URL}/en/services/macbook-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-macbook/`,
-      'en-CH':     `${SITE_URL}/en/services/macbook-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-macbook/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-macbook`,
+      'en-CH':     `${SITE_URL}/en/services/macbook-repair`,
+      'x-default': `${SITE_URL}/services/reparation-macbook`,
     },
   },
   openGraph: {
     title: 'MacBook Repair Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/macbook-repair/`,
+    url: `${SITE_URL}/en/services/macbook-repair`,
     locale: 'en_CH',
     type: 'website',
   },

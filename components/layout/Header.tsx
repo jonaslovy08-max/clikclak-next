@@ -28,7 +28,7 @@ const navLinksFr: NavLink[] = [
       { label: 'Tablette',    href: '/reparation-tablette-express'            },
       { label: 'Ordinateur',  href: '/reparation-ordinateur-express'          },
       { label: 'Dépannage',   href: '/services/depannage-reparation-domicile' },
-      { label: 'Voir tous…',  href: '/reparation/'                            },
+      { label: 'Voir tous…',  href: '/reparation'                             },
     ],
   },
   {

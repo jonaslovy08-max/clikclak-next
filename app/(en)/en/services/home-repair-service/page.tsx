@@ -14,17 +14,17 @@ export const metadata: Metadata = {
   description:
     'Need on-site support in Lausanne? ClikClak assists you 7/7 for diagnostics, configuration, data transfer, technical assistance and repairs, subject to availability.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/home-repair-service/`,
+    canonical: `${SITE_URL}/en/services/home-repair-service`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/depannage-reparation-domicile/`,
-      'en-CH':     `${SITE_URL}/en/services/home-repair-service/`,
-      'x-default': `${SITE_URL}/services/depannage-reparation-domicile/`,
+      'fr-CH':     `${SITE_URL}/services/depannage-reparation-domicile`,
+      'en-CH':     `${SITE_URL}/en/services/home-repair-service`,
+      'x-default': `${SITE_URL}/services/depannage-reparation-domicile`,
     },
   },
   openGraph: {
     title: '7/7 On-site Support Lausanne — ClikClak',
     description: '7/7 on-site support in Lausanne: diagnostic, configuration, data transfer, technical assistance, subject to availability.',
-    url: `${SITE_URL}/en/services/home-repair-service/`,
+    url: `${SITE_URL}/en/services/home-repair-service`,
     locale: 'en_CH',
     type: 'website',
   },

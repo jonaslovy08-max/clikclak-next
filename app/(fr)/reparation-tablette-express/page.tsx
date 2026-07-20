@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   description:
     'Réparation de tablettes à Lausanne : iPad, écran, vitre, batterie, connecteur de charge et diagnostic chez ClikClak.',
   alternates: {
-    canonical: `${SITE_URL}/reparation-tablette-express/`,
+    canonical: `${SITE_URL}/reparation-tablette-express`,
   },
   openGraph: {
     title: 'Réparation tablette Lausanne — ClikClak',
-    url: `${SITE_URL}/reparation-tablette-express/`,
+    url: `${SITE_URL}/reparation-tablette-express`,
     locale: 'fr_CH',
     type: 'website',
   },

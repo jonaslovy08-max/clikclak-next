@@ -11,11 +11,11 @@ export const metadata: Metadata = {
   description: 'Xiaomi smartphone repair in Lausanne: diagnostic and quote on request at ClikClak.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/en/services/xiaomi-repair/`,
+    canonical: `${SITE_URL}/en/services/xiaomi-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/reparation-xiaomi/`,
-      'en-CH':     `${SITE_URL}/en/services/xiaomi-repair/`,
-      'x-default': `${SITE_URL}/services/reparation-xiaomi/`,
+      'fr-CH':     `${SITE_URL}/services/reparation-xiaomi`,
+      'en-CH':     `${SITE_URL}/en/services/xiaomi-repair`,
+      'x-default': `${SITE_URL}/services/reparation-xiaomi`,
     },
   },
 }

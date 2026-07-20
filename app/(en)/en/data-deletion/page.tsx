@@ -9,17 +9,17 @@ export const metadata: Metadata = {
   title: 'Deletion of your data | Clik Clak',
   description: 'How to request the deletion of personal data processed by the Clik Clak Support application in connection with private Instagram exchanges.',
   alternates: {
-    canonical: `${SITE_URL}/en/data-deletion/`,
+    canonical: `${SITE_URL}/en/data-deletion`,
     languages: {
-      'fr-CH':     `${SITE_URL}/suppression-donnees/`,
-      'en-CH':     `${SITE_URL}/en/data-deletion/`,
-      'x-default': `${SITE_URL}/suppression-donnees/`,
+      'fr-CH':     `${SITE_URL}/suppression-donnees`,
+      'en-CH':     `${SITE_URL}/en/data-deletion`,
+      'x-default': `${SITE_URL}/suppression-donnees`,
     },
   },
   robots: { index: false, follow: true },
   openGraph: {
     title: 'Deletion of your data | Clik Clak',
-    url: `${SITE_URL}/en/data-deletion/`,
+    url: `${SITE_URL}/en/data-deletion`,
     locale: 'en_CH',
     type: 'website',
   },

@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   title: 'Réparation iPad Lausanne | Prix vitre, écran, batterie | ClikClak',
   description:
     'Consultez les tarifs de réparation iPad à Lausanne : vitre, écran, batterie, connecteur de charge et diagnostic chez ClikClak.',
-  alternates: { canonical: `${SITE_URL}/services/reparation-ipad/` },
+  alternates: { canonical: `${SITE_URL}/services/reparation-ipad` },
   openGraph: {
     title: 'Réparation iPad Lausanne — ClikClak',
-    url: `${SITE_URL}/services/reparation-ipad/`,
+    url: `${SITE_URL}/services/reparation-ipad`,
     locale: 'fr_CH',
     type: 'website',
   },

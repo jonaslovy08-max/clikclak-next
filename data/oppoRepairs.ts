@@ -22,7 +22,7 @@ export const oppoBrandData: RepairBrandData = {
   h1Brand:           'OPPO',
   brandIcon:         '/assets/icons/icon-oppo.svg',
   breadcrumbLabel:   'Réparation OPPO Lausanne',
-  breadcrumbHref:    '/reparation-smartphone-express/',
+  breadcrumbHref:    '/reparation-smartphone-express',
   repairNote:        'Réparation OPPO à Lausanne. Contactez-nous pour tout modèle non listé ou pour un diagnostic.',
   searchPlaceholder: 'Rechercher mon OPPO...',
 

@@ -7,16 +7,16 @@ export const metadata: Metadata = {
   description: 'Professional cleaning of your smartphone or computer in Lausanne.',
   robots: { index: false, follow: true },
   alternates: {
-    canonical: `${SITE_URL}/en/services/device-cleaning/`,
+    canonical: `${SITE_URL}/en/services/device-cleaning`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/nettoyage/`,
-      'en-CH':     `${SITE_URL}/en/services/device-cleaning/`,
-      'x-default': `${SITE_URL}/services/nettoyage/`,
+      'fr-CH':     `${SITE_URL}/services/nettoyage`,
+      'en-CH':     `${SITE_URL}/en/services/device-cleaning`,
+      'x-default': `${SITE_URL}/services/nettoyage`,
     },
   },
   openGraph: {
     title: 'Device Cleaning Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/device-cleaning/`,
+    url: `${SITE_URL}/en/services/device-cleaning`,
     locale: 'en_CH',
     type: 'website',
   },

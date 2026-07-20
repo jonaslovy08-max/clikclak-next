@@ -8,12 +8,12 @@ export const metadata: Metadata = {
   title: 'Conditions générales de vente — Clik Clak Repair',
   description: 'Conditions générales de vente et de réparation de Clik Clak SàRL, Lausanne.',
   alternates: {
-    canonical: `${SITE_URL}/cgv/`,
+    canonical: `${SITE_URL}/cgv`,
   },
   robots: { index: false, follow: true },
   openGraph: {
     title: 'Conditions générales de vente — Clik Clak Repair',
-    url: `${SITE_URL}/cgv/`,
+    url: `${SITE_URL}/cgv`,
     locale: 'fr_CH',
     type: 'website',
   },

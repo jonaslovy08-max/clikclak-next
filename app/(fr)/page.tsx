@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     canonical: `${SITE_URL}/`,
     languages: {
       'fr-CH':    `${SITE_URL}/`,
-      'en-CH':    `${SITE_URL}/en/`,
+      'en-CH':    `${SITE_URL}/en`,
       'x-default': `${SITE_URL}/`,
     },
   },

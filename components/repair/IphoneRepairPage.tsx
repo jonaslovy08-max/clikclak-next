@@ -144,7 +144,7 @@ export default function IphoneRepairPage({ locale = 'fr' }: { locale?: 'fr' | 'e
         h1a:           'Réparation',
         h1b:           'iPhone',
         h1c:           'prix',
-        backHref:      '/reparation-smartphone-express/',
+        backHref:      '/reparation-smartphone-express',
         backLabel:     'Retour',
         breadcrumb:    'Réparation iPhone Lausanne',
         selectModel:   'Sélectionnez votre modèle',
@@ -426,7 +426,7 @@ export default function IphoneRepairPage({ locale = 'fr' }: { locale?: 'fr' | 'e
                   <ShareButton
                     title={UI.shareTitle}
                     text={UI.shareText}
-                    url={locale === 'en' ? '/en/services/iphone-repair/' : '/services/reparation-iphone/'}
+                    url={locale === 'en' ? '/en/services/iphone-repair' : '/services/reparation-iphone'}
                     locale={locale}
                   />
                 </div>

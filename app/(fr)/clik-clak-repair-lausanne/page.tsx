@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   title: 'Clik Clak Repair Lausanne — À propos',
   description: 'Clik Clak Repair, votre spécialiste réparation smartphone à Lausanne, Petit-Chêne 9b. Techniciens certifiés, garantie 2 ans.',
   alternates: {
-    canonical: `${SITE_URL}/clik-clak-repair-lausanne/`,
+    canonical: `${SITE_URL}/clik-clak-repair-lausanne`,
   },
   openGraph: {
     title: 'Clik Clak Repair Lausanne — À propos',
-    url: `${SITE_URL}/clik-clak-repair-lausanne/`,
+    url: `${SITE_URL}/clik-clak-repair-lausanne`,
     locale: 'fr_CH',
     type: 'website',
   },

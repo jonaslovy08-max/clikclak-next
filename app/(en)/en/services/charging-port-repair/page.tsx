@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     'Phone not charging or cable not holding? ClikClak repairs charging ports in Lausanne by model: iPhone, Samsung, OPPO, Huawei and other devices.',
   alternates: {
-    canonical: `${SITE_URL}/en/services/charging-port-repair/`,
+    canonical: `${SITE_URL}/en/services/charging-port-repair`,
     languages: {
-      'fr-CH':     `${SITE_URL}/services/connecteur-de-charge/`,
-      'en-CH':     `${SITE_URL}/en/services/charging-port-repair/`,
-      'x-default': `${SITE_URL}/services/connecteur-de-charge/`,
+      'fr-CH':     `${SITE_URL}/services/connecteur-de-charge`,
+      'en-CH':     `${SITE_URL}/en/services/charging-port-repair`,
+      'x-default': `${SITE_URL}/services/connecteur-de-charge`,
     },
   },
   openGraph: {
     title: 'Charging Port Repair Lausanne — ClikClak',
     description: 'Charging port repair in Lausanne: iPhone, Samsung, OPPO, Huawei. Price varies by model.',
-    url: `${SITE_URL}/en/services/charging-port-repair/`,
+    url: `${SITE_URL}/en/services/charging-port-repair`,
     locale: 'en_CH',
     type: 'website',
   },
