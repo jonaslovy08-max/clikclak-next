@@ -78,6 +78,17 @@ const nextConfig: NextConfig = {
   },
 
   // ================================================================
+  // DIAGNOSTIC TEMPORAIRE — concurrence de génération statique
+  // Conteneur Infomaniak : 64 CPU visibles / ~954 Mo cgroup, sans swap.
+  // Next dimensionne le pool de workers sur les CPU (64) → OOM/SIGABRT
+  // à « Generating static pages (0/478) ». cpus:1 force 1 seul worker.
+  // Réversible — à retirer une fois la cause mémoire traitée à la source.
+  // ================================================================
+  experimental: {
+    cpus: 1,
+  },
+
+  // ================================================================
   // HTTPS — Vercel enforce HTTPS automatiquement.
   // Si déploiement hors Vercel : ajouter un middleware HTTP→HTTPS.
   // Voir docs/SEO_DECISIONS.md §4.6
