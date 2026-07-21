@@ -233,7 +233,7 @@ export default function IphoneRepairPageClient({
     }
   }, [showAllFamilies])
 
-  function selectModelAndScroll(modelId: string) {
+  const selectModelAndScroll = useCallback((modelId: string) => {
     const model = iphoneModels.find(m => m.id === modelId)
     if (!model) return
     const genIdx = generations.findIndex(g => g.id === model.generation)
@@ -245,7 +245,7 @@ export default function IphoneRepairPageClient({
       const y = el.getBoundingClientRect().top + window.scrollY - 24
       window.scrollTo({ top: y, behavior: 'smooth' })
     })
-  }
+  }, [iphoneModels, generations])
 
   function handleGenClick(genId: string) {
     setOpenGenerationId(prev => prev === genId ? null : genId)
@@ -279,7 +279,7 @@ export default function IphoneRepairPageClient({
     if (!param) return
     const timer = setTimeout(() => selectModelAndScroll(param), 450)
     return () => clearTimeout(timer)
-  }, []) // mount only
+  }, [selectModelAndScroll]) // deep-link ?model=… ; selectModelAndScroll est stable (useCallback)
 
   return (
     <>
