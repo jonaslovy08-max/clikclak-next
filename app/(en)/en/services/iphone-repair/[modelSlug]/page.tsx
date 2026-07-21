@@ -1,11 +1,19 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { iphoneModels } from '@/data/iphoneRepairs'
 import IphoneModelPage from '@/components/repair/IphoneModelPage'
+import {
+  getPublicRepairModel,
+  getPublicRepairModels,
+} from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 
-export function generateStaticParams() {
-  return iphoneModels.map(m => ({ modelSlug: m.id }))
+export const dynamic = 'force-dynamic'
+
+export async function generateStaticParams() {
+  const models = await getPublicRepairModels('iphone')
+
+  return models.map((model) => ({
+    modelSlug: model.slug,
+  }))
 }
 
 export async function generateMetadata({
@@ -14,36 +22,53 @@ export async function generateMetadata({
   params: Promise<{ modelSlug: string }>
 }): Promise<Metadata> {
   const { modelSlug } = await params
-  const model = iphoneModels.find(m => m.id === modelSlug)
-  if (!model) return {}
+  const model = await getPublicRepairModel('iphone', modelSlug)
+
+  if (!model) {
+    return {}
+  }
+
+  const canonicalSlug = model.slug
+  const frenchUrl =
+    `${SITE_URL}/services/reparation-iphone/${canonicalSlug}`
+  const canonicalUrl =
+    `${SITE_URL}/en/services/iphone-repair/${canonicalSlug}`
+
   return {
-    title: `${model.label} Repair Lausanne | Screen, Battery | ClikClak`,
-    description: `Check ${model.label} repair prices in Lausanne: screen, battery, camera, charging port and diagnostic at ClikClak.`,
+    title:
+      `${model.name} Repair Lausanne | Screen and Battery Prices | ClikClak`,
+    description:
+      `View repair prices for ${model.name} in Lausanne: screen, battery, camera, charging port and diagnostics at ClikClak.`,
     alternates: {
-      canonical: `${SITE_URL}/en/services/iphone-repair/${modelSlug}`,
+      canonical: canonicalUrl,
       languages: {
-        'fr-CH':     `${SITE_URL}/services/reparation-iphone/${modelSlug}`,
-        'en-CH':     `${SITE_URL}/en/services/iphone-repair/${modelSlug}`,
-        'x-default': `${SITE_URL}/services/reparation-iphone/${modelSlug}`,
+        'fr-CH': frenchUrl,
+        'en-CH': canonicalUrl,
+        'x-default': frenchUrl,
       },
     },
     openGraph: {
-      title: `${model.label} Repair Lausanne — ClikClak`,
-      description: `${model.label} repair prices in Lausanne. Screen, battery, camera and more. Quality parts, warranty included.`,
-      url: `${SITE_URL}/en/services/iphone-repair/${modelSlug}`,
+      title: `${model.name} Repair Lausanne — ClikClak`,
+      description:
+        `${model.name} repair prices in Lausanne. Screen, battery, camera and more. Quality parts and warranty included.`,
+      url: canonicalUrl,
       locale: 'en_CH',
       type: 'website',
     },
   }
 }
 
-export default async function EnIphoneModelPage({
+export default async function IphoneModelSlugPage({
   params,
 }: {
   params: Promise<{ modelSlug: string }>
 }) {
   const { modelSlug } = await params
-  const model = iphoneModels.find(m => m.id === modelSlug)
-  if (!model) notFound()
-  return <IphoneModelPage modelSlug={modelSlug} locale="en" />
+
+  return (
+    <IphoneModelPage
+      modelSlug={modelSlug}
+      locale="en"
+    />
+  )
 }

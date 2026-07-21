@@ -17,9 +17,11 @@ import RepairFAQ from '@/components/repair/RepairFAQ'
 import SectionPinning from '@/components/ui/SectionPinning'
 import ContactPopover from '@/components/home/ContactPopover'
 import { MainRepairCard } from '@/components/repair/MainRepairCard'
-import { iphoneModels, generations } from '@/data/iphoneRepairs'
-import { stripCents } from '@/data/repairTypes'
-import { getRepairLabel, getRepairPrice } from '@/i18n/repairLabels'
+import { getRepairLabel } from '@/i18n/repairLabels'
+import {
+  getPublicRepairBrand,
+  type PublicRepairOffer,
+} from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 import ShareButton from '@/components/share/ShareButton'
 
@@ -73,19 +75,86 @@ const STRINGS = {
   },
 } as const
 
-export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
+function formatOfferPrice(
+  offer: PublicRepairOffer,
+  locale: 'fr' | 'en'
+): string {
+  if (
+    offer.pricing_mode !== 'fixed' ||
+    offer.price_cents === null
+  ) {
+    return locale === 'fr' ? 'Sur devis' : 'On request'
+  }
+
+  return `CHF ${Math.trunc(offer.price_cents / 100)}`
+}
+
+export default async function IphoneModelPage({
+  modelSlug,
+  locale = 'fr',
+}: Props) {
   const T = STRINGS[locale]
+  const brand = await getPublicRepairBrand('iphone')
 
-  const model = iphoneModels.find(m => m.id === modelSlug)
-  if (!model) notFound()
+  if (!brand) notFound()
 
-  const family       = generations.find(g => g.id === model.generation)
-  const familyModels = iphoneModels.filter(
-    m => m.generation === model.generation && m.id !== model.id
+  const family = brand.families.find((candidate) =>
+    candidate.models.some(
+      (candidateModel) =>
+        candidateModel.slug === modelSlug ||
+        candidateModel.legacy_slug === modelSlug
+    )
   )
 
+  const model = family?.models.find(
+    (candidate) =>
+      candidate.slug === modelSlug ||
+      candidate.legacy_slug === modelSlug
+  )
+
+  if (!family || !model) notFound()
+
+  const familyModels = family.models.filter(
+    (candidate) => candidate.id !== model.id
+  )
+
+  const screenOffer = model.offers.find(
+    (offer) =>
+      offer.repair_type.category === 'screen' ||
+      offer.repair_type.internal_key === 'ecran'
+  )
+
+  const batteryOffer = model.offers.find(
+    (offer) =>
+      offer.repair_type.category === 'battery' ||
+      offer.repair_type.internal_key === 'batterie'
+  )
+
+  const mainOffers = [screenOffer, batteryOffer].filter(
+    (offer): offer is PublicRepairOffer => Boolean(offer)
+  )
+
+  const mainRepairs = mainOffers.map((offer) => ({
+    name: offer.repair_type.name,
+    subtitle:
+      offer.subtitle ??
+      (offer.repair_type.category === 'screen'
+        ? T.screenSubtitle
+        : T.batterySubtitle),
+    price: formatOfferPrice(offer, locale),
+  }))
+
+  const mainOfferIds = new Set(mainOffers.map((offer) => offer.id))
+
+  const otherRepairs = model.offers
+    .filter((offer) => !mainOfferIds.has(offer.id))
+    .map((offer) => ({
+      name: offer.repair_type.name,
+      price: formatOfferPrice(offer, locale),
+    }))
+
   /* Label court (sans "iPhone") pour les accents visuels */
-  const shortLabel = model.label.replace('iPhone ', '')
+  const shortLabel = model.name.replace('iPhone ', '')
 
   return (
     <>
@@ -94,7 +163,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
       <main>
         <section
           className="px-6 md:px-14 lg:px-20 py-16 border-t border-white/10"
-          aria-label={T.ariaLabel(model.label)}
+          aria-label={T.ariaLabel(model.name)}
         >
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-12">
 
@@ -127,7 +196,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
                 className="font-light leading-relaxed max-w-2xl"
                 style={{ fontSize: 'clamp(14px, 1.4vw, 18px)', color: 'rgba(242,242,242,0.6)' }}
               >
-                {T.introPart(model.label)}
+                {T.introPart(model.name)}
               </p>
             </div>
 
@@ -141,23 +210,23 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
                   {T.repairPricing}
                 </h2>
                 <ShareButton
-                  title={T.shareTitle(model.label)}
-                  text={T.shareText(model.label)}
-                  url={T.shareUrlBase(model.id)}
+                  title={T.shareTitle(model.name)}
+                  text={T.shareText(model.name)}
+                  url={T.shareUrlBase(model.slug)}
                   locale={locale}
                 />
               </div>
 
               {/* Écran + Batterie */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {model.mainRepairs.map((repair, i) => (
+                {mainRepairs.map((repair, i) => (
                   <MainRepairCard
                     key={repair.name}
                     repair={{
                       ...repair,
                       subtitle: i === 0 ? T.screenSubtitle : T.batterySubtitle,
                     }}
-                    modelLabel={model.label}
+                    modelLabel={model.name}
                     variant={i === 0 ? 'screen' : 'battery'}
                     locale={locale}
                   />
@@ -165,7 +234,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
               </div>
 
               {/* Autres réparations */}
-              {model.otherRepairs.length > 0 && (
+              {otherRepairs.length > 0 && (
                 <div
                   style={{
                     border:       '1px solid rgba(242,242,242,0.1)',
@@ -182,7 +251,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
                     </p>
                   </div>
                   <div className="flex flex-col">
-                    {model.otherRepairs.map((repair, idx) => (
+                    {otherRepairs.map((repair, idx) => (
                       <div
                         key={repair.name}
                         className="flex items-center justify-between px-5 py-3.5"
@@ -194,7 +263,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
                           {getRepairLabel(repair.name, locale)}
                         </span>
                         <span className="text-sm font-light text-accent whitespace-nowrap ml-4">
-                          {stripCents(getRepairPrice(repair.price, locale))}
+                          {repair.price}
                         </span>
                       </div>
                     ))}
@@ -236,13 +305,13 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
                   className="font-light"
                   style={{ fontSize: 'clamp(16px, 1.6vw, 22px)', color: 'rgba(242,242,242,0.85)' }}
                 >
-                  {T.otherModels(family ? family.label : 'iPhone')}
+                  {T.otherModels(family.name)}
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {familyModels.map(m => (
                     <Link
                       key={m.id}
-                      href={T.siblingHref(m.id)}
+                      href={T.siblingHref(m.slug)}
                       className="text-sm font-light px-4 py-2 rounded-lg transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
                       style={{
                         border:          '1px solid rgba(242,242,242,0.12)',
@@ -250,7 +319,7 @@ export default function IphoneModelPage({ modelSlug, locale = 'fr' }: Props) {
                         backgroundColor: 'rgba(255,255,255,0.03)',
                       }}
                     >
-                      {m.label}
+                      {m.name}
                     </Link>
                   ))}
                 </div>

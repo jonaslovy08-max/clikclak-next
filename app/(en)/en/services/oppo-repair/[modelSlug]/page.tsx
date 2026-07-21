@@ -1,16 +1,22 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { oppoBrandData } from '@/data/oppoRepairs'
+
 import RepairModelPage from '@/components/repair/RepairModelPage'
+import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
+import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 
-const BASE_HREF_EN = '/en/services/oppo-repair'
-const BASE_HREF_FR = '/services/reparation-oppo'
+const BASE_HREF = '/en/services/oppo-repair'
 
-const allModels = oppoBrandData.families.flatMap(f => f.models)
+export async function generateStaticParams() {
+  const brand = await getPublicRepairBrand('oppo')
+  if (!brand) return []
 
-export function generateStaticParams() {
-  return allModels.map(m => ({ modelSlug: m.id }))
+  return brand.families.flatMap(family =>
+    family.models.map(model => ({
+      modelSlug: model.slug,
+    }))
+  )
 }
 
 export async function generateMetadata({
@@ -19,43 +25,63 @@ export async function generateMetadata({
   params: Promise<{ modelSlug: string }>
 }): Promise<Metadata> {
   const { modelSlug } = await params
-  const model = allModels.find(m => m.id === modelSlug)
+
+  const brand = await getPublicRepairBrand('oppo')
+  if (!brand) return {}
+
+  const data = adaptPublicRepairBrand(brand, { locale: 'en' })
+
+  const model = data.families
+    .flatMap(f => f.models)
+    .find(m => m.id === modelSlug)
+
   if (!model) return {}
+
   return {
-    title:       `${model.label} Repair Lausanne | Screen, Battery | ClikClak`,
-    description: `Check ${model.label} repair prices in Lausanne: screen, battery, charging port and diagnostic at ClikClak.`,
+    title: `${model.label} Repair Lausanne | Screen & Battery | ClikClak`,
+    description: `Repair prices for ${model.label} in Lausanne: screen, battery, charging port, camera and more.`,
     alternates: {
-      canonical: `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
+      canonical: `${SITE_URL}${BASE_HREF}/${model.id}`,
       languages: {
-        'fr-CH':     `${SITE_URL}${BASE_HREF_FR}${modelSlug}`,
-        'en-CH':     `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
-        'x-default': `${SITE_URL}${BASE_HREF_FR}${modelSlug}`,
+        'fr-CH': `${SITE_URL}/services/reparation-oppo/${model.id}`,
+        'en-CH': `${SITE_URL}${BASE_HREF}/${model.id}`,
+        'x-default': `${SITE_URL}/services/reparation-oppo/${model.id}`,
       },
     },
     openGraph: {
-      title:       `${model.label} Repair Lausanne — ClikClak`,
-      description: `${model.label} repair prices in Lausanne. Screen, battery and more. Quality parts, warranty included.`,
-      url:         `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
-      locale:      'en_CH',
-      type:        'website',
+      title: `${model.label} Repair Lausanne — ClikClak`,
+      description: `Professional ${model.label} repair in Lausanne.`,
+      url: `${SITE_URL}${BASE_HREF}/${model.id}`,
+      locale: 'en_CH',
+      type: 'website',
     },
   }
 }
 
-export default async function EnOppoModelPage({
+export default async function Page({
   params,
 }: {
   params: Promise<{ modelSlug: string }>
 }) {
   const { modelSlug } = await params
-  if (!allModels.find(m => m.id === modelSlug)) notFound()
+
+  const brand = await getPublicRepairBrand('oppo')
+  if (!brand) notFound()
+
+  const data = adaptPublicRepairBrand(brand, { locale: 'en' })
+
+  const model = data.families
+    .flatMap(f => f.models)
+    .find(m => m.id === modelSlug)
+
+  if (!model) notFound()
+
   return (
     <RepairModelPage
-      data={oppoBrandData}
-      modelId={modelSlug}
+      data={data}
+      modelId={model.id}
       deviceType="smartphone"
-      baseHref={BASE_HREF_EN}
-      locale="en"
+      baseHref={BASE_HREF}
     />
   )
 }

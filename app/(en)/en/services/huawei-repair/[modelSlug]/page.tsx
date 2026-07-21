@@ -1,16 +1,26 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { huaweiBrandData } from '@/data/huaweiRepairs'
+
 import RepairModelPage from '@/components/repair/RepairModelPage'
+
+import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
+import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 
-const BASE_HREF_EN = '/en/services/huawei-repair'
-const BASE_HREF_FR = '/services/reparation-huawei-lausanne'
+const BASE_HREF = '/en/services/huawei-repair'
 
-const allModels = huaweiBrandData.families.flatMap(f => f.models)
+export async function generateStaticParams() {
+  const brand = await getPublicRepairBrand('huawei')
 
-export function generateStaticParams() {
-  return allModels.map(m => ({ modelSlug: m.id }))
+  if (!brand) {
+    return []
+  }
+
+  return brand.families.flatMap(family =>
+    family.models.map(model => ({
+      modelSlug: model.slug,
+    }))
+  )
 }
 
 export async function generateMetadata({
@@ -19,43 +29,65 @@ export async function generateMetadata({
   params: Promise<{ modelSlug: string }>
 }): Promise<Metadata> {
   const { modelSlug } = await params
-  const model = allModels.find(m => m.id === modelSlug)
+
+  const brand = await getPublicRepairBrand('huawei')
+
+  if (!brand) return {}
+
+  const model = brand.families
+    .flatMap(f => f.models)
+    .find(m => m.slug === modelSlug || m.legacy_slug === modelSlug)
+
   if (!model) return {}
+
   return {
-    title:       `${model.label} Repair Lausanne | Screen, Battery | ClikClak`,
-    description: `Check ${model.label} repair prices in Lausanne: screen, battery, charging port and diagnostic at ClikClak.`,
+    title: `Huawei ${model.name} Repair Lausanne | ClikClak`,
+    description: `Huawei ${model.name} repair prices in Lausanne. Screen, battery, camera, charging port and more.`,
     alternates: {
-      canonical: `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
+      canonical: `${SITE_URL}${BASE_HREF}/${model.slug}`,
       languages: {
-        'fr-CH':     `${SITE_URL}${BASE_HREF_FR}${modelSlug}`,
-        'en-CH':     `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
-        'x-default': `${SITE_URL}${BASE_HREF_FR}${modelSlug}`,
+        'fr-CH': `${SITE_URL}/services/reparation-huawei-lausanne/${model.slug}`,
+        'en-CH': `${SITE_URL}${BASE_HREF}/${model.slug}`,
+        'x-default': `${SITE_URL}/services/reparation-huawei-lausanne/${model.slug}`,
       },
     },
     openGraph: {
-      title:       `${model.label} Repair Lausanne — ClikClak`,
-      description: `${model.label} repair prices in Lausanne. Screen, battery and more. Quality parts, warranty included.`,
-      url:         `${SITE_URL}${BASE_HREF_EN}${modelSlug}`,
-      locale:      'en_CH',
-      type:        'website',
+      title: `Huawei ${model.name} Repair Lausanne — ClikClak`,
+      description: `Huawei ${model.name} repair in Lausanne. Quality parts and warranty included.`,
+      url: `${SITE_URL}${BASE_HREF}/${model.slug}`,
+      locale: 'en_CH',
+      type: 'website',
     },
   }
 }
 
-export default async function EnHuaweiModelPage({
+export default async function Page({
   params,
 }: {
   params: Promise<{ modelSlug: string }>
 }) {
   const { modelSlug } = await params
-  if (!allModels.find(m => m.id === modelSlug)) notFound()
+
+  const brand = await getPublicRepairBrand('huawei')
+
+  if (!brand) {
+    notFound()
+  }
+
+  const model = brand.families
+    .flatMap(f => f.models)
+    .find(m => m.slug === modelSlug || m.legacy_slug === modelSlug)
+
+  if (!model) {
+    notFound()
+  }
+
   return (
     <RepairModelPage
-      data={huaweiBrandData}
-      modelId={modelSlug}
+      data={adaptPublicRepairBrand(brand, { locale: 'en' })}
+      modelId={model.slug}
       deviceType="smartphone"
-      baseHref={BASE_HREF_EN}
-      locale="en"
+      baseHref={BASE_HREF}
     />
   )
 }

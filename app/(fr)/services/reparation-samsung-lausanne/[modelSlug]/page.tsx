@@ -1,52 +1,109 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { samsungBrandData } from '@/data/samsungRepairs'
+
 import RepairModelPage from '@/components/repair/RepairModelPage'
+import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
+import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 
 const BASE_HREF = '/services/reparation-samsung-lausanne'
 
-const allModels = samsungBrandData.families.flatMap(f => f.models)
+type PageProps = {
+  params: Promise<{ modelSlug: string }>
+}
 
-export function generateStaticParams() {
-  return allModels.map(m => ({ modelSlug: m.id }))
+export async function generateStaticParams() {
+  const brand = await getPublicRepairBrand('samsung')
+
+  if (!brand) {
+    return []
+  }
+
+  return brand.families.flatMap((family) =>
+    family.models.map((model) => ({
+      modelSlug: model.slug,
+    }))
+  )
 }
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ modelSlug: string }>
-}): Promise<Metadata> {
+}: PageProps): Promise<Metadata> {
   const { modelSlug } = await params
-  const model = allModels.find(m => m.id === modelSlug)
-  if (!model) return {}
+  const brand = await getPublicRepairBrand('samsung')
+
+  if (!brand) {
+    return {}
+  }
+
+  const model = brand.families
+    .flatMap((family) => family.models)
+    .find(
+      (candidate) =>
+        candidate.slug === modelSlug ||
+        candidate.legacy_slug === modelSlug
+    )
+
+  if (!model) {
+    return {}
+  }
+
+  const canonicalPath = `${BASE_HREF}/${model.slug}`
+
   return {
-    title:       `Réparation ${model.label} Lausanne | Prix écran, batterie | ClikClak`,
-    description: `Consultez les prix de réparation ${model.label} à Lausanne : écran, batterie, caméra, connecteur de charge et diagnostic chez ClikClak.`,
-    alternates:  { canonical: `${SITE_URL}${BASE_HREF}/${modelSlug}` },
+    title: `Réparation ${model.name} Lausanne | Prix écran, batterie | ClikClak`,
+    description: `Consultez les prix de réparation ${model.name} à Lausanne : écran, batterie, caméra, connecteur de charge et diagnostic chez ClikClak.`,
+    alternates: {
+      canonical: `${SITE_URL}${canonicalPath}`,
+      languages: {
+        'fr-CH': `${SITE_URL}${canonicalPath}`,
+        'en-CH': `${SITE_URL}/en/services/samsung-repair/${model.slug}`,
+        'x-default': `${SITE_URL}${canonicalPath}`,
+      },
+    },
     openGraph: {
-      title:       `Réparation ${model.label} Lausanne — ClikClak`,
-      description: `Prix de réparation ${model.label} à Lausanne. Écran, batterie, caméra et plus. Pièces de qualité, garantie incluse.`,
-      url:         `${SITE_URL}${BASE_HREF}/${modelSlug}`,
-      locale:      'fr_CH',
-      type:        'website',
+      title: `Réparation ${model.name} Lausanne — ClikClak`,
+      description: `Prix de réparation ${model.name} à Lausanne. Écran, batterie, caméra et plus. Pièces de qualité, garantie incluse.`,
+      url: `${SITE_URL}${canonicalPath}`,
+      locale: 'fr_CH',
+      type: 'website',
     },
   }
 }
 
-export default async function Page({
+export default async function SamsungModelPage({
   params,
-}: {
-  params: Promise<{ modelSlug: string }>
-}) {
+}: PageProps) {
   const { modelSlug } = await params
-  if (!allModels.find(m => m.id === modelSlug)) notFound()
+  const brand = await getPublicRepairBrand('samsung')
+
+  if (!brand) {
+    notFound()
+  }
+
+  const model = brand.families
+    .flatMap((family) => family.models)
+    .find(
+      (candidate) =>
+        candidate.slug === modelSlug ||
+        candidate.legacy_slug === modelSlug
+    )
+
+  if (!model) {
+    notFound()
+  }
+
+  const data = adaptPublicRepairBrand(brand, {
+    locale: 'fr',
+  })
+
   return (
     <RepairModelPage
-      data={samsungBrandData}
-      modelId={modelSlug}
+      data={data}
+      modelId={model.slug}
       deviceType="smartphone"
       baseHref={BASE_HREF}
+      locale="fr"
     />
   )
 }

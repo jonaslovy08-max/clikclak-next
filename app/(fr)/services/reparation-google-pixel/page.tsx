@@ -1,27 +1,25 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+
+import GooglePixelRepairPage from '@/components/repair/GooglePixelRepairPage'
 import { SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'Réparation Google Pixel Lausanne — Clik Clak Repair',
-  description: 'Réparation smartphone Google Pixel à Lausanne, service express. Clik Clak Repair, Petit-Chêne 9b.',
-  robots: { index: false, follow: true },
+  title: 'Réparation Google Pixel Lausanne | Clik Clak Repair',
+  description:
+    'Réparation Google Pixel à Lausanne avec pièces de qualité, diagnostic et intervention rapide.',
   alternates: {
     canonical: `${SITE_URL}/services/reparation-google-pixel`,
   },
   openGraph: {
-    title: 'Réparation Google Pixel Lausanne — Clik Clak Repair',
+    title: 'Réparation Google Pixel Lausanne | Clik Clak Repair',
+    description:
+      'Réparation Google Pixel à Lausanne avec pièces de qualité, diagnostic et intervention rapide.',
     url: `${SITE_URL}/services/reparation-google-pixel`,
     locale: 'fr_CH',
     type: 'website',
   },
 }
 
-export default function ReparationGooglePixelPage() {
-  return (
-    <main>
-      <h1>Réparation Google Pixel</h1>
-      <p>Page en cours de construction. <Link href="/">Retour à l&apos;accueil</Link></p>
-    </main>
-  )
+export default function Page() {
+  return <GooglePixelRepairPage locale="fr" />
 }

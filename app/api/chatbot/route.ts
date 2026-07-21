@@ -345,7 +345,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     not_found:      1,
   }
 
-  let pricingMatch = resolveRepairPricing(lastUserMsg.content)
+  let pricingMatch = await resolveRepairPricing(lastUserMsg.content)
 
   const recentUserContent = messages
     .filter(m => m.role === 'user')
@@ -362,7 +362,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     !currentHasModelNumber &&
     recentUserContent !== lastUserMsg.content
   ) {
-    const ctxMatch = resolveRepairPricing(recentUserContent)
+    const ctxMatch = await resolveRepairPricing(recentUserContent)
     if ((STATUS_PRIORITY[ctxMatch.status] ?? 0) > (STATUS_PRIORITY[pricingMatch.status] ?? 0)) {
       pricingMatch = ctxMatch
     }
@@ -378,7 +378,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (ctxBrandToken) {
       const prefix    = ctxRepairToken ? `${ctxBrandToken} ${ctxRepairToken}` : ctxBrandToken
       const augmented = `${prefix} ${lastUserMsg.content}`
-      const augMatch  = resolveRepairPricing(augmented)
+      const augMatch  = await resolveRepairPricing(augmented)
       if ((STATUS_PRIORITY[augMatch.status] ?? 0) > (STATUS_PRIORITY[pricingMatch.status] ?? 0)) {
         pricingMatch = augMatch
       }
