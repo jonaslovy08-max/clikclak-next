@@ -124,12 +124,15 @@ type Props = {
   locale?: 'fr' | 'en'
   iphoneModels: IphoneModel[]
   generations: IphoneGeneration[]
+  /** Contenu serveur rendu juste avant le footer (ex : index SEO des modèles) */
+  bottomSlot?: React.ReactNode
 }
 
 export default function IphoneRepairPageClient({
   locale = 'fr',
   iphoneModels,
   generations,
+  bottomSlot,
 }: Props) {
   const UI = locale === 'en'
     ? {
@@ -517,6 +520,7 @@ export default function IphoneRepairPageClient({
         postSlugs={['connaitre-modele-iphone', 'batterie-smartphone-fatiguee', 'telephone-tombe-dans-l-eau']}
         locale={locale}
       />
+      {bottomSlot}
       <SiteFooter locale={locale} />
       <SectionPinning />
     </>

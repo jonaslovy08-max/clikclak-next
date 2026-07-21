@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import RepairPricingPage from '@/components/repair/RepairPricingPage'
 import RecentShopProducts from '@/components/shop/RecentShopProducts'
+import CrawlableModelIndex from '@/components/repair/CrawlableModelIndex'
 
 import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
 import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
@@ -32,7 +33,17 @@ export default async function SonyXperiaRepairPage({
     <RepairPricingPage
       data={data}
       locale={locale}
-      bottomSlot={<RecentShopProducts />}
+      bottomSlot={
+        <>
+          <RecentShopProducts />
+          <CrawlableModelIndex
+            brandName={brand.name}
+            families={brand.families}
+            basePath={brand.public_base_path ?? ''}
+            locale={locale}
+          />
+        </>
+      }
     />
   )
 }

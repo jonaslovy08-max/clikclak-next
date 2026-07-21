@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from 'next/cache'
 import { notFound } from 'next/navigation'
 
 import IphoneRepairPageClient from '@/components/repair/IphoneRepairPageClient'
+import CrawlableModelIndex from '@/components/repair/CrawlableModelIndex'
 import { adaptIphonePublicCatalog } from '@/lib/repair/iphonePublicAdapter'
 import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 
@@ -37,6 +38,14 @@ export default async function IphoneRepairPage({
       locale={locale}
       iphoneModels={iphoneModels}
       generations={generations}
+      bottomSlot={
+        <CrawlableModelIndex
+          brandName={brand.name}
+          families={brand.families}
+          basePath={brand.public_base_path ?? ''}
+          locale={locale}
+        />
+      }
     />
   )
 }
