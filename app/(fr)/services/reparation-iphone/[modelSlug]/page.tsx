@@ -6,8 +6,6 @@ import {
 } from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
-
 
 export async function generateStaticParams() {
   const models = await getPublicRepairModels('iphone')

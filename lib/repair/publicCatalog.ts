@@ -1,4 +1,5 @@
 
+import { cache } from 'react'
 import { publicSupabase } from '@/lib/supabase/public'
 
 export type PublicRepairType = {
@@ -82,7 +83,7 @@ function isPublicRepairBrand(
   )
 }
 
-export async function getPublicRepairBrand(
+export const getPublicRepairBrand = cache(async function getPublicRepairBrand(
   brandSlug: string
 ): Promise<PublicRepairBrand | null> {
   const normalizedSlug = brandSlug.trim().toLowerCase()
@@ -127,7 +128,7 @@ export async function getPublicRepairBrand(
   }
 
   return data
-}
+})
 
 export async function getPublicRepairModels(
   brandSlug: string
