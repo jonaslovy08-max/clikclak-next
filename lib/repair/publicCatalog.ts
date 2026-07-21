@@ -86,6 +86,12 @@ function isPublicRepairBrand(
 export const getPublicRepairBrand = cache(async function getPublicRepairBrand(
   brandSlug: string
 ): Promise<PublicRepairBrand | null> {
+  const m = process.memoryUsage()
+
+  process.stderr.write(
+    `[gen][pid=${process.pid}][${new Date().toISOString()}] brand=${brandSlug} rss=${Math.round(m.rss / 1024 / 1024)}MB heap=${Math.round(m.heapUsed / 1024 / 1024)}MB\n`
+  )
+
   const normalizedSlug = brandSlug.trim().toLowerCase()
 
   if (!normalizedSlug) {
