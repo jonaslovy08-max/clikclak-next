@@ -111,11 +111,11 @@ const STATUS_PRIORITY: Record<string, number> = {
   not_found:     1,
 };
 
-function resolveWithContext(
+async function resolveWithContext(
   currentText:   string,
   recentContext: string
 ): ReturnType<typeof resolveRepairPricing> {
-  let match = resolveRepairPricing(currentText);
+  let match = await resolveRepairPricing(currentText);
   const currentPriority = STATUS_PRIORITY[match.status] ?? 1;
 
   const hasModelNumber = /\b(iphone|samsung|galaxy|ipad|macbook)?\s*\d{1,2}\b/i.test(
@@ -127,7 +127,7 @@ function resolveWithContext(
     !hasModelNumber &&
     recentContext !== currentText
   ) {
-    const ctxMatch = resolveRepairPricing(recentContext);
+    const ctxMatch = await resolveRepairPricing(recentContext);
     if ((STATUS_PRIORITY[ctxMatch.status] ?? 0) > currentPriority) {
       match = ctxMatch;
     }
@@ -139,7 +139,7 @@ function resolveWithContext(
     if (ctxBrand) {
       const prefix    = ctxRepair ? `${ctxBrand} ${ctxRepair}` : ctxBrand;
       const augmented = `${prefix} ${currentText}`;
-      const augMatch  = resolveRepairPricing(augmented);
+      const augMatch  = await resolveRepairPricing(augmented);
       if ((STATUS_PRIORITY[augMatch.status] ?? 0) > (STATUS_PRIORITY[match.status] ?? 0)) {
         match = augMatch;
       }
@@ -212,7 +212,7 @@ async function processMessage(
 
   /* ── Étape 4 : résolution tarifaire ─────────────────────────── */
   const recentContext = buildRecentContext(history, text);
-  const match         = resolveWithContext(text, recentContext);
+  const match         = await resolveWithContext(text, recentContext);
 
   /* ── Étape 5 : formatage de la réponse ──────────────────────── */
   let responseText: string;

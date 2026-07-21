@@ -2,23 +2,10 @@ import type { MetadataRoute } from 'next'
 import { getPublishedPosts } from '@/lib/blog'
 import { getIndexableProducts } from '@/lib/products'
 import { SHOP_ENABLED } from '@/lib/config/features'
-import { iphoneModels } from '@/data/iphoneRepairs'
-import { samsungBrandData } from '@/data/samsungRepairs'
-import { huaweiBrandData } from '@/data/huaweiRepairs'
-import { ipadBrandData } from '@/data/ipadRepairs'
-import { macbookBrandData } from '@/data/macbookRepairs'
-import { oppoBrandData } from '@/data/oppoRepairs'
-import { sonyXperiaBrandData } from '@/data/sonyXperiaRepairs'
+import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 
 const BASE = 'https://clikclak.ch'
 
-/* ── Model slugs ──────────────────────────────────────────────── */
-const samsungModels  = samsungBrandData.families.flatMap(f => f.models)
-const huaweiModels   = huaweiBrandData.families.flatMap(f => f.models)
-const ipadModels     = ipadBrandData.families.flatMap(f => f.models)
-const macbookModels  = macbookBrandData.families.flatMap(f => f.models)
-const oppoModels     = oppoBrandData.families.flatMap(f => f.models)
-const sonyModels     = sonyXperiaBrandData.families.flatMap(f => f.models)
 
 /* ── Pages anglaises complètes ───────────────────────────────────────
    Uniquement les pages effectivement traduites et indexables.
@@ -67,55 +54,8 @@ const EN_STATIC_PAGES: MetadataRoute.Sitemap = [
   */
 ]
 
-/* ── Model pages EN — iPhone ────────────────────────────────────── */
-const EN_IPHONE_MODELS: MetadataRoute.Sitemap = iphoneModels.map(m => ({
-  url:             `${BASE}/en/services/iphone-repair/${m.id}`,
-  priority:        0.6 as const,
-  changeFrequency: 'monthly' as const,
-}))
-
-/* ── Model pages EN — Samsung ────────────────────────────────────── */
-const EN_SAMSUNG_MODELS: MetadataRoute.Sitemap = samsungModels.map(m => ({
-  url:             `${BASE}/en/services/samsung-repair/${m.id}`,
-  priority:        0.5 as const,
-  changeFrequency: 'monthly' as const,
-}))
-
-/* ── Model pages EN — Huawei ─────────────────────────────────────── */
-const EN_HUAWEI_MODELS: MetadataRoute.Sitemap = huaweiModels.map(m => ({
-  url:             `${BASE}/en/services/huawei-repair/${m.id}`,
-  priority:        0.5 as const,
-  changeFrequency: 'monthly' as const,
-}))
-
-/* ── Model pages EN — iPad ───────────────────────────────────────── */
-const EN_IPAD_MODELS: MetadataRoute.Sitemap = ipadModels.map(m => ({
-  url:             `${BASE}/en/services/ipad-repair/${m.id}`,
-  priority:        0.5 as const,
-  changeFrequency: 'monthly' as const,
-}))
-
-/* ── Model pages EN — MacBook ────────────────────────────────────── */
-const EN_MACBOOK_MODELS: MetadataRoute.Sitemap = macbookModels.map(m => ({
-  url:             `${BASE}/en/services/macbook-repair/${m.id}`,
-  priority:        0.5 as const,
-  changeFrequency: 'monthly' as const,
-}))
 
 /* ── Model pages EN — OPPO ───────────────────────────────────────── */
-const EN_OPPO_MODELS: MetadataRoute.Sitemap = oppoModels.map(m => ({
-  url:             `${BASE}/en/services/oppo-repair/${m.id}`,
-  priority:        0.5 as const,
-  changeFrequency: 'monthly' as const,
-}))
-
-/* ── Model pages EN — Sony ───────────────────────────────────────── */
-const EN_SONY_MODELS: MetadataRoute.Sitemap = sonyModels.map(m => ({
-  url:             `${BASE}/en/services/sony-xperia-repair/${m.id}`,
-  priority:        0.5 as const,
-  changeFrequency: 'monthly' as const,
-}))
-
 /*
   Sitemap ClikClak — règles d'inclusion :
     ✓ pages finales avec contenu réel
@@ -125,7 +65,68 @@ const EN_SONY_MODELS: MetadataRoute.Sitemap = sonyModels.map(m => ({
     ✗ placeholders exclus (reparation-xiaomi, reparation-google-pixel,
       reparation-tablette, nettoyage → noindex sur ces pages)
 */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const iphoneBrand = await getPublicRepairBrand('iphone')
+  const iphoneModels = iphoneBrand?.families.flatMap(family => family.models) ?? []
+
+  const samsungBrand = await getPublicRepairBrand('samsung')
+  const samsungModels = samsungBrand?.families.flatMap(family => family.models) ?? []
+
+  const EN_SAMSUNG_MODELS: MetadataRoute.Sitemap = samsungModels.map(model => ({
+    url: `${BASE}/en/services/samsung-repair/${model.slug}`,
+    priority: 0.5 as const,
+    changeFrequency: 'monthly' as const,
+  }))
+
+
+  const huaweiBrand = await getPublicRepairBrand('huawei')
+  const huaweiModels = huaweiBrand?.families.flatMap(family => family.models) ?? []
+
+  const EN_HUAWEI_MODELS: MetadataRoute.Sitemap = huaweiModels.map(model => ({
+    url: `${BASE}/en/services/huawei-repair/${model.slug}`,
+    priority: 0.5 as const,
+    changeFrequency: 'monthly' as const,
+  }))
+
+  const oppoBrand = await getPublicRepairBrand('oppo')
+  const oppoModels = oppoBrand?.families.flatMap(family => family.models) ?? []
+
+  const EN_OPPO_MODELS: MetadataRoute.Sitemap = oppoModels.map(model => ({
+    url: `${BASE}/en/services/oppo-repair/${model.slug}`,
+    priority: 0.5 as const,
+    changeFrequency: 'monthly' as const,
+  }))
+
+  const sonyBrand = await getPublicRepairBrand('sony')
+  const sonyModels = sonyBrand?.families.flatMap(family => family.models) ?? []
+
+  const EN_SONY_MODELS: MetadataRoute.Sitemap = sonyModels.map(model => ({
+    url: `${BASE}/en/services/sony-xperia-repair/${model.slug}`,
+    priority: 0.5 as const,
+    changeFrequency: 'monthly' as const,
+  }))
+
+
+
+  const ipadBrand = await getPublicRepairBrand('ipad')
+  const ipadModels = ipadBrand?.families.flatMap(family => family.models) ?? []
+
+  const EN_IPAD_MODELS: MetadataRoute.Sitemap = ipadModels.map(model => ({
+    url: `${BASE}/en/services/ipad-repair/${model.slug}`,
+    priority: 0.5 as const,
+    changeFrequency: 'monthly' as const,
+  }))
+
+  const macbookBrand = await getPublicRepairBrand('macbook')
+  const macbookModels =
+    macbookBrand?.families.flatMap(family => family.models) ?? []
+
+  const EN_MACBOOK_MODELS: MetadataRoute.Sitemap = macbookModels.map(model => ({
+    url: `${BASE}/en/services/macbook-repair/${model.slug}`,
+    priority: 0.5 as const,
+    changeFrequency: 'monthly' as const,
+  }))
+
   return [
     /* ── Priorité maximale ──────────────────────────────────── */
     { url: `${BASE}/`,                                         priority: 1.0, changeFrequency: 'weekly'  },
@@ -158,49 +159,49 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     /* ── FR Model pages — iPhone ─────────────────────────────── */
     ...iphoneModels.map(m => ({
-      url:             `${BASE}/services/reparation-iphone/${m.id}`,
+      url:             `${BASE}/services/reparation-iphone/${m.slug}`,
       priority:        0.6 as const,
       changeFrequency: 'monthly' as const,
     })),
 
     /* ── FR Model pages — Samsung ────────────────────────────── */
     ...samsungModels.map(m => ({
-      url:             `${BASE}/services/reparation-samsung-lausanne/${m.id}`,
+      url:             `${BASE}/services/reparation-samsung-lausanne/${m.slug}`,
       priority:        0.5 as const,
       changeFrequency: 'monthly' as const,
     })),
 
     /* ── FR Model pages — Huawei ─────────────────────────────── */
     ...huaweiModels.map(m => ({
-      url:             `${BASE}/services/reparation-huawei-lausanne/${m.id}`,
+      url:             `${BASE}/services/reparation-huawei-lausanne/${m.slug}`,
       priority:        0.5 as const,
       changeFrequency: 'monthly' as const,
     })),
 
     /* ── FR Model pages — iPad ───────────────────────────────── */
     ...ipadModels.map(m => ({
-      url:             `${BASE}/services/reparation-ipad/${m.id}`,
+      url:             `${BASE}/services/reparation-ipad/${m.slug}`,
       priority:        0.5 as const,
       changeFrequency: 'monthly' as const,
     })),
 
     /* ── FR Model pages — MacBook ────────────────────────────── */
     ...macbookModels.map(m => ({
-      url:             `${BASE}/services/reparation-macbook/${m.id}`,
+      url:             `${BASE}/services/reparation-macbook/${m.slug}`,
       priority:        0.5 as const,
       changeFrequency: 'monthly' as const,
     })),
 
     /* ── FR Model pages — OPPO ───────────────────────────────── */
     ...oppoModels.map(m => ({
-      url:             `${BASE}/services/reparation-oppo/${m.id}`,
+      url:             `${BASE}/services/reparation-oppo/${m.slug}`,
       priority:        0.5 as const,
       changeFrequency: 'monthly' as const,
     })),
 
     /* ── FR Model pages — Sony ───────────────────────────────── */
     ...sonyModels.map(m => ({
-      url:             `${BASE}/services/reparation-sony-xperia/${m.id}`,
+      url:             `${BASE}/services/reparation-sony-xperia/${m.slug}`,
       priority:        0.5 as const,
       changeFrequency: 'monthly' as const,
     })),
@@ -232,7 +233,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...EN_STATIC_PAGES,
 
     /* ── Pages anglaises — modèles dynamiques ──────────────── */
-    ...EN_IPHONE_MODELS,
+    ...iphoneModels.map(m => ({
+      url:             `${BASE}/en/services/iphone-repair/${m.slug}`,
+      priority:        0.6 as const,
+      changeFrequency: 'monthly' as const,
+    })),
     ...EN_SAMSUNG_MODELS,
     ...EN_HUAWEI_MODELS,
     ...EN_IPAD_MODELS,

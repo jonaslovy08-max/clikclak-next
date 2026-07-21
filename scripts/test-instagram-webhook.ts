@@ -103,24 +103,46 @@ const sentMessages: Array<{ url: string; body: Record<string, unknown> }> = [];
 let   fetchMode: FetchMockMode = 'success';
 
 const realFetch = globalThis.fetch;
-// @ts-expect-error — remplacement de fetch pour les tests uniquement
-globalThis.fetch = (url: string, init?: RequestInit) => {
+
+globalThis.fetch = async (
+  input: string | URL | Request,
+  init?: RequestInit,
+): Promise<Response> => {
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : input.url;
+
+  if (!url.includes("graph.instagram.com")) {
+    return realFetch(input, init);
+  }
+
   const rawBody = init?.body;
-  const body = rawBody ? (JSON.parse(rawBody as string) as Record<string, unknown>) : {};
+  const body = rawBody
+    ? (JSON.parse(rawBody as string) as Record<string, unknown>)
+    : {};
+
   sentMessages.push({ url, body });
 
-  if (fetchMode === 'failure') {
-    return Promise.resolve({
-      ok:     false,
-      status: 503,
-      json:   () => Promise.resolve({ error: { message: "Service Unavailable" } }),
-    });
+  if (fetchMode === "failure") {
+    return new Response(
+      JSON.stringify({ error: { message: "Service Unavailable" } }),
+      {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      },
+    );
   }
-  return Promise.resolve({
-    ok:     true,
-    status: 200,
-    json:   () => Promise.resolve({ message_id: "mock-message-id" }),
-  });
+
+  return new Response(
+    JSON.stringify({ message_id: "mock-message-id" }),
+    {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    },
+  );
 };
 
 /* ── Helpers ─────────────────────────────────────────────────── */
@@ -285,7 +307,7 @@ async function main(): Promise<void> {
     assert.equal(sentMessages.length, 1);
     const text = (sentMessages[0].body as { message?: { text?: string } })?.message?.text ?? "";
 
-    const match = resolveRepairPricing("Écran iPhone 14 Pro");
+    const match = await resolveRepairPricing("Écran iPhone 14 Pro");
     assert.equal(match.status, "found", `Résolveur status: ${match.status}`);
     assert.ok(match.results && match.results.length > 0, "Résultat attendu");
 
@@ -333,7 +355,7 @@ async function main(): Promise<void> {
 
     assert.equal(sentMessages.length, 1);
     const text = (sentMessages[0].body as { message?: { text?: string } })?.message?.text ?? "";
-    const match = resolveRepairPricing("Diagnostic MacBook Pro");
+    const match = await resolveRepairPricing("Diagnostic MacBook Pro");
 
     if (match.status === "found" && match.results?.some(r => r.price.startsWith("CHF"))) {
       assert.ok(text.includes("CHF"), "Prix publié → mention attendue");
@@ -452,22 +474,45 @@ async function main(): Promise<void> {
     clearMid(midFail);
     redisStore.delete(convKey(sid));
 
-    /* Fetch : premier appel → succès, deuxième → échec */
+    /* Fetch : premier appel Instagram → succès, deuxième → échec */
     let fetchCallCount = 0;
-    // @ts-expect-error — remplacement de fetch pour les tests uniquement
-    globalThis.fetch = (url: string, init?: RequestInit) => {
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+
+      if (!url.includes("graph.instagram.com")) {
+        return realFetch(input, init);
+      }
+
       const rawBody = init?.body;
-      const body = rawBody ? (JSON.parse(rawBody as string) as Record<string, unknown>) : {};
+      const body = rawBody
+        ? (JSON.parse(rawBody as string) as Record<string, unknown>)
+        : {};
+
       sentMessages.push({ url, body });
       fetchCallCount++;
+
       if (fetchCallCount % 2 === 1) {
-        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) });
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
       }
-      return Promise.resolve({
-        ok:     false,
-        status: 503,
-        json:   () => Promise.resolve({ error: { message: "fail" } }),
-      });
+
+      return new Response(
+        JSON.stringify({ error: { message: "fail" } }),
+        {
+          status: 503,
+          headers: { "content-type": "application/json" },
+        },
+      );
     };
 
     /* Premier appel webhook : payload avec 2 messages */
@@ -491,13 +536,33 @@ async function main(): Promise<void> {
     fetchCallCount = 0;
     sentMessages.length = 0;
 
-    /* Remettre fetch en mode succès pour le retry */
-    // @ts-expect-error — remplacement de fetch pour les tests uniquement
-    globalThis.fetch = (url: string, init?: RequestInit) => {
+    /* Remettre fetch Instagram en mode succès pour le retry */
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+
+      if (!url.includes("graph.instagram.com")) {
+        return realFetch(input, init);
+      }
+
       const rawBody = init?.body;
-      const b = rawBody ? (JSON.parse(rawBody as string) as Record<string, unknown>) : {};
+      const b = rawBody
+        ? (JSON.parse(rawBody as string) as Record<string, unknown>)
+        : {};
+
       sentMessages.push({ url, body: b });
-      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) });
+
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     };
 
     /* Deuxième appel webhook (retry) : même payload */
@@ -509,16 +574,46 @@ async function main(): Promise<void> {
     assert.equal(sentMessages.length, 1, "Seul midFail doit être retraité");
     assert.ok(redisStore.has(doneKey(midFail)), "midFail doit être marqué :done après retry");
 
-    /* Restaurer fetch en mode global */
-    // @ts-expect-error
-    globalThis.fetch = (url: string, init?: RequestInit) => {
-      const rawBody = init?.body;
-      const b = rawBody ? (JSON.parse(rawBody as string) as Record<string, unknown>) : {};
-      sentMessages.push({ url, body: b });
-      if (fetchMode === 'failure') {
-        return Promise.resolve({ ok: false, status: 503, json: () => Promise.resolve({ error: { message: "fail" } }) });
+    /* Restaurer le mock global */
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+
+      if (!url.includes("graph.instagram.com")) {
+        return realFetch(input, init);
       }
-      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ message_id: "ok" }) });
+
+      const rawBody = init?.body;
+      const b = rawBody
+        ? (JSON.parse(rawBody as string) as Record<string, unknown>)
+        : {};
+
+      sentMessages.push({ url, body: b });
+
+      if (fetchMode === "failure") {
+        return new Response(
+          JSON.stringify({ error: { message: "fail" } }),
+          {
+            status: 503,
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ message_id: "ok" }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      );
     };
   });
 

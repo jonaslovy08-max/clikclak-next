@@ -178,8 +178,11 @@ function modelMatchScore(modelNorm: string, queryNorm: string): number {
   return 0
 }
 
-function detectModel(norm: string, brand: RepairBrand): string | null {
-  const index = getRepairIndex()
+async function detectModel(
+  norm: string,
+  brand: RepairBrand
+): Promise<string | null> {
+  const index = await getRepairIndex()
 
   /* Collecte les modèles uniques pour cette marque */
   const modelMap = new Map<string, string>() // modelNorm → modelLabel
@@ -224,7 +227,9 @@ export function detectRepairTokenFromMessage(message: string): string | null {
  * Analyse un message et retourne une correspondance tarifaire déterministe.
  * Ne fait aucun appel réseau, ne génère aucun prix.
  */
-export function resolveRepairPricing(message: string): PricingMatch {
+export async function resolveRepairPricing(
+  message: string
+): Promise<PricingMatch> {
   const norm = normalizeText(message)
 
   const brand = detectBrand(norm)
@@ -233,7 +238,7 @@ export function resolveRepairPricing(message: string): PricingMatch {
   const brandLabel = REPAIR_BRAND_LABELS[brand]
   const brandHref  = REPAIR_BRAND_HREFS[brand]
   const repair     = detectRepairType(norm)
-  const model      = detectModel(norm, brand)
+  const model      = await detectModel(norm, brand)
 
   /* Marque seule */
   if (!model && !repair) {
@@ -247,7 +252,10 @@ export function resolveRepairPricing(message: string): PricingMatch {
 
   /* Modèle détecté, réparation manquante */
   if (model && !repair) {
-    const entries = searchRepairPrices({ brand, modelQuery: model })
+    const entries = await searchRepairPrices({
+      brand,
+      modelQuery: model,
+    })
     const href    = entries[0]?.href ?? brandHref
     return { status: 'repair_needed', brand: brandLabel, model, modelHref: href }
   }
@@ -255,7 +263,7 @@ export function resolveRepairPricing(message: string): PricingMatch {
   /* Marque + modèle + réparation → recherche tarifaire
      Filtre par correspondance exacte de label pour éviter que "iPhone 14 Pro"
      matche aussi "iPhone 14 Pro Max" (substring match de searchRepairPrices). */
-  const rawResults = searchRepairPrices({
+  const rawResults = await searchRepairPrices({
     brand,
     modelQuery: model!,
     repairType: repair!.key,
@@ -280,7 +288,15 @@ export function resolveRepairPricing(message: string): PricingMatch {
   }
 
   const href      = entries[0].href
-  const hasPrices = entries.some(e => e.price.startsWith('CHF'))
+  const hasPrices = entries.some((e) => {
+    const price = e.price.trim()
+    return (
+      price.includes('CHF') &&
+      !/sur\s+devis/i.test(price) &&
+      !/indisponible/i.test(price) &&
+      !/on\s+request/i.test(price)
+    )
+  })
 
   if (!hasPrices) {
     return {

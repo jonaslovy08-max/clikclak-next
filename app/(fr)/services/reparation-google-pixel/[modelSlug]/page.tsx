@@ -6,10 +6,10 @@ import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
 import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 import { SITE_URL } from '@/lib/seo'
 
-const BASE_HREF = '/services/reparation-sony-xperia'
+const BASE_HREF = '/services/reparation-google-pixel'
 
 export async function generateStaticParams() {
-  const brand = await getPublicRepairBrand('sony')
+  const brand = await getPublicRepairBrand('google')
 
   if (!brand) return []
 
@@ -27,7 +27,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { modelSlug } = await params
 
-  const brand = await getPublicRepairBrand('sony')
+  const brand = await getPublicRepairBrand('google')
   if (!brand) return {}
 
   const data = adaptPublicRepairBrand(brand)
@@ -45,13 +45,13 @@ export async function generateMetadata({
       canonical: `${SITE_URL}${BASE_HREF}/${model.id}`,
       languages: {
         'fr-CH': `${SITE_URL}${BASE_HREF}/${model.id}`,
-        'en-CH': `${SITE_URL}/en/services/sony-xperia-repair/${model.id}`,
+        'en-CH': `${SITE_URL}/en/services/google-pixel-repair/${model.id}`,
         'x-default': `${SITE_URL}${BASE_HREF}/${model.id}`,
       },
     },
     openGraph: {
       title: `Réparation ${model.label} Lausanne — ClikClak`,
-      description: `Prix de réparation ${model.label} à Lausanne. Écran, batterie, caméra et plus. Pièces de qualité, garantie incluse.`,
+      description: `Prix de réparation ${model.label} à Lausanne. Écran, batterie, caméra et plus.`,
       url: `${SITE_URL}${BASE_HREF}/${model.id}`,
       locale: 'fr_CH',
       type: 'website',
@@ -66,7 +66,7 @@ export default async function Page({
 }) {
   const { modelSlug } = await params
 
-  const brand = await getPublicRepairBrand('sony')
+  const brand = await getPublicRepairBrand('google')
   if (!brand) notFound()
 
   const data = adaptPublicRepairBrand(brand)

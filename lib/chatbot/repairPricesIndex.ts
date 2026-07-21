@@ -1,19 +1,25 @@
 /*
-  repairPricesIndex.ts — index complet des tarifs réparation, server-side uniquement.
-  Lit depuis les fichiers data existants — ne pas dupliquer les prix ici.
-  Couvre iPhone, Samsung, iPad, MacBook, Huawei, OPPO.
+  repairPricesIndex.ts — index complet des tarifs de réparation.
+
+  Source unique : catalogue public Supabase.
+  Couvre iPhone, Samsung, iPad, MacBook, Huawei et OPPO.
+  Module réservé au serveur.
 */
 
-import { iphoneModels }    from '@/data/iphoneRepairs'
-import { samsungBrandData } from '@/data/samsungRepairs'
-import { ipadBrandData }   from '@/data/ipadRepairs'
-import { macbookBrandData } from '@/data/macbookRepairs'
-import { huaweiBrandData } from '@/data/huaweiRepairs'
-import { oppoBrandData }   from '@/data/oppoRepairs'
-import { normalizeText }   from './normalizeSearch'
+import 'server-only'
 
-export type RepairBrand =
-  | 'iphone' | 'samsung' | 'ipad' | 'macbook' | 'huawei' | 'oppo'
+import {
+  formatPublicRepairPrice,
+  type PublicRepairBrand,
+  type PublicRepairOffer,
+} from '@/lib/repair/publicCatalog'
+import {
+  getRepairCatalog,
+  type ChatbotRepairBrandSlug,
+} from './repairCatalogCache'
+import { normalizeText } from './normalizeSearch'
+
+export type RepairBrand = ChatbotRepairBrandSlug
 
 export const REPAIR_BRAND_LABELS: Record<RepairBrand, string> = {
   iphone:  'iPhone',
@@ -34,61 +40,93 @@ export const REPAIR_BRAND_HREFS: Record<RepairBrand, string> = {
 }
 
 export interface RepairEntry {
-  brand:       RepairBrand
-  brandLabel:  string
-  modelId:     string
-  modelLabel:  string
+  brand: RepairBrand
+  brandLabel: string
+  modelId: string
+  modelLabel: string
   repairLabel: string
   repairCategory: string
-  price:       string   // always a formatted string: "CHF X.XX" or "Sur demande"
-  href:        string
+  price: string
+  href: string
 }
 
-function formatPrice(p: number | string): string {
-  if (typeof p === 'number') return p > 0 ? `CHF ${p.toFixed(2)}` : 'Prix sur demande'
-  return p || 'Prix sur demande'
+function isRepairBrand(value: string): value is RepairBrand {
+  return Object.prototype.hasOwnProperty.call(
+    REPAIR_BRAND_LABELS,
+    value
+  )
 }
 
-/* ── Build index ─────────────────────────────────────────────── */
-
-let _index: RepairEntry[] | null = null
-
-function buildIndex(): RepairEntry[] {
-  const entries: RepairEntry[] = []
-
-  /* iPhone — model pages exist */
-  for (const m of iphoneModels) {
-    const href = `/services/reparation-iphone/${m.id}`
-    for (const r of m.mainRepairs) {
-      entries.push({ brand: 'iphone', brandLabel: 'iPhone', modelId: m.id, modelLabel: m.label, repairLabel: r.name, repairCategory: r.name.toLowerCase().includes('batterie') ? 'battery' : 'screen', price: r.price, href })
-    }
-    for (const r of m.otherRepairs) {
-      entries.push({ brand: 'iphone', brandLabel: 'iPhone', modelId: m.id, modelLabel: m.label, repairLabel: r.name, repairCategory: 'other', price: r.price, href })
-    }
+function getBrandLabel(brand: PublicRepairBrand): string {
+  if (isRepairBrand(brand.slug)) {
+    return REPAIR_BRAND_LABELS[brand.slug]
   }
 
-  /* Generic brands using RepairBrandData */
-  const brandSources: Array<{ brand: RepairBrand; data: typeof samsungBrandData }> = [
-    { brand: 'samsung', data: samsungBrandData },
-    { brand: 'ipad',    data: ipadBrandData    },
-    { brand: 'macbook', data: macbookBrandData  },
-    { brand: 'huawei',  data: huaweiBrandData   },
-    { brand: 'oppo',    data: oppoBrandData     },
-  ]
+  return brand.name
+}
 
-  for (const { brand, data } of brandSources) {
-    const href = REPAIR_BRAND_HREFS[brand]
-    for (const family of data.families) {
+function getBrandBasePath(brand: PublicRepairBrand): string {
+  if (brand.public_base_path) {
+    return brand.public_base_path.replace(/\/+$/, '')
+  }
+
+  if (isRepairBrand(brand.slug)) {
+    return REPAIR_BRAND_HREFS[brand.slug]
+  }
+
+  return '/'
+}
+
+function getOfferLabel(offer: PublicRepairOffer): string {
+  const baseLabel =
+    offer.variant_name?.trim() ||
+    offer.repair_type.short_name?.trim() ||
+    offer.repair_type.name.trim()
+
+  if (!offer.subtitle?.trim()) {
+    return baseLabel
+  }
+
+  return `${baseLabel} — ${offer.subtitle.trim()}`
+}
+
+function getOfferPrice(offer: PublicRepairOffer): string {
+  if (offer.availability === 'unavailable') {
+    return offer.public_note?.trim() || 'Indisponible'
+  }
+
+  return formatPublicRepairPrice(offer, 'fr')
+}
+
+/* ── Construction de l'index ───────────────────────────────── */
+
+let indexPromise: Promise<RepairEntry[]> | null = null
+
+async function buildIndex(): Promise<RepairEntry[]> {
+  const catalog = await getRepairCatalog()
+  const entries: RepairEntry[] = []
+
+  for (const brand of catalog) {
+    if (!isRepairBrand(brand.slug)) {
+      continue
+    }
+
+    const brandLabel = getBrandLabel(brand)
+    const basePath = getBrandBasePath(brand)
+
+    for (const family of brand.families) {
       for (const model of family.models) {
-        for (const r of model.repairs) {
+        const href = `${basePath}/${model.slug}`
+
+        for (const offer of model.offers) {
           entries.push({
-            brand,
-            brandLabel:     REPAIR_BRAND_LABELS[brand],
-            modelId:        model.id,
-            modelLabel:     model.label,
-            repairLabel:    r.label,
-            repairCategory: r.category,
-            price:          formatPrice(r.price),
+            brand: brand.slug,
+            brandLabel,
+            modelId: model.slug,
+            modelLabel: model.name,
+            repairLabel: getOfferLabel(offer),
+            repairCategory: offer.repair_type.category,
+            price: getOfferPrice(offer),
             href,
           })
         }
@@ -99,64 +137,174 @@ function buildIndex(): RepairEntry[] {
   return entries
 }
 
-export function getRepairIndex(): RepairEntry[] {
-  if (!_index) _index = buildIndex()
-  return _index
+export function getRepairIndex(): Promise<RepairEntry[]> {
+  if (!indexPromise) {
+    indexPromise = buildIndex().catch((error: unknown) => {
+      indexPromise = null
+      throw error
+    })
+  }
+
+  return indexPromise
 }
 
-/* ── Search helpers ──────────────────────────────────────────── */
+export function clearRepairIndexCache(): void {
+  indexPromise = null
+}
+
+/* ── Recherche ──────────────────────────────────────────────── */
 
 export interface RepairSearchParams {
-  brand?:      string   // brand name or key (case-insensitive)
-  modelQuery?: string   // partial model name
-  repairType?: string   // "ecran" | "batterie" | "connecteur" | "diagnostic" | etc.
+  brand?: string
+  modelQuery?: string
+  repairType?: string
 }
 
 export interface RepairSearchResult {
-  modelLabel:  string
-  brandLabel:  string
+  modelLabel: string
+  brandLabel: string
   repairLabel: string
-  price:       string
-  href:        string
+  price: string
+  href: string
 }
 
-function matchesBrand(entry: RepairEntry, brand: string): boolean {
-  const q = normalizeText(brand)
-  return normalizeText(entry.brand).includes(q) || normalizeText(entry.brandLabel).includes(q)
+function matchesBrand(
+  entry: RepairEntry,
+  brand: string
+): boolean {
+  const query = normalizeText(brand)
+
+  return (
+    normalizeText(entry.brand).includes(query) ||
+    normalizeText(entry.brandLabel).includes(query)
+  )
 }
 
-function matchesModel(entry: RepairEntry, modelQuery: string): boolean {
-  return normalizeText(entry.modelLabel).includes(normalizeText(modelQuery))
+function matchesModel(
+  entry: RepairEntry,
+  modelQuery: string
+): boolean {
+  return normalizeText(entry.modelLabel).includes(
+    normalizeText(modelQuery)
+  )
 }
 
-function matchesRepair(entry: RepairEntry, repairType: string): boolean {
-  const q = normalizeText(repairType)
-  const cat = entry.repairCategory
+function matchesRepair(
+  entry: RepairEntry,
+  repairType: string
+): boolean {
+  const query = normalizeText(repairType)
+  const category = normalizeText(entry.repairCategory)
   const label = normalizeText(entry.repairLabel)
-  if (q.includes('ecran') || q.includes('vitre') || q.includes('screen'))   return cat === 'screen' || label.includes('ecran')
-  if (q.includes('batt'))                                                    return cat === 'battery' || label.includes('batt')
-  if (q.includes('connect') || q.includes('charge') || q.includes('usb'))   return label.includes('connect') || label.includes('charge')
-  if (q.includes('diagn'))                                                   return label.includes('diagn')
-  if (q.includes('camera') || q.includes('camero') || q.includes('photo'))  return label.includes('camér') || label.includes('camera')
-  return label.includes(q)
+
+  if (
+    query.includes('ecran') ||
+    query.includes('vitre') ||
+    query.includes('screen')
+  ) {
+    return (
+      category === 'screen' ||
+      category.includes('ecran') ||
+      label.includes('ecran') ||
+      label.includes('vitre')
+    )
+  }
+
+  if (query.includes('batt')) {
+    return (
+      category === 'battery' ||
+      category.includes('batterie') ||
+      label.includes('batt')
+    )
+  }
+
+  if (
+    query.includes('connect') ||
+    query.includes('charge') ||
+    query.includes('usb')
+  ) {
+    return (
+      category.includes('charge') ||
+      category.includes('connector') ||
+      label.includes('connect') ||
+      label.includes('charge') ||
+      label.includes('usb')
+    )
+  }
+
+  if (query.includes('diagn')) {
+    return (
+      category.includes('diagn') ||
+      label.includes('diagn')
+    )
+  }
+
+  if (
+    query.includes('camera') ||
+    query.includes('camero') ||
+    query.includes('photo')
+  ) {
+    return (
+      category.includes('camera') ||
+      label.includes('camera') ||
+      label.includes('photo')
+    )
+  }
+
+  return label.includes(query) || category.includes(query)
 }
 
-export function searchRepairPrices(params: RepairSearchParams): RepairSearchResult[] {
-  let entries = getRepairIndex()
+export async function searchRepairPrices(
+  params: RepairSearchParams
+): Promise<RepairSearchResult[]> {
+  let entries = await getRepairIndex()
 
-  if (params.brand)      entries = entries.filter(e => matchesBrand(e, params.brand!))
-  if (params.modelQuery) entries = entries.filter(e => matchesModel(e, params.modelQuery!))
-  if (params.repairType) entries = entries.filter(e => matchesRepair(e, params.repairType!))
+  if (params.brand) {
+    entries = entries.filter((entry) =>
+      matchesBrand(entry, params.brand as string)
+    )
+  }
 
-  /* Deduplicate by modelId + repairLabel, keep up to 8 results */
+  if (params.modelQuery) {
+    entries = entries.filter((entry) =>
+      matchesModel(entry, params.modelQuery as string)
+    )
+  }
+
+  if (params.repairType) {
+    entries = entries.filter((entry) =>
+      matchesRepair(entry, params.repairType as string)
+    )
+  }
+
   const seen = new Set<string>()
   const results: RepairSearchResult[] = []
-  for (const e of entries) {
-    const key = `${e.modelId}|${e.repairLabel}`
-    if (seen.has(key)) continue
+
+  for (const entry of entries) {
+    const key = [
+      entry.brand,
+      entry.modelId,
+      entry.repairLabel,
+    ].join('|')
+
+    if (seen.has(key)) {
+      continue
+    }
+
     seen.add(key)
-    results.push({ modelLabel: e.modelLabel, brandLabel: e.brandLabel, repairLabel: e.repairLabel, price: e.price, href: e.href })
-    if (results.length >= 8) break
+
+    results.push({
+      modelLabel: entry.modelLabel,
+      brandLabel: entry.brandLabel,
+      repairLabel: entry.repairLabel,
+      price: entry.price,
+      href: entry.href,
+    })
+
+    if (results.length >= 8) {
+      break
+    }
   }
+
   return results
 }
