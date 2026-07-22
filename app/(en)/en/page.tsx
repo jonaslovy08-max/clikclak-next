@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
 import { SITE_URL, DEFAULT_OG_IMAGE, SITE_NAME } from '@/lib/seo'
 import HomePageContent from '@/components/home/HomePageContent'
+import JsonLd from '@/components/seo/JsonLd'
+import {
+  jsonLdGraph,
+  organizationSchema,
+  localBusinessSchema,
+  webSiteSchema,
+} from '@/lib/structured-data'
 
 const TITLE = 'Smartphone Repair Lausanne — Clik Clak Repair'
 const DESCRIPTION = 'Screen cracked? We fix your smartphone with a 2-year warranty from CHF 29.'
@@ -35,5 +42,16 @@ export const metadata: Metadata = {
 }
 
 export default function EnHomePage() {
-  return <HomePageContent locale="en" />
+  return (
+    <>
+      <JsonLd
+        data={jsonLdGraph(
+          organizationSchema(),
+          localBusinessSchema('en'),
+          webSiteSchema('en'),
+        )}
+      />
+      <HomePageContent locale="en" />
+    </>
+  )
 }
