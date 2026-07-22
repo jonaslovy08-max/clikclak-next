@@ -3,6 +3,7 @@ import { unstable_noStore as noStore } from 'next/cache'
 import RecentShopProducts from '@/components/shop/RecentShopProducts'
 import RepairPricingPage from '@/components/repair/RepairPricingPage'
 import CrawlableModelIndex from '@/components/repair/CrawlableModelIndex'
+import RepairBreadcrumbJsonLd from '@/components/seo/RepairBreadcrumbJsonLd'
 import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
 import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 
@@ -25,6 +26,11 @@ export default async function MacbookRepairPage({
 
   return (
     <>
+      <RepairBreadcrumbJsonLd
+        locale={locale}
+        brandName={brand.name}
+        brandPath={brand.public_base_path ?? ''}
+      />
       <RepairPricingPage
         data={data}
         locale={locale}

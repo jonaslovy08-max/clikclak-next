@@ -11,6 +11,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
+import RepairBreadcrumbJsonLd from '@/components/seo/RepairBreadcrumbJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import RepairEngagements from '@/components/repair/RepairEngagements'
 import RepairFAQ from '@/components/repair/RepairFAQ'
@@ -158,6 +159,12 @@ export default async function IphoneModelPage({
 
   return (
     <>
+      <RepairBreadcrumbJsonLd
+        locale={locale}
+        brandName={brand.name}
+        brandPath={brand.public_base_path ?? ''}
+        model={{ name: model.name, slug: model.slug }}
+      />
       <Header locale={locale} />
 
       <main>

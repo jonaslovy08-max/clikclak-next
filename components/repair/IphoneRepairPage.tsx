@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import IphoneRepairPageClient from '@/components/repair/IphoneRepairPageClient'
 import CrawlableModelIndex from '@/components/repair/CrawlableModelIndex'
+import RepairBreadcrumbJsonLd from '@/components/seo/RepairBreadcrumbJsonLd'
 import { adaptIphonePublicCatalog } from '@/lib/repair/iphonePublicAdapter'
 import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
 
@@ -34,18 +35,25 @@ export default async function IphoneRepairPage({
   }
 
   return (
-    <IphoneRepairPageClient
-      locale={locale}
-      iphoneModels={iphoneModels}
-      generations={generations}
-      bottomSlot={
-        <CrawlableModelIndex
-          brandName={brand.name}
-          families={brand.families}
-          basePath={brand.public_base_path ?? ''}
-          locale={locale}
-        />
-      }
-    />
+    <>
+      <RepairBreadcrumbJsonLd
+        locale={locale}
+        brandName={brand.name}
+        brandPath={brand.public_base_path ?? ''}
+      />
+      <IphoneRepairPageClient
+        locale={locale}
+        iphoneModels={iphoneModels}
+        generations={generations}
+        bottomSlot={
+          <CrawlableModelIndex
+            brandName={brand.name}
+            families={brand.families}
+            basePath={brand.public_base_path ?? ''}
+            locale={locale}
+          />
+        }
+      />
+    </>
   )
 }

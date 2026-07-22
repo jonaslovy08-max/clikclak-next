@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import RepairPricingPage from '@/components/repair/RepairPricingPage'
 import RecentShopProducts from '@/components/shop/RecentShopProducts'
 import CrawlableModelIndex from '@/components/repair/CrawlableModelIndex'
+import RepairBreadcrumbJsonLd from '@/components/seo/RepairBreadcrumbJsonLd'
 
 import { adaptPublicRepairBrand } from '@/lib/repair/publicBrandAdapter'
 import { getPublicRepairBrand } from '@/lib/repair/publicCatalog'
@@ -35,6 +36,11 @@ export default async function HuaweiRepairPage({
       locale={locale}
       bottomSlot={
         <>
+          <RepairBreadcrumbJsonLd
+            locale={locale}
+            brandName={brand.name}
+            brandPath={brand.public_base_path ?? ''}
+          />
           <RecentShopProducts />
           <CrawlableModelIndex
             brandName={brand.name}

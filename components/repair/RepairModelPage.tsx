@@ -16,6 +16,7 @@
 
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
+import RepairBreadcrumbJsonLd from '@/components/seo/RepairBreadcrumbJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import RepairEngagements from '@/components/repair/RepairEngagements'
 import RepairFAQGeneric from '@/components/repair/RepairFAQGeneric'
@@ -134,6 +135,12 @@ export default function RepairModelPage({ data, modelId, deviceType, baseHref, l
 
   return (
     <>
+      <RepairBreadcrumbJsonLd
+        locale={locale}
+        brandName={data.h1Brand}
+        brandPath={baseHref}
+        model={{ name: model.label, slug: model.id }}
+      />
       <Header locale={locale} />
 
       <main>
