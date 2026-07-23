@@ -3,15 +3,18 @@ import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'ClikClak réalise le diagnostic de smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne pour identifier l\'origine d\'une panne avant réparation.'
+const CANONICAL = `${SITE_URL}/services/diagnostic`
+
 export const metadata: Metadata = {
   title: 'Diagnostic smartphone, tablette et ordinateur à Lausanne | ClikClak',
-  description:
-    'ClikClak réalise le diagnostic de smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne pour identifier l\'origine d\'une panne avant réparation.',
-  alternates: { canonical: `${SITE_URL}/services/diagnostic` },
+  description: DESCRIPTION,
+  alternates: { canonical: CANONICAL },
   openGraph: {
     title: 'Diagnostic smartphone, tablette et ordinateur à Lausanne — ClikClak',
     description: 'Diagnostic smartphones, tablettes, iPad, ordinateurs et MacBook à Lausanne : panne inconnue, écran noir, batterie, charge. Estimation avant intervention.',
-    url: `${SITE_URL}/services/diagnostic`,
+    url: CANONICAL,
     locale: 'fr_CH', type: 'website',
   },
 }
@@ -55,6 +58,11 @@ export default function DiagnosticPage() {
         'Estimation avant réparation',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Diagnostic d\'appareil électronique',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/diagnostic.webp',
         mobileSrc: '/assets/images/homepage/service-sections/diagnostic-mobile.webp',

@@ -2,21 +2,24 @@ import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'ClikClak performs diagnostics on smartphones, tablets, iPads, computers and MacBooks in Lausanne to identify the cause of a fault before repair.'
+const CANONICAL = `${SITE_URL}/en/services/diagnostics`
+
 export const metadata: Metadata = {
   title: 'Smartphone, Tablet & Computer Diagnostic Lausanne | ClikClak',
-  description:
-    'ClikClak performs diagnostics on smartphones, tablets, iPads, computers and MacBooks in Lausanne to identify the cause of a fault before repair.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/services/diagnostics`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/services/diagnostic`,
-      'en-CH':     `${SITE_URL}/en/services/diagnostics`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/services/diagnostic`,
     },
   },
   openGraph: {
     title: 'Diagnostic Lausanne — ClikClak',
-    url: `${SITE_URL}/en/services/diagnostics`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -62,6 +65,11 @@ export default function EnDiagnosticsPage() {
         'Estimate before repair',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Electronic device diagnostics',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/diagnostic.webp',
         mobileSrc: '/assets/images/homepage/service-sections/diagnostic-mobile.webp',

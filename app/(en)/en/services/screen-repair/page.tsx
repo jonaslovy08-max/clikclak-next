@@ -2,22 +2,25 @@ import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Cracked screen, faulty touch or black display? ClikClak repairs smartphone screens in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia and other models.'
+const CANONICAL = `${SITE_URL}/en/services/screen-repair`
+
 export const metadata: Metadata = {
   title: 'Screen Repair Lausanne | iPhone, Samsung & Android | ClikClak',
-  description:
-    'Cracked screen, faulty touch or black display? ClikClak repairs smartphone screens in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia and other models.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/services/screen-repair`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/services/reparation-ecran`,
-      'en-CH':     `${SITE_URL}/en/services/screen-repair`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/services/reparation-ecran`,
     },
   },
   openGraph: {
     title: 'Screen Repair Lausanne — ClikClak',
     description: 'Screen repair in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia. Price varies by model.',
-    url: `${SITE_URL}/en/services/screen-repair`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -61,6 +64,11 @@ export default function EnScreenRepairPage() {
         'Full test after repair',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Screen replacement',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/screen-change.webp',
         mobileSrc: '/assets/images/homepage/service-sections/screen-change-mobile.webp',

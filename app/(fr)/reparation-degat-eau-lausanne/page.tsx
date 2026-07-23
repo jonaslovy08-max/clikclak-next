@@ -3,15 +3,18 @@ import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Smartphone tombé dans l\'eau ou touché par l\'humidité ? ClikClak réalise un diagnostic d\'oxydation à Lausanne et intervient selon l\'état de l\'appareil.'
+const CANONICAL = `${SITE_URL}/reparation-degat-eau-lausanne`
+
 export const metadata: Metadata = {
   title: 'Réparation dégât d\'eau smartphone Lausanne | Oxydation & diagnostic | ClikClak',
-  description:
-    'Smartphone tombé dans l\'eau ou touché par l\'humidité ? ClikClak réalise un diagnostic d\'oxydation à Lausanne et intervient selon l\'état de l\'appareil.',
-  alternates: { canonical: `${SITE_URL}/reparation-degat-eau-lausanne` },
+  description: DESCRIPTION,
+  alternates: { canonical: CANONICAL },
   openGraph: {
     title: 'Réparation dégât d\'eau smartphone Lausanne — ClikClak',
     description: 'Diagnostic d\'oxydation et intervention selon l\'état de l\'appareil. iPhone, Samsung et autres smartphones.',
-    url: `${SITE_URL}/reparation-degat-eau-lausanne`,
+    url: CANONICAL,
     locale: 'fr_CH', type: 'website',
   },
 }
@@ -54,6 +57,11 @@ export default function ReparationDegatEauPage() {
       ]}
       note="L'objectif peut être la remise en fonctionnement ou la récupération des données, mais aucune durée de vie ne peut être garantie après contact liquide."
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Réparation d\'appareils endommagés par l\'eau',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/water-damage.webp',
         mobileSrc: '/assets/images/homepage/service-sections/water-damage-mobile.webp',

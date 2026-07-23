@@ -4,15 +4,18 @@ import ScreenCrackOverlay from '@/components/repair/ScreenCrackOverlay'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Écran fissuré, tactile défectueux ou affichage noir ? ClikClak répare les écrans de smartphones à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia et autres modèles.'
+const CANONICAL = `${SITE_URL}/services/reparation-ecran`
+
 export const metadata: Metadata = {
   title: 'Réparation écran smartphone Lausanne | iPhone, Samsung & Android | ClikClak',
-  description:
-    'Écran fissuré, tactile défectueux ou affichage noir ? ClikClak répare les écrans de smartphones à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia et autres modèles.',
-  alternates: { canonical: `${SITE_URL}/services/reparation-ecran` },
+  description: DESCRIPTION,
+  alternates: { canonical: CANONICAL },
   openGraph: {
     title: 'Réparation écran smartphone Lausanne — ClikClak',
     description: 'Réparation d\'écran à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia. Tarif selon modèle.',
-    url: `${SITE_URL}/services/reparation-ecran`,
+    url: CANONICAL,
     locale: 'fr_CH', type: 'website',
   },
 }
@@ -56,6 +59,11 @@ export default function ReparationEcranPage() {
         'Test complet après réparation',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Remplacement d\'écran',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/screen-change.webp',
         mobileSrc: '/assets/images/homepage/service-sections/screen-change-mobile.webp',

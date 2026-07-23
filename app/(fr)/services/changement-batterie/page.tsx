@@ -3,15 +3,18 @@ import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Batterie qui se vide vite, smartphone qui s\'éteint ou charge instable ? ClikClak remplace les batteries de smartphones à Lausanne selon le modèle et la disponibilité des pièces.'
+const CANONICAL = `${SITE_URL}/services/changement-batterie`
+
 export const metadata: Metadata = {
   title: 'Changement batterie smartphone Lausanne | iPhone, Samsung & Android | ClikClak',
-  description:
-    'Batterie qui se vide vite, smartphone qui s\'éteint ou charge instable ? ClikClak remplace les batteries de smartphones à Lausanne selon le modèle et la disponibilité des pièces.',
-  alternates: { canonical: `${SITE_URL}/services/changement-batterie` },
+  description: DESCRIPTION,
+  alternates: { canonical: CANONICAL },
   openGraph: {
     title: 'Changement batterie smartphone Lausanne — ClikClak',
     description: 'Remplacement de batterie à Lausanne : iPhone, Samsung, OPPO, Huawei, Sony Xperia. Tarif selon modèle.',
-    url: `${SITE_URL}/services/changement-batterie`,
+    url: CANONICAL,
     locale: 'fr_CH', type: 'website',
   },
 }
@@ -53,6 +56,11 @@ export default function ChangementBatteriePage() {
         'Test de charge après intervention',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Remplacement de batterie',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/replace-battery.webp',
         mobileSrc: '/assets/images/homepage/service-sections/replace-battery-mobile.webp',

@@ -2,22 +2,25 @@ import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Battery draining fast or phone shutting down? ClikClak replaces smartphone batteries in Lausanne based on your model and parts availability.'
+const CANONICAL = `${SITE_URL}/en/services/battery-replacement`
+
 export const metadata: Metadata = {
   title: 'Battery Replacement Lausanne | iPhone, Samsung & Android | ClikClak',
-  description:
-    'Battery draining fast or phone shutting down? ClikClak replaces smartphone batteries in Lausanne based on your model and parts availability.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/services/battery-replacement`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/services/changement-batterie`,
-      'en-CH':     `${SITE_URL}/en/services/battery-replacement`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/services/changement-batterie`,
     },
   },
   openGraph: {
     title: 'Battery Replacement Lausanne — ClikClak',
     description: 'Battery replacement in Lausanne: iPhone, Samsung, OPPO, Huawei, Sony Xperia. Price varies by model.',
-    url: `${SITE_URL}/en/services/battery-replacement`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -61,6 +64,11 @@ export default function EnBatteryReplacementPage() {
         'Charge test after intervention',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Battery replacement',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/replace-battery.webp',
         mobileSrc: '/assets/images/homepage/service-sections/replace-battery-mobile.webp',

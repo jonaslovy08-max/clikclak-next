@@ -20,8 +20,22 @@ import ContactPopover from '@/components/home/ContactPopover'
 import RepairEngagements from '@/components/repair/RepairEngagements'
 import InterventionDeviceSelector from '@/components/repair/InterventionDeviceSelector'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
+import JsonLd from '@/components/seo/JsonLd'
+import { jsonLdGraph, serviceSchema, faqSchema } from '@/lib/structured-data'
 
 interface HeroImage { src: string; mobileSrc?: string; alt: string }
+
+/*
+  Données structurées Service. Optionnelles : sans elles, aucun JSON-LD n'est émis.
+  `name` par défaut = le h1 de la page (aucun texte dupliqué).
+  La FAQPage est générée à partir des mêmes faqItems que la FAQ visible.
+*/
+interface StructuredData {
+  name?:        string
+  description:  string
+  url:          string
+  serviceType:  string
+}
 
 interface Props {
   pill:               string
@@ -33,6 +47,7 @@ interface Props {
   heroImage?:         HeroImage
   bottomSlot?:        React.ReactNode
   locale?:            'fr' | 'en'
+  structuredData?:    StructuredData
 }
 
 const PROCESS_STEPS_FR = [
@@ -106,13 +121,30 @@ const STRINGS = {
 
 export default function InterventionPageLayout({
   pill, h1, intro, interventionItems, faqItems, note, heroImage, bottomSlot, locale = 'fr',
+  structuredData,
 }: Props) {
   const T = STRINGS[locale]
   const PROCESS_STEPS = locale === 'en' ? PROCESS_STEPS_EN : PROCESS_STEPS_FR
   const REASSURANCE   = locale === 'en' ? REASSURANCE_EN   : REASSURANCE_FR
 
+  /* Service + FAQPage — provider implicite via { '@id': …/#localbusiness }.
+     faqSchema retourne null si la FAQ est vide : le graph ne contient alors que Service. */
+  const jsonLd = structuredData
+    ? jsonLdGraph(
+        serviceSchema({
+          name:        structuredData.name ?? h1,
+          description: structuredData.description,
+          url:         structuredData.url,
+          serviceType: structuredData.serviceType,
+          locale,
+        }),
+        faqSchema(faqItems.map(item => ({ question: item.q, answer: item.a }))),
+      )
+    : null
+
   return (
     <>
+      <JsonLd data={jsonLd} />
       <Header locale={locale} />
 
       <main>

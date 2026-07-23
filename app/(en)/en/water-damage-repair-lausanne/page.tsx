@@ -2,22 +2,25 @@ import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Dropped your phone in water or exposed to humidity? ClikClak performs oxidation diagnostics in Lausanne and intervenes based on the device condition.'
+const CANONICAL = `${SITE_URL}/en/water-damage-repair-lausanne`
+
 export const metadata: Metadata = {
   title: 'Water Damage Smartphone Repair Lausanne | Oxidation & Diagnostic | ClikClak',
-  description:
-    'Dropped your phone in water or exposed to humidity? ClikClak performs oxidation diagnostics in Lausanne and intervenes based on the device condition.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/water-damage-repair-lausanne`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/reparation-degat-eau-lausanne`,
-      'en-CH':     `${SITE_URL}/en/water-damage-repair-lausanne`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/reparation-degat-eau-lausanne`,
     },
   },
   openGraph: {
     title: 'Water Damage Smartphone Repair Lausanne — ClikClak',
     description: 'Oxidation diagnostic and intervention based on the device condition. iPhone, Samsung and other smartphones.',
-    url: `${SITE_URL}/en/water-damage-repair-lausanne`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -62,6 +65,11 @@ export default function EnWaterDamageRepairPage() {
       ]}
       note="The goal may be to restore function or recover data, but no lifespan can be guaranteed after liquid contact."
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Water-damaged electronic device repair',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/water-damage.webp',
         mobileSrc: '/assets/images/homepage/service-sections/water-damage-mobile.webp',

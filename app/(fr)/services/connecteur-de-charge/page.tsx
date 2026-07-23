@@ -3,15 +3,18 @@ import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Votre smartphone ne charge plus ou le câble tient mal ? ClikClak répare les connecteurs de charge à Lausanne selon le modèle : iPhone, Samsung, OPPO, Huawei et autres appareils.'
+const CANONICAL = `${SITE_URL}/services/connecteur-de-charge`
+
 export const metadata: Metadata = {
   title: 'Réparation connecteur de charge Lausanne | iPhone, Samsung & Android | ClikClak',
-  description:
-    'Votre smartphone ne charge plus ou le câble tient mal ? ClikClak répare les connecteurs de charge à Lausanne selon le modèle : iPhone, Samsung, OPPO, Huawei et autres appareils.',
-  alternates: { canonical: `${SITE_URL}/services/connecteur-de-charge` },
+  description: DESCRIPTION,
+  alternates: { canonical: CANONICAL },
   openGraph: {
     title: 'Réparation connecteur de charge Lausanne — ClikClak',
     description: 'Réparation connecteur de charge à Lausanne : iPhone, Samsung, OPPO, Huawei. Tarif selon modèle.',
-    url: `${SITE_URL}/services/connecteur-de-charge`,
+    url: CANONICAL,
     locale: 'fr_CH', type: 'website',
   },
 }
@@ -53,6 +56,11 @@ export default function ConnecteurDeChargePage() {
         'Test de charge et de connexion',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Réparation de connecteur de charge',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/conn-charge.webp',
         mobileSrc: '/assets/images/homepage/service-sections/conn-charge-mobile.webp',

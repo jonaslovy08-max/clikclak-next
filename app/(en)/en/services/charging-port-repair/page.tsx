@@ -2,22 +2,25 @@ import type { Metadata } from 'next'
 import InterventionPageLayout from '@/components/repair/InterventionPageLayout'
 import { SITE_URL } from '@/lib/seo'
 
+const DESCRIPTION =
+  'Phone not charging or cable not holding? ClikClak repairs charging ports in Lausanne by model: iPhone, Samsung, OPPO, Huawei and other devices.'
+const CANONICAL = `${SITE_URL}/en/services/charging-port-repair`
+
 export const metadata: Metadata = {
   title: 'Charging Port Repair Lausanne | iPhone, Samsung & Android | ClikClak',
-  description:
-    'Phone not charging or cable not holding? ClikClak repairs charging ports in Lausanne by model: iPhone, Samsung, OPPO, Huawei and other devices.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/services/charging-port-repair`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/services/connecteur-de-charge`,
-      'en-CH':     `${SITE_URL}/en/services/charging-port-repair`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/services/connecteur-de-charge`,
     },
   },
   openGraph: {
     title: 'Charging Port Repair Lausanne — ClikClak',
     description: 'Charging port repair in Lausanne: iPhone, Samsung, OPPO, Huawei. Price varies by model.',
-    url: `${SITE_URL}/en/services/charging-port-repair`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -61,6 +64,11 @@ export default function EnChargingPortRepairPage() {
         'Charge and connection test',
       ]}
       faqItems={FAQ}
+      structuredData={{
+        description: DESCRIPTION,
+        url:         CANONICAL,
+        serviceType: 'Charging port repair',
+      }}
       heroImage={{
         src:       '/assets/images/homepage/service-sections/conn-charge.webp',
         mobileSrc: '/assets/images/homepage/service-sections/conn-charge-mobile.webp',
