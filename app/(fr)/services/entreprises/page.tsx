@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import B2BPage from '@/components/b2b/B2BPage'
+import JsonLd from '@/components/seo/JsonLd'
+import { jsonLdGraph, serviceSchema, faqSchema } from '@/lib/structured-data'
 import { SITE_URL, SITE_NAME } from '@/lib/seo'
 
 const TITLE       = 'Services aux entreprises — Réparation & maintenance IT à Lausanne | ClikClak'
@@ -31,74 +33,38 @@ export const metadata: Metadata = {
   },
 }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Service',
-      '@id': CANONICAL,
-      name: 'Services ClikClak pour les entreprises',
-      description: DESCRIPTION,
-      serviceType: "Réparation et maintenance d'appareils électroniques pour entreprises",
-      areaServed: {
-        '@type': 'City',
-        name: 'Lausanne',
-        containedInPlace: { '@type': 'Country', name: 'Suisse' },
-      },
-      provider: {
-        '@type': 'LocalBusiness',
-        name: 'Clik Clak Repair',
-        url: SITE_URL,
-        telephone: '+41213204477',
-        email: 'info@clikclak.ch',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'Rue du Petit-Chêne 9b',
-          postalCode: '1003',
-          addressLocality: 'Lausanne',
-          addressCountry: 'CH',
-        },
-      },
-    },
-    {
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: "Quels types d'appareils prenez-vous en charge pour les entreprises ?",
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Smartphones (toutes marques), tablettes, MacBook et PC Windows. Pour les équipements réseau ou serveurs, contactez-nous pour évaluer la faisabilité.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Proposez-vous des tarifs particuliers pour les entreprises ?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Nous étudions chaque demande individuellement. Contactez-nous pour discuter de votre situation.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'La confidentialité des données est-elle assurée ?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: "Oui. Nous n'accédons aux données qu'en cas de nécessité stricte liée à l'intervention. Un effacement sécurisé peut être réalisé sur demande.",
-          },
-        },
-      ],
-    },
-  ],
-}
+/* FAQ — reprend mot pour mot les 3 questions/réponses affichées par B2BPage */
+const FAQ = [
+  {
+    question: "Quels types d'appareils prenez-vous en charge pour les entreprises ?",
+    answer:   'Smartphones (toutes marques), tablettes, MacBook et PC Windows. Pour les équipements réseau ou serveurs, contactez-nous pour évaluer la faisabilité.',
+  },
+  {
+    question: 'Proposez-vous des tarifs particuliers pour les entreprises ?',
+    answer:   'Nous étudions chaque demande individuellement. Contactez-nous pour discuter de votre situation.',
+  },
+  {
+    question: 'La confidentialité des données est-elle assurée ?',
+    answer:   "Oui. Nous n'accédons aux données qu'en cas de nécessité stricte liée à l'intervention. Un effacement sécurisé peut être réalisé sur demande.",
+  },
+]
+
+/* Service + FAQPage — provider référencé par @id (#localbusiness), pas d'objet imbriqué */
+const jsonLd = jsonLdGraph(
+  serviceSchema({
+    name:        'Services ClikClak pour les entreprises',
+    description: DESCRIPTION,
+    url:         CANONICAL,
+    serviceType: "Réparation et maintenance d'appareils électroniques pour entreprises",
+    locale:      'fr',
+  }),
+  faqSchema(FAQ),
+)
 
 export default function EntreprisesPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       <Header locale="fr" />
       <B2BPage locale="fr" />
       <SiteFooter locale="fr" />

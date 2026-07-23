@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import Header from '@/components/layout/Header'
 import SiteFooter from '@/components/home/SiteFooter'
 import B2BPage from '@/components/b2b/B2BPage'
+import JsonLd from '@/components/seo/JsonLd'
+import { jsonLdGraph, serviceSchema, faqSchema } from '@/lib/structured-data'
 import { SITE_URL, SITE_NAME } from '@/lib/seo'
 
 const TITLE       = 'Business Device Repair & IT Services in Lausanne | ClikClak'
 const DESCRIPTION =
   'ClikClak offers smartphone, tablet, and laptop repair services to businesses and SMEs in the Lausanne area. Fast turnaround, full confidentiality, available 7 days a week.'
-const PATH        = '/en/services/business/'
+const PATH        = '/en/services/business'
 const CANONICAL   = `${SITE_URL}${PATH}`
 
 export const metadata: Metadata = {
@@ -31,74 +33,38 @@ export const metadata: Metadata = {
   },
 }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Service',
-      '@id': CANONICAL,
-      name: 'ClikClak Business Device Services',
-      description: DESCRIPTION,
-      serviceType: 'Business device repair and maintenance',
-      areaServed: {
-        '@type': 'City',
-        name: 'Lausanne',
-        containedInPlace: { '@type': 'Country', name: 'Switzerland' },
-      },
-      provider: {
-        '@type': 'LocalBusiness',
-        name: 'Clik Clak Repair',
-        url: SITE_URL,
-        telephone: '+41213204477',
-        email: 'info@clikclak.ch',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'Rue du Petit-Chêne 9b',
-          postalCode: '1003',
-          addressLocality: 'Lausanne',
-          addressCountry: 'CH',
-        },
-      },
-    },
-    {
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'Which devices do you repair for businesses?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Smartphones (all brands), tablets, MacBooks, and Windows PCs. For network equipment or servers, contact us to assess feasibility.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Do you offer special rates for businesses?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'We assess each request individually. Contact us to discuss your situation.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Is data confidentiality guaranteed?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Yes. We only access data when strictly necessary for the repair. A secure wipe can be performed on request.',
-          },
-        },
-      ],
-    },
-  ],
-}
+/* FAQ — reprend mot pour mot les 3 questions/réponses affichées par B2BPage */
+const FAQ = [
+  {
+    question: 'Which devices do you repair for businesses?',
+    answer:   'Smartphones (all brands), tablets, MacBooks, and Windows PCs. For network equipment or servers, contact us to assess feasibility.',
+  },
+  {
+    question: 'Do you offer special rates for businesses?',
+    answer:   'We assess each request individually. Contact us to discuss your situation.',
+  },
+  {
+    question: 'Is data confidentiality guaranteed?',
+    answer:   'Yes. We only access data when strictly necessary for the repair. A secure wipe can be performed on request.',
+  },
+]
+
+/* Service + FAQPage — provider référencé par @id (#localbusiness), pas d'objet imbriqué */
+const jsonLd = jsonLdGraph(
+  serviceSchema({
+    name:        'ClikClak Business Device Services',
+    description: DESCRIPTION,
+    url:         CANONICAL,
+    serviceType: 'Business electronic device repair and maintenance',
+    locale:      'en',
+  }),
+  faqSchema(FAQ),
+)
 
 export default function BusinessPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       <Header locale="en" />
       <B2BPage locale="en" />
       <SiteFooter locale="en" />

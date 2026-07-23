@@ -38,6 +38,7 @@ export const ROUTES = {
   sellDevice:         { fr: '/services/rachat-de-votre-smartphone',            en: '/en/services/sell-your-device' },
   deviceCleaning:     { fr: '/services/nettoyage',                             en: '/en/services/device-cleaning' },
   dataTransfer:       { fr: '/services/transfert-donnees',                     en: '/en/services/data-transfer' },
+  business:           { fr: '/services/entreprises',                                en: '/en/services/business' },
 
   /* ── Marques smartphone ── */
   iphoneRepair:       { fr: '/services/reparation-iphone',                     en: '/en/services/iphone-repair' },
