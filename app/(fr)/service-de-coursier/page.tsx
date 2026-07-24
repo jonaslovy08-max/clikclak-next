@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
+import ServiceJsonLd from '@/components/seo/ServiceJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
@@ -10,17 +11,21 @@ import { Button } from '@/components/ui/Button'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 import ServiceRequestForm from '@/components/contact/ServiceRequestForm'
 
+const SERVICE_NAME = 'Service de coursier réparation Lausanne — ClikClak'
+const DESCRIPTION =
+  'ClikClak propose un service de coursier à Lausanne et environs proches : collecte de votre smartphone, tablette ou ordinateur, dépôt en atelier puis livraison retour après réparation.'
+const CANONICAL = `${SITE_URL}/service-de-coursier`
+
 export const metadata: Metadata = {
   title: 'Service de coursier réparation Lausanne | Collecte et retour appareil | ClikClak',
-  description:
-    'ClikClak propose un service de coursier à Lausanne et environs proches : collecte de votre smartphone, tablette ou ordinateur, dépôt en atelier puis livraison retour après réparation.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/service-de-coursier`,
+    canonical: CANONICAL,
   },
   openGraph: {
-    title: 'Service de coursier réparation Lausanne — ClikClak',
+    title: SERVICE_NAME,
     description: 'Collecte et retour de votre appareil à Lausanne. CHF 40 l\'aller-retour, hors réparation.',
-    url: `${SITE_URL}/service-de-coursier`,
+    url: CANONICAL,
     locale: 'fr_CH',
     type: 'website',
   },
@@ -83,6 +88,14 @@ const FAQ: FaqItem[] = [
 export default function ServiceCourrierPage() {
   return (
     <>
+      <ServiceJsonLd
+        name={SERVICE_NAME}
+        description={DESCRIPTION}
+        url={CANONICAL}
+        serviceType="Collecte et retour d'appareils électroniques"
+        locale="fr"
+        faqItems={FAQ}
+      />
       <Header />
 
       <main>

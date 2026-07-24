@@ -1,27 +1,32 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Header from '@/components/layout/Header'
+import ServiceJsonLd from '@/components/seo/ServiceJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import ContactPopover from '@/components/home/ContactPopover'
 import { SITE_URL } from '@/lib/seo'
 
+const SERVICE_NAME = 'Data Recovery Lausanne — ClikClak'
+const DESCRIPTION =
+  'Data recovery in Lausanne on iPhone, Android, MacBook, PC, hard drive, SSD, USB, SD card, RAID and damaged media. Diagnostic, clear quote and secure transfer.'
+const CANONICAL = `${SITE_URL}/en/services/data-recovery`
+
 export const metadata: Metadata = {
   title: 'Data Recovery Lausanne | Smartphone, HDD, SSD, Mac & PC | ClikClak',
-  description:
-    'Data recovery in Lausanne on iPhone, Android, MacBook, PC, hard drive, SSD, USB, SD card, RAID and damaged media. Diagnostic, clear quote and secure transfer.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/services/data-recovery`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/services/recuperation-donnees`,
-      'en-CH':     `${SITE_URL}/en/services/data-recovery`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/services/recuperation-donnees`,
     },
   },
   openGraph: {
-    title: 'Data Recovery Lausanne — ClikClak',
+    title: SERVICE_NAME,
     description: 'Data recovery in Lausanne on iPhone, Android, MacBook, PC, hard drive, SSD, RAID and damaged media.',
-    url: `${SITE_URL}/en/services/data-recovery`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -62,6 +67,13 @@ function ServiceCard({ title, children }: { title: string; children: React.React
 export default function EnDataRecoveryPage() {
   return (
     <>
+      <ServiceJsonLd
+        name={SERVICE_NAME}
+        description={DESCRIPTION}
+        url={CANONICAL}
+        serviceType="Data recovery"
+        locale="en"
+      />
       <Header locale="en" />
 
       <main>

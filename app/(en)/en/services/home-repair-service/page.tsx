@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
+import ServiceJsonLd from '@/components/seo/ServiceJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import ContactPopover from '@/components/home/ContactPopover'
@@ -9,22 +10,26 @@ import { Button } from '@/components/ui/Button'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 import ServiceRequestForm from '@/components/contact/ServiceRequestForm'
 
+const SERVICE_NAME = '7/7 On-site Support Lausanne — ClikClak'
+const DESCRIPTION =
+  'Need on-site support in Lausanne? ClikClak assists you 7/7 for diagnostics, configuration, data transfer, technical assistance and repairs, subject to availability.'
+const CANONICAL = `${SITE_URL}/en/services/home-repair-service`
+
 export const metadata: Metadata = {
   title: '7/7 On-site Support Lausanne | Smartphone, Tablet & Computer | ClikClak',
-  description:
-    'Need on-site support in Lausanne? ClikClak assists you 7/7 for diagnostics, configuration, data transfer, technical assistance and repairs, subject to availability.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/services/home-repair-service`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/services/depannage-reparation-domicile`,
-      'en-CH':     `${SITE_URL}/en/services/home-repair-service`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/services/depannage-reparation-domicile`,
     },
   },
   openGraph: {
-    title: '7/7 On-site Support Lausanne — ClikClak',
+    title: SERVICE_NAME,
     description: '7/7 on-site support in Lausanne: diagnostic, configuration, data transfer, technical assistance, subject to availability.',
-    url: `${SITE_URL}/en/services/home-repair-service`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -94,6 +99,14 @@ const FAQ: FaqItem[] = [
 export default function EnHomeRepairServicePage() {
   return (
     <>
+      <ServiceJsonLd
+        name={SERVICE_NAME}
+        description={DESCRIPTION}
+        url={CANONICAL}
+        serviceType="Home electronic device repair"
+        locale="en"
+        faqItems={FAQ}
+      />
       <Header locale="en" />
 
       <main>

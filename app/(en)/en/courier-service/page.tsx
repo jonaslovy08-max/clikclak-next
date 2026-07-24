@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
+import ServiceJsonLd from '@/components/seo/ServiceJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import ContactPopover from '@/components/home/ContactPopover'
@@ -9,22 +10,26 @@ import { Button } from '@/components/ui/Button'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 import ServiceRequestForm from '@/components/contact/ServiceRequestForm'
 
+const SERVICE_NAME = 'Courier Repair Service Lausanne — ClikClak'
+const DESCRIPTION =
+  'ClikClak offers a courier service in Lausanne and nearby areas: device pickup, workshop drop-off and return delivery after repair.'
+const CANONICAL = `${SITE_URL}/en/courier-service`
+
 export const metadata: Metadata = {
   title: 'Courier Repair Service Lausanne | Device Pickup and Return | ClikClak',
-  description:
-    'ClikClak offers a courier service in Lausanne and nearby areas: device pickup, workshop drop-off and return delivery after repair.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/en/courier-service`,
+    canonical: CANONICAL,
     languages: {
       'fr-CH':     `${SITE_URL}/service-de-coursier`,
-      'en-CH':     `${SITE_URL}/en/courier-service`,
+      'en-CH':     CANONICAL,
       'x-default': `${SITE_URL}/service-de-coursier`,
     },
   },
   openGraph: {
-    title: 'Courier Repair Service Lausanne — ClikClak',
+    title: SERVICE_NAME,
     description: 'Device pickup and return in Lausanne. CHF 40 round trip, repair not included.',
-    url: `${SITE_URL}/en/courier-service`,
+    url: CANONICAL,
     locale: 'en_CH',
     type: 'website',
   },
@@ -87,6 +92,14 @@ const FAQ: FaqItem[] = [
 export default function EnCourierServicePage() {
   return (
     <>
+      <ServiceJsonLd
+        name={SERVICE_NAME}
+        description={DESCRIPTION}
+        url={CANONICAL}
+        serviceType="Electronic device pickup and return"
+        locale="en"
+        faqItems={FAQ}
+      />
       <Header locale="en" />
 
       <main>

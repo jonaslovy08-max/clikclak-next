@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { SITE_URL } from '@/lib/seo'
 import Header from '@/components/layout/Header'
+import ServiceJsonLd from '@/components/seo/ServiceJsonLd'
 import SiteFooter from '@/components/home/SiteFooter'
 import SectionPinning from '@/components/ui/SectionPinning'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
@@ -10,17 +11,21 @@ import { Button } from '@/components/ui/Button'
 import FAQAccordion, { type FaqItem } from '@/components/repair/FAQAccordion'
 import ServiceRequestForm from '@/components/contact/ServiceRequestForm'
 
+const SERVICE_NAME = 'Dépannage 7/7 Lausanne — ClikClak'
+const DESCRIPTION =
+  'Besoin d\'un dépannage 7/7 à Lausanne ? ClikClak vous accompagne pour smartphone, tablette, ordinateur, configuration, transfert de données, diagnostic et panne urgente selon disponibilité.'
+const CANONICAL = `${SITE_URL}/services/depannage-reparation-domicile`
+
 export const metadata: Metadata = {
   title: 'Dépannage 7/7 Lausanne | Smartphone, tablette & ordinateur | ClikClak',
-  description:
-    'Besoin d\'un dépannage 7/7 à Lausanne ? ClikClak vous accompagne pour smartphone, tablette, ordinateur, configuration, transfert de données, diagnostic et panne urgente selon disponibilité.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/services/depannage-reparation-domicile`,
+    canonical: CANONICAL,
   },
   openGraph: {
-    title: 'Dépannage 7/7 Lausanne — ClikClak',
+    title: SERVICE_NAME,
     description: 'Dépannage 7/7 à Lausanne : diagnostic, configuration, transfert de données, accompagnement technique selon disponibilité.',
-    url: `${SITE_URL}/services/depannage-reparation-domicile`,
+    url: CANONICAL,
     locale: 'fr_CH',
     type: 'website',
   },
@@ -90,6 +95,14 @@ const FAQ: FaqItem[] = [
 export default function DepannageDomicilePage() {
   return (
     <>
+      <ServiceJsonLd
+        name={SERVICE_NAME}
+        description={DESCRIPTION}
+        url={CANONICAL}
+        serviceType="Réparation d'appareils électroniques à domicile"
+        locale="fr"
+        faqItems={FAQ}
+      />
       <Header />
 
       <main>

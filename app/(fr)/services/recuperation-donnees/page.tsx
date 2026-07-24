@@ -6,20 +6,26 @@ import SectionPinning from '@/components/ui/SectionPinning'
 import RelatedBlogPosts from '@/components/blog/RelatedBlogPosts'
 import ContactPopover from '@/components/home/ContactPopover'
 import DataRecoveryFAQ from '@/components/recovery/DataRecoveryFAQ'
+import { DATA_RECOVERY_FAQ_ITEMS } from '@/components/recovery/dataRecoveryFaqItems'
+import ServiceJsonLd from '@/components/seo/ServiceJsonLd'
 import { SITE_URL } from '@/lib/seo'
+
+const SERVICE_NAME = 'Récupération de données Lausanne — ClikClak'
+const DESCRIPTION =
+  'Récupération de données à Lausanne sur iPhone, smartphone Android, MacBook, PC, disque dur, SSD, clé USB, carte SD, RAID et supports endommagés. Diagnostic, devis clair et transfert sécurisé.'
+const CANONICAL = `${SITE_URL}/services/recuperation-donnees`
 
 export const metadata: Metadata = {
   title: 'Récupération de données Lausanne | Smartphone, disque dur, SSD, Mac & PC | ClikClak',
-  description:
-    'Récupération de données à Lausanne sur iPhone, smartphone Android, MacBook, PC, disque dur, SSD, clé USB, carte SD, RAID et supports endommagés. Diagnostic, devis clair et transfert sécurisé.',
+  description: DESCRIPTION,
   alternates: {
-    canonical: `${SITE_URL}/services/recuperation-donnees`,
+    canonical: CANONICAL,
   },
   openGraph: {
-    title: 'Récupération de données Lausanne — ClikClak',
+    title: SERVICE_NAME,
     description:
       'Récupération de données à Lausanne sur iPhone, Android, MacBook, PC, disque dur, SSD, RAID et supports endommagés.',
-    url: `${SITE_URL}/services/recuperation-donnees`,
+    url: CANONICAL,
     locale: 'fr_CH',
     type: 'website',
   },
@@ -64,6 +70,14 @@ function ServiceCard({ title, children }: { title: string; children: React.React
 export default function RecuperationDonneesPage() {
   return (
     <>
+      <ServiceJsonLd
+        name={SERVICE_NAME}
+        description={DESCRIPTION}
+        url={CANONICAL}
+        serviceType="Récupération de données"
+        locale="fr"
+        faqItems={DATA_RECOVERY_FAQ_ITEMS}
+      />
       <Header />
 
       <main>
